@@ -1,0 +1,52 @@
+{
+  "name": "lawnova-webapp",
+  "version": "1.0.0",
+  "description": "Legal Learning Scheduler & Mock Trial Portal",
+  "type": "module",
+  "main": "api-gateway/server.js",
+  "scripts": {
+    "start": "node api-gateway/server.js",
+    "dev": "nodemon api-gateway/server.js",
+    "dev:auth": "nodemon services/auth-service/server.js",
+    "dev:mocktrial": "nodemon services/mocktrial-service/server.js",
+    "dev:user": "nodemon services/user-service/server.js",
+    "dev:scheduling": "nodemon services/scheduling-service/server.js"
+  },
+  "keywords": [
+    "legal",
+    "mock-trial",
+    "education",
+    "scheduling"
+  ],
+  "author": "Lawnova Team",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-async-errors": "^3.1.1",
+    "express-rate-limit": "^7.5.1",
+    "helmet": "^7.1.0",
+    "http-proxy-middleware": "^2.0.6",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^0.555.0",
+    "mongoose": "^8.0.0",
+    "multer": "^2.0.2",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.7",
+    "socket.io": "^4.7.2",
+    "uuid": "^9.0.1",
+    "winston": "^3.19.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.11",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "supertest": "^6.3.3"
+  }
+}
