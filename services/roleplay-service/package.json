@@ -1,0 +1,50 @@
+{
+    "name": "roleplay-service",
+    "version": "1.0.0",
+    "description": "AI-Powered Interactive Legal Role-Playing Tool for Sri Lankan Law Students",
+    "type": "module",
+    "main": "src/server.js",
+    "scripts": {
+        "start": "node src/server.js",
+        "dev": "nodemon src/server.js",
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+        "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
+    },
+    "keywords": [
+        "roleplay",
+        "legal-education",
+        "ai-powered",
+        "mock-trial",
+        "sri-lanka"
+    ],
+    "author": "Lawnova Team",
+    "license": "MIT",
+    "dependencies": {
+        "@anthropic-ai/sdk": "^0.26.1",
+        "@google/generative-ai": "^0.24.1",
+        "@langchain/core": "^1.1.8",
+        "@langchain/textsplitters": "^1.0.1",
+        "axios": "^1.6.7",
+        "body-parser": "^2.2.1",
+        "chromadb": "^3.2.0",
+        "cors": "^2.8.5",
+        "dnscache": "^1.0.2",
+        "dotenv": "^16.6.1",
+        "express": "^4.22.1",
+        "express-async-errors": "^3.1.1",
+        "express-rate-limit": "^7.1.5",
+        "helmet": "^7.1.0",
+        "joi": "^17.13.3",
+        "langchain": "^1.2.3",
+        "mongoose": "^8.0.0",
+        "openai": "^4.104.0",
+        "pino": "^8.17.2",
+        "pino-pretty": "^10.3.1"
+    },
+    "devDependencies": {
+        "jest": "^29.7.0",
+        "mongodb-memory-server": "^9.1.6",
+        "nodemon": "^3.1.0",
+        "supertest": "^6.3.3"
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "name": "python-backend",
+    "version": "1.0.0",
+    "description": "Python backend for Lawnova Roleplay Service",
+    "scripts": {
+        "dev": "python app.py",
+        "start": "python app.py"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+}
