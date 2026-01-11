@@ -16,7 +16,7 @@ const config = {
 
   // Database
   mongodb: {
-    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/lawnova',
+    uri: process.env.MONGODB_URI || 'mongodb+srv://janithviranga2001_db_user:EZIjTsPS3lDIrCtf@mocktrails.gl9ftpc.mongodb.net/?appName=Mocktrails',
     options: {
       maxPoolSize: 10,
       minPoolSize: 5,

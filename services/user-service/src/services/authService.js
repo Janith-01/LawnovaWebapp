@@ -32,6 +32,10 @@ export const register = async (registerData, ipAddress, userAgent) => {
     role: 'student', // Default role
     isActive: true,
     isEmailVerified: false,
+    profile: {
+      institution: validated.institution,
+      languagePreference: validated.languagePreference,
+    },
   });
 
   await user.save();
@@ -100,7 +104,7 @@ export const login = async (loginData, ipAddress, userAgent) => {
   await user.resetFailedLoginAttempts();
 
   // Generate tokens
-  const accessToken = generateAccessToken(user._id, user.role);
+  const accessToken = generateAccessToken(user._id, user.role, user.email);
   const refreshToken = generateRefreshToken(user._id);
 
   // Store refresh token
@@ -178,7 +182,7 @@ export const refresh = async (refreshToken, ipAddress, userAgent) => {
   }
 
   // Generate new tokens
-  const newAccessToken = generateAccessToken(user._id, user.role);
+  const newAccessToken = generateAccessToken(user._id, user.role, user.email);
   const newRefreshToken = generateRefreshToken(user._id);
 
   // Revoke old refresh token
