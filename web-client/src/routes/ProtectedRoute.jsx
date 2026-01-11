@@ -1,34 +1,85 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { Loader2 } from 'lucide-react';
 
-const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
+/**
+ * ProtectedRoute - Protects routes that require authentication
+ * @param {Object} props
+ * @param {React.ReactNode} props.children - The protected content
+ * @param {boolean} props.adminOnly - If true, only admins can access
+ * @param {string} props.redirectTo - Custom redirect path (default: /auth/login)
+ */
+const ProtectedRoute = ({
+  children,
+  adminOnly = false,
+  redirectTo = '/auth/login'
+}) => {
+  const { user, loading, isAdmin } = useAuth();
   const location = useLocation();
 
+  // Show loading state while checking authentication
   if (loading) {
-    // Show a loading spinner or skeleton screen while checking auth state
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-purple-500" />
+          <p className="text-sm text-slate-400">Loading...</p>
+        </div>
       </div>
     );
   }
 
-  if (!isAuthenticated) {
-    // Redirect them to the /login page, but save the current location they were
-    // trying to go to when they were redirected. This allows us to send them
-    // along to that page after they login, which is a nicer user experience.
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  // Not authenticated - redirect to login
+  if (!user) {
+    return (
+      <Navigate
+        to={redirectTo}
+        state={{ from: location }}
+        replace
+      />
+    );
   }
 
+  // Trying to access admin route without admin privileges
   if (adminOnly && !isAdmin) {
-    // If the user is not an admin and tries to access an admin route,
-    // redirect them to their dashboard.
     return <Navigate to="/dashboard" replace />;
+  }
+
+  // If children are provided, render them. Otherwise render Outlet for nested routes.
+  return children ? children : <Outlet />;
+};
+
+/**
+ * AdminRoute - Shorthand for admin-only protected routes
+ */
+const AdminRoute = ({ children }) => {
+  return <ProtectedRoute adminOnly>{children}</ProtectedRoute>;
+};
+
+/**
+ * GuestRoute - Routes only accessible when NOT logged in
+ */
+const GuestRoute = ({ children, redirectTo = '/dashboard' }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-slate-400" />
+          <p className="text-sm text-slate-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to={redirectTo} replace />;
   }
 
   return children;
 };
 
 export default ProtectedRoute;
+export { ProtectedRoute, AdminRoute, GuestRoute };
