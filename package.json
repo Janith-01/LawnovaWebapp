@@ -8,8 +8,8 @@
     "start": "node api-gateway/server.js",
     "dev": "nodemon api-gateway/server.js",
     "dev:auth": "nodemon services/auth-service/server.js",
-    "dev:mocktrial": "nodemon services/mocktrial-service/server.js",
-    "dev:user": "nodemon services/user-service/server.js",
+    "dev:mocktrial": "nodemon services/mocktrial-service/src/server.js",
+    "dev:user": "nodemon services/user-service/src/server.js",
     "dev:scheduling": "nodemon services/scheduling-service/server.js"
   },
   "keywords": [
