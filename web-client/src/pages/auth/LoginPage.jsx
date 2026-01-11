@@ -1,95 +1,181 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import AuthLayout from '@/components/layout/AuthLayout';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Eye, EyeOff, Mail, Lock, AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
+
+import AuthLayout from '../../components/layout/AuthLayout';
+import { Button, Input, Label, Alert, AlertTitle, AlertDescription } from '../../components/ui';
+import { useAuth } from '../../context/AuthContext';
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
 });
 
 const LoginPage = () => {
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [accountLocked, setAccountLocked] = useState(null);
+
+  const from = location.state?.from?.pathname || '/dashboard';
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
 
   const onSubmit = async (data) => {
+    setIsLoading(true);
+    setAccountLocked(null);
+
     try {
       await login(data.email, data.password);
-      navigate('/dashboard');
+      navigate(from, { replace: true });
     } catch (error) {
-      // Error handled by AuthContext toast
+      const errorData = error.response?.data?.error;
+      const errorCode = errorData?.code;
+      const errorMessage = errorData?.message || 'Login failed. Please try again.';
+
+      // Handle account locked scenario
+      if (errorCode === 'ACCOUNT_LOCKED') {
+        const lockUntil = errorData?.lockUntil;
+        setAccountLocked({
+          message: errorMessage,
+          lockUntil: lockUntil ? new Date(lockUntil) : null,
+        });
+      } else if (errorCode === 'INVALID_CREDENTIALS') {
+        const remainingAttempts = errorData?.remainingAttempts;
+        if (remainingAttempts !== undefined && remainingAttempts <= 2) {
+          toast.warning(`Invalid credentials. ${remainingAttempts} attempt(s) remaining before account lockout.`);
+        } else {
+          toast.error('Invalid email or password');
+        }
+      } else if (errorCode === 'ACCOUNT_INACTIVE') {
+        toast.error('Your account has been deactivated. Please contact support.');
+      } else {
+        toast.error(errorMessage);
+      }
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const formatLockTime = (lockUntil) => {
+    if (!lockUntil) return 'a few minutes';
+    const now = new Date();
+    const diff = lockUntil - now;
+    const minutes = Math.ceil(diff / (1000 * 60));
+    return minutes > 0 ? `${minutes} minute(s)` : 'shortly';
   };
 
   return (
     <AuthLayout
-      title="Sign in to your account"
-      subtitle={
-        <>
-          Or{' '}
-          <Link to="/register" className="font-medium text-primary hover:text-primary/90">
-            create a new account
-          </Link>
-        </>
-      }
+      title="Welcome back"
+      subtitle="Sign in to continue to your account"
     >
-      <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email address
-          </label>
-          <div className="mt-1">
+      {accountLocked && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            Account Temporarily Locked
+          </AlertTitle>
+          <AlertDescription>
+            {accountLocked.message}
+            {accountLocked.lockUntil && (
+              <span className="block mt-1">
+                Please try again in {formatLockTime(accountLocked.lockUntil)}.
+              </span>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email Address</Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               id="email"
               type="email"
-              autoComplete="email"
-              error={errors.email?.message}
+              placeholder="name@example.com"
+              className="pl-10 dark:bg-white dark:text-slate-900 dark:border-slate-200"
               {...register('email')}
+              error={errors.email?.message}
             />
           </div>
         </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
-          <div className="mt-1">
-            <Input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              error={errors.password?.message}
-              {...register('password')}
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="text-sm">
-            <Link to="/forgot-password" className="font-medium text-primary hover:text-primary/90">
-              Forgot your password?
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link
+              to="/auth/forgot-password"
+              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+            >
+              Forgot password?
             </Link>
           </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Enter your password"
+              className="pl-10 pr-10 dark:bg-white dark:text-slate-900 dark:border-slate-200"
+              {...register('password')}
+              error={errors.password?.message}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
         </div>
 
-        <div>
-          <Button type="submit" className="w-full" isLoading={isSubmitting}>
-            Sign in
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          className="w-full"
+          size="lg"
+          isLoading={isLoading}
+          disabled={!!accountLocked}
+        >
+          Sign In
+        </Button>
       </form>
+
+      <div className="mt-6 text-center">
+        <p className="text-sm text-slate-600">
+          Don't have an account?{' '}
+          <Link
+            to="/auth/register"
+            className="font-semibold text-slate-900 hover:underline"
+          >
+            Create one now
+          </Link>
+        </p>
+      </div>
     </AuthLayout>
   );
 };
