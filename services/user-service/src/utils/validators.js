@@ -35,6 +35,8 @@ export const registerSchema = Joi.object({
       'string.min': 'Full name must be at least 2 characters',
       'string.max': 'Full name must not exceed 100 characters',
     }),
+  institution: Joi.string().max(200).trim().allow(null, ''),
+  languagePreference: Joi.string().valid('en', 'si', 'ta', 'hi', 'bn').default('en'),
 }).unknown(false);
 
 /**
@@ -71,7 +73,7 @@ export const updateProfileSchema = Joi.object({
   profile: Joi.object({
     avatarUrl: Joi.string().uri().allow(null),
     institution: Joi.string().max(200).trim().allow(null),
-    languagePreference: Joi.string().valid('en', 'si', 'ta'),
+    languagePreference: Joi.string().valid('en', 'si', 'ta', 'hi', 'bn'),
     bio: Joi.string().max(500).allow(null),
   }).unknown(false),
 }).unknown(false);

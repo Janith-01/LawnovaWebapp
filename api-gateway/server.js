@@ -1,40 +1,537 @@
 import express from 'express';
 import cors from 'cors';
+console.log('[Gateway] Restarting server.js...');
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load env from repo-root FIRST (shared secrets), then gateway-local to override.
+// Repo-root (.env) contains shared secrets like JWT_SECRET in this codebase.
+const repoRootEnv = path.join(__dirname, '../.env');
+const gatewayLocalEnv = path.join(__dirname, '.env');
+
+if (fs.existsSync(repoRootEnv)) {
+  dotenv.config({ path: repoRootEnv });
+  console.log(`[Gateway] Loaded env from: ${repoRootEnv}`);
+}
+if (fs.existsSync(gatewayLocalEnv)) {
+  dotenv.config({ path: gatewayLocalEnv, override: true });
+  console.log(`[Gateway] Loaded env from: ${gatewayLocalEnv}`);
+}
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 
-const PORT = process.env.PORT || 5000;
+// IMPORTANT:
+// Do NOT JSON-parse proxied /api/* requests in the gateway.
+// Parsing consumes the request stream and can surface JSON SyntaxErrors here,
+// preventing the request from reaching the downstream service.
+// Only gateway-owned routes under /auth/* need JSON parsing.
+app.use('/auth', express.json({ limit: '10kb' }));
+app.use(cookieParser());
+
+const PORT = process.env.API_GATEWAY_PORT || process.env.PORT || 5000;
+const hasJwtSecret = !!process.env.JWT_SECRET;
+console.log(`[Gateway] JWT_SECRET loaded: ${hasJwtSecret}`);
+
+// Decode access token and attach user to req for downstream header injection.
+// Token payload is expected to include: { sub: userId, role: 'student'|'admin', email: '...' }
+app.use((req, res, next) => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) return next();
+
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length).trim() : null;
+  const cookieToken = req.cookies?.access_token;
+  const token = bearerToken || cookieToken;
+  if (!token) return next();
+
+  try {
+    const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
+    if (decoded?.sub && decoded?.role) {
+      req.user = {
+        id: decoded.sub,
+        role: decoded.role,
+        email: decoded.email || null,
+      };
+    }
+  } catch {
+    // Ignore invalid/expired tokens here; downstream services will enforce auth.
+  }
+
+  next();
+});
+
+/**
+ * POST /auth/login
+ * Verifies credentials via user-service, then issues a gateway access JWT in an HttpOnly cookie.
+ */
+app.post('/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    const userServiceUrl = 'http://localhost:5002/auth/login';
+    const upstream = await fetch(userServiceUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': req.get('user-agent') || 'api-gateway',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const upstreamBody = await upstream.json().catch(() => null);
+    if (!upstream.ok) {
+      const message = upstreamBody?.error?.message || upstreamBody?.message || 'Login failed';
+      return res.status(upstream.status).json({ message });
+    }
+
+    const upstreamUser = upstreamBody?.data?.user;
+    if (!upstreamUser?._id || !upstreamUser?.role) {
+      return res.status(502).json({ message: 'Invalid login response from user service' });
+    }
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return res.status(500).json({ message: 'JWT_SECRET not configured' });
+    }
+
+    // Production-grade practice: mint a gateway token with an explicit 24h lifetime
+    // to match the cookie maxAge for localhost persistence.
+    const accessToken = jwt.sign(
+      { sub: upstreamUser._id, role: upstreamUser.role, email: upstreamUser.email },
+      secret,
+      { expiresIn: '24h', algorithm: 'HS256' }
+    );
+
+    // Create a refresh token with longer expiry
+    const refreshToken = jwt.sign(
+      { sub: upstreamUser._id, type: 'refresh' },
+      secret,
+      { expiresIn: '7d', algorithm: 'HS256' }
+    );
+
+    // Also set HttpOnly cookie as backup auth method
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false,
+      maxAge: 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+
+    const name =
+      upstreamUser.fullName ||
+      [upstreamUser.firstName, upstreamUser.lastName].filter(Boolean).join(' ') ||
+      upstreamUser.email ||
+      'User';
+
+    // Return in the format expected by frontend: { data: { accessToken, refreshToken, user } }
+    return res.status(200).json({
+      data: {
+        accessToken,
+        refreshToken,
+        user: {
+          _id: upstreamUser._id,
+          id: upstreamUser._id,
+          email: upstreamUser.email,
+          fullName: name,
+          firstName: upstreamUser.firstName,
+          lastName: upstreamUser.lastName,
+          role: upstreamUser.role,
+        }
+      }
+    });
+  } catch (err) {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+/**
+ * GET /auth/me
+ * Restores session from HttpOnly cookie and returns authenticated user info.
+ */
+app.get('/auth/me', async (req, res) => {
+  try {
+    const token = req.cookies?.access_token;
+    if (!token) return res.status(401).json({ message: 'Unauthorized' });
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) return res.status(500).json({ message: 'JWT_SECRET not configured' });
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
+    } catch {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Fetch user profile from user-service to return a stable name
+    const meResp = await fetch('http://localhost:5002/users/me', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'User-Agent': req.get('user-agent') || 'api-gateway',
+      },
+    });
+
+    const meBody = await meResp.json().catch(() => null);
+    if (!meResp.ok) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const user = meBody?.data;
+    const name =
+      user?.fullName ||
+      [user?.firstName, user?.lastName].filter(Boolean).join(' ') ||
+      user?.email ||
+      'User';
+
+    return res.status(200).json({
+      id: decoded.sub,
+      name,
+      role: decoded.role,
+    });
+  } catch {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /auth/logout
+ * Clears the HttpOnly cookie.
+ */
+app.post('/auth/logout', (req, res) => {
+  res.clearCookie('access_token', { path: '/' });
+  return res.status(200).json({ success: true });
+});
+
+// Helper function to log proxy requests
+const logProxyRequest = (req, service, targetPort) => {
+  const cleanUrl = req.url.replace('/api', '');
+  console.log(`[Gateway] ${req.method.padEnd(6)} ${req.originalUrl.padEnd(40)} -> ${service} (${targetPort}) ${cleanUrl}`);
+};
+
+
+const forwardJsonBodyToProxy = (proxyReq, req) => {
+  const method = (req.method || '').toUpperCase();
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) return;
+
+  const contentType = String(req.headers?.['content-type'] || '');
+  if (!contentType.includes('application/json')) return;
+
+  if (!req.body || typeof req.body !== 'object') return;
+  const bodyKeys = Object.keys(req.body);
+  if (bodyKeys.length === 0) return;
+
+  const bodyData = JSON.stringify(req.body);
+  proxyReq.setHeader('Content-Type', 'application/json');
+  proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+  proxyReq.write(bodyData);
+};
 
 // Proxy configuration for user-service
 const userServiceProxy = createProxyMiddleware({
   target: 'http://localhost:5002',
   changeOrigin: true,
-  pathRewrite: {
-    '^/api': '', // Remove /api prefix: /api/auth/register -> /auth/register
+  // NOTE: Express strips the mount path from req.url when a middleware is mounted
+  // (e.g. app.use('/api/users', proxy) makes req.url start with '/me').
+  // Use req.originalUrl to make rewrites stable and avoid accidental upstream 404s.
+  pathRewrite: (path, req) => {
+    const original = req.originalUrl || path;
+
+    if (original.startsWith('/api/auth')) return original.replace(/^\/api\/auth/, '/auth');
+    if (original.startsWith('/api/admin')) return original.replace(/^\/api\/admin/, '/admin');
+    // Backward compatibility: /api/user/* and /api/users/* both map to /users/*
+    if (original.startsWith('/api/user')) return original.replace(/^\/api\/user(s)?/, '/users');
+
+    return path;
   },
   onProxyReq: (proxyReq, req, res) => {
-    console.log(`[Gateway] Proxying: ${req.method} ${req.originalUrl} -> http://localhost:5002${req.url.replace('/api', '')}`);
+    // If we have a cookie token but no Authorization header, pass it through.
+    const cookieToken = req.cookies?.access_token;
+    if (!req.headers.authorization && cookieToken) {
+      proxyReq.setHeader('Authorization', `Bearer ${cookieToken}`);
+    }
+
+    // Inject headers from JWT (using user-id format for consistency)
+    if (req.user) {
+      proxyReq.setHeader('user-id', req.user.id);
+      proxyReq.setHeader('user-role', req.user.role);
+    }
+
+    forwardJsonBodyToProxy(proxyReq, req);
+    logProxyRequest(req, 'user-service', 5002);
   },
   onError: (err, req, res) => {
-    console.error('[Gateway] Proxy error:', err);
-    res.status(500).json({ error: 'Proxy error' });
+    console.error('[Gateway] User Service proxy error:', err.message);
+    res.status(503).json({ error: 'User service unavailable' });
   },
 });
 
-// Apply the proxy to all /api/* routes
-app.use('/api', userServiceProxy);
+// Proxy configuration for mocktrial-service
+const mocktrialServiceProxy = createProxyMiddleware({
+  target: 'http://localhost:10004',
+  changeOrigin: true,
+  pathRewrite: (path, req) => {
+    const original = req.originalUrl || path;
 
-// Health check endpoint
+    // Route mapping for mocktrial-service
+    if (original.startsWith('/api/mock-trials')) return original.replace(/^\/api\/mock-trials/, '/api');
+    if (original.startsWith('/api/sessions')) return original.replace(/^\/api\/sessions/, '/sessions');
+    // Default passthrough
+    return path;
+  },
+  onProxyReq: (proxyReq, req, res) => {
+    // Always mark as proxied from gateway (for downstream CORS skip)
+    proxyReq.setHeader('x-forwarded-by', 'api-gateway');
+
+    // Pass auth token from cookie if present
+    const cookieToken = req.cookies?.access_token;
+    if (!req.headers.authorization && cookieToken) {
+      proxyReq.setHeader('Authorization', `Bearer ${cookieToken}`);
+    }
+
+    // Inject auth headers (using lowercase without x- prefix as mocktrial-service expects)
+    if (req.user) {
+      console.log(`[Gateway] Injecting auth headers for ${req.user.id} (${req.user.role})`);
+      proxyReq.setHeader('user-id', req.user.id);
+      proxyReq.setHeader('user-role', req.user.role);
+      if (req.user.email) {
+        proxyReq.setHeader('user-email', req.user.email);
+      }
+    } else {
+      console.warn(`[Gateway] No req.user for ${req.method} ${req.originalUrl} - auth headers NOT injected`);
+    }
+
+    forwardJsonBodyToProxy(proxyReq, req);
+
+    logProxyRequest(req, 'mocktrial-service', 10004);
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    if (proxyRes.statusCode < 400) {
+      console.log(`[Gateway] ${req.method} ${req.originalUrl} → ${proxyRes.statusCode}`);
+    } else {
+      console.error(`[Gateway] ${req.method} ${req.originalUrl} → ${proxyRes.statusCode}`);
+    }
+  },
+  onError: (err, req, res) => {
+    console.error('[Gateway] Mock Trial Service error:', {
+      message: err.message,
+      code: err.code,
+      method: req.method,
+      path: req.originalUrl,
+    });
+    res.status(503).json({ error: 'Mock Trial service unavailable', details: err.message });
+  },
+});
+
+// Socket.IO proxy (WebSocket upgrades) for mocktrial-service
+const mocktrialSocketIoProxy = createProxyMiddleware({
+  target: 'http://localhost:10004',
+  changeOrigin: true,
+  ws: true,
+  logLevel: 'debug', // Increased for troubleshooting
+  onProxyReqWs: (proxyReq, req, socket, options, head) => {
+    // Forward Host and Origin headers to allow handshake
+    proxyReq.setHeader('Host', 'localhost:10004');
+    const origin = req.headers.origin;
+    if (origin) {
+      proxyReq.setHeader('Origin', origin);
+    }
+  },
+  onError: (err, req, res) => {
+    console.error('[Gateway] WebSocket Proxy Error:', err.message);
+  }
+});
+
+// Route requests to appropriate services
+// Note: Ensure /socket.io is mounted before catch-all routes
+app.use('/socket.io', mocktrialSocketIoProxy);
+
+app.use('/api/auth', userServiceProxy);
+app.use('/api/admin', userServiceProxy);
+app.use('/api/user', userServiceProxy);
+app.use('/api/users', userServiceProxy);
+
+// Proxy configuration for ai-service (AI Digital Paralegal)
+const aiServiceProxy = createProxyMiddleware({
+  target: 'http://localhost:5008',
+  changeOrigin: true,
+  pathRewrite: (path, req) => {
+    const original = req.originalUrl || path;
+    // /api/ai/* -> /api/*
+    if (original.startsWith('/api/ai')) return original.replace(/^\/api\/ai/, '/api');
+    // /api/video/* -> /api/video/* (keep as is)
+    return original;
+  },
+  onProxyReq: (proxyReq, req, res) => {
+    // 1. Add internal service auth header (REQUIRED for ai-service endpoints)
+    const internalSecret = process.env.INTERNAL_SERVICE_SECRET || 'super_secure_internal_secret_key_123';
+    proxyReq.setHeader('x-internal-service-auth', internalSecret);
+
+    // 2. Forward Authorization header from browser (for user identification)
+    // This ensures all courtroom participants (Defendant, Prosecution, Judge) are recognized
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      proxyReq.setHeader('Authorization', authHeader);
+      console.log(`[Gateway] Video Proxy: Forwarding Authorization header for ${req.method} ${req.originalUrl}`);
+    }
+
+    // 3. Also check for cookie-based auth token and forward if no header present
+    const cookieToken = req.cookies?.access_token;
+    if (!authHeader && cookieToken) {
+      proxyReq.setHeader('Authorization', `Bearer ${cookieToken}`);
+      console.log(`[Gateway] Video Proxy: Using cookie token for ${req.method} ${req.originalUrl}`);
+    }
+
+    // 4. Add user identification headers (from decoded JWT in gateway middleware)
+    if (req.user) {
+      proxyReq.setHeader('user-id', req.user.id);
+      proxyReq.setHeader('user-role', req.user.role);
+      if (req.user.email) {
+        proxyReq.setHeader('user-email', req.user.email);
+      }
+      console.log(`[Gateway] Video Proxy: User identified as ${req.user.id} (${req.user.role})`);
+    } else {
+      console.warn(`[Gateway] Video Proxy: No user context for ${req.method} ${req.originalUrl} - check Authorization header`);
+    }
+
+    // 5. Forward request body for POST/PUT/PATCH requests
+    forwardJsonBodyToProxy(proxyReq, req);
+
+    // 6. Log the proxy request
+    logProxyRequest(req, 'ai-service', 5008);
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    // Log response status for debugging
+    if (proxyRes.statusCode >= 400) {
+      console.error(`[Gateway] Video Proxy: ${req.method} ${req.originalUrl} → ${proxyRes.statusCode}`);
+    } else {
+      console.log(`[Gateway] Video Proxy: ${req.method} ${req.originalUrl} → ${proxyRes.statusCode}`);
+    }
+  },
+  onError: (err, req, res) => {
+    console.error('[Gateway] AI Service proxy error:', err.message);
+    res.status(503).json({ error: 'AI service unavailable', details: err.message });
+  }
+});
+
+// Proxy configuration for roleplay-service
+const roleplayServiceProxy = createProxyMiddleware({
+  target: 'http://localhost:10005',
+  changeOrigin: true,
+  pathRewrite: (path, req) => {
+    return req.originalUrl || path;
+  },
+  onProxyReq: (proxyReq, req, res) => {
+    if (req.user) {
+      proxyReq.setHeader('user-id', req.user.id);
+      proxyReq.setHeader('user-role', req.user.role);
+    }
+    forwardJsonBodyToProxy(proxyReq, req);
+    logProxyRequest(req, 'roleplay-service', 10005);
+  },
+  onError: (err, req, res) => {
+    console.error('[Gateway] Roleplay Service proxy error:', err.message);
+    res.status(503).json({ error: 'Roleplay service unavailable' });
+  }
+});
+
+app.use('/api/ai', aiServiceProxy);
+app.use('/api/video', aiServiceProxy);
+app.use('/api/chat', aiServiceProxy); // Gemini Chat Completion
+
+// ------------------------------------------------------------------
+// Mock Trial Service Proxy (Room Management)
+// ------------------------------------------------------------------
+app.use('/api/mock-trials', mocktrialServiceProxy);
+app.use('/api/sessions', mocktrialServiceProxy);
+app.use('/api/dashboard', mocktrialServiceProxy);
+app.use('/api/mocktrial', mocktrialServiceProxy);
+
+// Roleplay Routes
+app.use('/api/roleplay', roleplayServiceProxy);
+
+// Health check endpoints
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', service: 'API Gateway' });
+  res.json({
+    status: 'OK',
+    service: 'API Gateway',
+    services: {
+      'user-service': 'http://localhost:5002',
+      'mocktrial-service': 'http://localhost:10004',
+      'ai-service': 'http://localhost:5008',
+      'roleplay-service': 'http://localhost:10005'
+    }
+  });
 });
 
-app.listen(PORT, () => {
-  console.log(`API Gateway running on port ${PORT}`);
-  console.log(`Proxying /api/* -> http://localhost:5002/*`);
+app.get('/health/services', (req, res) => {
+  res.json({
+    status: 'API Gateway Health Check',
+    timestamp: new Date().toISOString(),
+    services: {
+      'user-service': { port: 5002, status: 'configured' },
+      'mocktrial-service': { port: 10004, status: 'configured' },
+      'ai-service': { port: 5008, status: 'configured' },
+      'roleplay-service': { port: 10005, status: 'configured' }
+    },
+    routing: {
+      '/api/auth/*': 'user-service',
+      '/api/admin/*': 'user-service',
+      '/api/user/*': 'user-service',
+      '/api/users/*': 'user-service',
+      '/api/mock-trials/*': 'mocktrial-service (10004)',
+      '/api/sessions/*': 'mocktrial-service (10004)',
+      '/api/ai/*': 'ai-service (5008)',
+      '/api/roleplay/*': 'roleplay-service (10005)'
+    }
+  });
 });
+
+const server = app.listen(PORT, () => {
+  console.log(`\n========================================`);
+  console.log(`API Gateway running on port ${PORT}`);
+  console.log(`========================================`);
+  console.log(`\nService Routes:`);
+  console.log(`  /api/auth/*       → user-service (5002)`);
+  console.log(`  /api/admin/*      → user-service (5002)`);
+  console.log(`  /api/user/*       → user-service (5002)`);
+  console.log(`  /api/users/*      → user-service (5002)`);
+  console.log(`  /api/mock-trials/* → mocktrial-service (10004)`);
+  console.log(`  /api/sessions/*   → mocktrial-service (10004)`);
+  console.log(`  /api/ai/*         → ai-service (5008)`);
+  console.log(`  /api/roleplay/*   → roleplay-service (10005)`);
+  console.log(`\nHealth Checks:`);
+  console.log(`  GET /health            → Gateway status`);
+  console.log(`  GET /health/services   → Service status`);
+  console.log(`\n========================================\n`);
+});
+
+// Wire WebSocket upgrade handling for Socket.IO
+server.on('upgrade', (req, socket, head) => {
+  try {
+    if (req.url && req.url.startsWith('/socket.io')) {
+      mocktrialSocketIoProxy.upgrade(req, socket, head);
+    }
+  } catch {
+    // ignore
+  }
+});
+// Force restart
