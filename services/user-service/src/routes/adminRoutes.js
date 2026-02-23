@@ -6,11 +6,41 @@ import {
   activateUserController,
   deactivateUserController,
   issuePasswordResetController,
+  searchUsersController,
   getAuditLogsController,
 } from '../controllers/adminController.js';
 import { requireAuth, requireAdmin } from '../middleware/authMiddleware.js';
+import { validate } from '../middleware/validate.js';
+import { adminUpdateUserSchema } from '../utils/validators.js';
 
 const router = express.Router();
+
+/**
+ * Service-to-service authentication middleware
+ * Validates x-service-auth header for internal service calls
+ */
+const requireServiceAuth = (req, res, next) => {
+  const serviceToken = req.get('x-service-auth');
+  const validToken = process.env.SERVICE_AUTH_TOKEN || 'dev-token';
+
+  if (!serviceToken || serviceToken !== validToken) {
+    return res.status(401).json({
+      success: false,
+      error: {
+        code: 'INVALID_SERVICE_TOKEN',
+        message: 'Invalid service authentication token',
+      },
+    });
+  }
+
+  next();
+};
+
+/**
+ * GET /admin/users/search
+ * Search for user by email or username (service-to-service call)
+ */
+router.get('/users/search', requireServiceAuth, searchUsersController);
 
 /**
  * GET /admin/users
@@ -28,7 +58,7 @@ router.get('/users/:id', requireAuth, requireAdmin, getUserController);
  * PATCH /admin/users/:id
  * Update user
  */
-router.patch('/users/:id', requireAuth, requireAdmin, updateUserController);
+router.patch('/users/:id', requireAuth, requireAdmin, validate(adminUpdateUserSchema), updateUserController);
 
 /**
  * POST /admin/users/:id/activate

@@ -53,7 +53,7 @@ const ProfilePage = () => {
 
   const onProfileSubmit = async (data) => {
     try {
-      const response = await api.patch('/api/me', data);
+      const response = await api.patch('/api/users/me', data);
       updateUser(response.data.data);
       toast.success('Profile updated successfully');
     } catch (error) {
@@ -63,7 +63,7 @@ const ProfilePage = () => {
 
   const onPasswordSubmit = async (data) => {
     try {
-      await api.post('/api/me/change-password', {
+      await api.post('/api/users/me/change-password', {
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
       });

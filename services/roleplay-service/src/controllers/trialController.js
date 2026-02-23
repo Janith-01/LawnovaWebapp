@@ -1,0 +1,568 @@
+import OpenAI from 'openai';
+import TrialSession from '../models/TrialSession.js';
+import logger from '../utils/logger.js';
+
+/**
+ * OpenAI client instance (lazy-loaded)
+ */
+let openaiClient = null;
+
+/**
+ * Initialize OpenAI client
+ */
+const getOpenAIClient = () => {
+    if (!openaiClient) {
+        if (!process.env.OPENAI_API_KEY) {
+            throw new Error('OPENAI_API_KEY is not configured in environment variables');
+        }
+        openaiClient = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY
+        });
+    }
+    return openaiClient;
+};
+
+/**
+ * System prompt template for Sri Lankan legal case generation
+ */
+const generateSystemPrompt = (role, caseStage) => {
+    return `You are an expert Sri Lankan legal case strategist and legal educator specializing in training law students. Your expertise covers:
+
+1. Sri Lankan Criminal Law (Penal Code of Sri Lanka - Act No. 2 of 1883)
+2. Sri Lankan Civil Law (Civil Procedure Code)
+3. Evidence Ordinance of Sri Lanka
+4. Constitution of Sri Lanka
+5. Common Law principles as applied in Sri Lanka
+6. Court procedures of District Courts, High Courts, Court of Appeal, and Supreme Court of Sri Lanka
+
+TASK: Generate a realistic criminal case scenario for a mock trial roleplay.
+
+CONTEXT:
+- The student will play the role of: ${role}
+- The current case stage is: ${caseStage}
+- This is for educational purposes to train Sri Lankan law students
+
+REQUIREMENTS:
+1. Create an original, engaging case scenario relevant to Sri Lanka
+2. Include specific facts that present clear legal issues
+3. Reference relevant Sri Lankan statutes and their specific sections
+4. The scenario should be appropriate for the selected case stage
+5. Provide clear objectives for the student's role
+
+RESPONSE FORMAT: You MUST respond with a valid JSON object in the following structure:
+{
+    "title": "Case title (e.g., The State v. [Defendant Name])",
+    "facts": "Detailed description of the case facts, background, and circumstances (3-4 paragraphs)",
+    "legalIssues": ["Array of specific legal issues to be resolved"],
+    "goal": "Clear objective for the ${role} in this case stage",
+    "relevantStatutes": [
+        {
+            "name": "Name of the Sri Lankan law/act",
+            "sections": ["Specific sections applicable"],
+            "description": "Brief description of how this statute applies"
+        }
+    ],
+    "caseType": "Criminal",
+    "difficulty": "Intermediate",
+    "parties": {
+        "prosecution": "The State",
+        "defense": "Name of defendant and their description",
+        "victim": "Name and description of victim if applicable",
+        "witnesses": ["List of potential witnesses"]
+    }
+}
+
+IMPORTANT: 
+- Use ONLY Sri Lankan Law. Do NOT reference US, UK, or any other jurisdiction's laws.
+- The facts should be detailed enough to support meaningful legal arguments.
+- Include at least 2-3 relevant Sri Lankan statutes with specific sections.`;
+};
+
+/**
+ * @desc    Initialize a new trial session
+ * @route   POST /api/trials/init-trial
+ * @access  Private
+ */
+export const initTrial = async (req, res) => {
+    const { userId, role, caseStage } = req.body;
+
+    // Validate required fields
+    if (!userId) {
+        return res.status(400).json({
+            success: false,
+            message: 'userId is required'
+        });
+    }
+
+    if (!role || !['Lawyer', 'Opposition'].includes(role)) {
+        return res.status(400).json({
+            success: false,
+            message: 'role is required and must be either "Lawyer" or "Opposition"'
+        });
+    }
+
+    const validStages = [
+        'Pre-Trial',
+        'Opening Statements',
+        'Prosecution Evidence',
+        'Defense Evidence',
+        'Cross-Examination',
+        'Closing Arguments',
+        'Verdict',
+        'Full Trial'
+    ];
+
+    if (!caseStage || !validStages.includes(caseStage)) {
+        return res.status(400).json({
+            success: false,
+            message: `caseStage is required and must be one of: ${validStages.join(', ')}`
+        });
+    }
+
+    try {
+        logger.info({ userId, role, caseStage }, 'Initializing new trial session');
+
+        // Generate system prompt
+        const systemPrompt = generateSystemPrompt(role, caseStage);
+
+        // Get OpenAI client
+        const openai = getOpenAIClient();
+        const model = process.env.OPENAI_MODEL || 'gpt-4';
+
+        logger.info({ model }, 'Calling OpenAI API for scenario generation');
+
+        // Call OpenAI API with JSON mode
+        const completion = await openai.chat.completions.create({
+            model: model,
+            messages: [
+                {
+                    role: 'system',
+                    content: systemPrompt
+                },
+                {
+                    role: 'user',
+                    content: `Generate a ${caseStage} stage case scenario for a ${role} in a Sri Lankan criminal trial. Make it challenging but educational for law students.`
+                }
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.7,
+            max_tokens: 2000
+        });
+
+        // Parse the generated scenario
+        const generatedContent = completion.choices[0].message.content;
+        let scenario;
+
+        try {
+            scenario = JSON.parse(generatedContent);
+        } catch (parseError) {
+            logger.error({ error: parseError, content: generatedContent }, 'Failed to parse OpenAI response');
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to parse AI-generated scenario',
+                error: 'Invalid JSON response from AI'
+            });
+        }
+
+        // Validate required scenario fields
+        if (!scenario.title || !scenario.facts || !scenario.legalIssues || !scenario.goal) {
+            logger.error({ scenario }, 'Incomplete scenario generated');
+            return res.status(500).json({
+                success: false,
+                message: 'AI generated an incomplete scenario',
+                error: 'Missing required fields in scenario'
+            });
+        }
+
+        // Ensure legalIssues is an array
+        if (!Array.isArray(scenario.legalIssues)) {
+            scenario.legalIssues = [scenario.legalIssues];
+        }
+
+        // Set default values for optional fields
+        scenario.jurisdiction = 'Sri Lanka';
+        scenario.caseType = scenario.caseType || 'Criminal';
+        scenario.difficulty = scenario.difficulty || 'Intermediate';
+
+        // Create new trial session
+        const trialSession = new TrialSession({
+            userId,
+            role,
+            caseStage,
+            status: 'Active',
+            scenario: {
+                title: scenario.title,
+                facts: scenario.facts,
+                legalIssues: scenario.legalIssues,
+                goal: scenario.goal,
+                relevantStatutes: scenario.relevantStatutes || [],
+                jurisdiction: scenario.jurisdiction,
+                caseType: scenario.caseType,
+                difficulty: scenario.difficulty,
+                parties: scenario.parties || {
+                    prosecution: 'The State',
+                    defense: '',
+                    victim: '',
+                    witnesses: []
+                }
+            },
+            dayCount: 3, // Default 3-day trial
+            currentDay: 1,
+            dayProgress: [{
+                dayNumber: 1,
+                stage: 'Opening',
+                startedAt: new Date()
+            }],
+            transcript: [{
+                role: 'System',
+                content: `Trial session initialized. You are playing as ${role} in the case: ${scenario.title}. Current stage: ${caseStage}.`,
+                timestamp: new Date()
+            }],
+            aiConfig: {
+                model: model,
+                temperature: 0.7,
+                maxTokens: 2000
+            }
+        });
+
+        // Save to database
+        await trialSession.save();
+
+        logger.info({
+            sessionId: trialSession._id,
+            scenario: scenario.title
+        }, 'Trial session created successfully');
+
+        // Return response
+        return res.status(201).json({
+            success: true,
+            message: 'Trial session initialized successfully',
+            data: {
+                sessionId: trialSession._id,
+                scenario: {
+                    title: scenario.title,
+                    facts: scenario.facts,
+                    legalIssues: scenario.legalIssues,
+                    goal: scenario.goal,
+                    relevantStatutes: scenario.relevantStatutes,
+                    caseType: scenario.caseType,
+                    difficulty: scenario.difficulty,
+                    parties: scenario.parties
+                },
+                session: {
+                    role: trialSession.role,
+                    caseStage: trialSession.caseStage,
+                    status: trialSession.status,
+                    dayCount: trialSession.dayCount,
+                    currentDay: trialSession.currentDay,
+                    createdAt: trialSession.createdAt
+                }
+            }
+        });
+
+    } catch (error) {
+        logger.error({ error: error.message, stack: error.stack }, 'Failed to initialize trial');
+
+        // Handle specific OpenAI errors
+        if (error.code === 'insufficient_quota') {
+            return res.status(503).json({
+                success: false,
+                message: 'OpenAI API quota exceeded. Please try again later.',
+                error: 'API quota exceeded'
+            });
+        }
+
+        if (error.code === 'invalid_api_key') {
+            return res.status(500).json({
+                success: false,
+                message: 'OpenAI API configuration error',
+                error: 'Invalid API key'
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to initialize trial session',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * @desc    Get trial session by ID
+ * @route   GET /api/trials/:sessionId
+ * @access  Private
+ */
+export const getTrialSession = async (req, res) => {
+    const { sessionId } = req.params;
+
+    try {
+        const session = await TrialSession.findById(sessionId);
+
+        if (!session) {
+            return res.status(404).json({
+                success: false,
+                message: 'Trial session not found'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: session
+        });
+
+    } catch (error) {
+        logger.error({ error: error.message, sessionId }, 'Failed to get trial session');
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to retrieve trial session',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * @desc    Get all trial sessions for a user
+ * @route   GET /api/trials/user/:userId
+ * @access  Private
+ */
+export const getUserTrials = async (req, res) => {
+    const { userId } = req.params;
+    const { status, page = 1, limit = 10 } = req.query;
+
+    try {
+        const query = { userId };
+        if (status) {
+            query.status = status;
+        }
+
+        const sessions = await TrialSession.find(query)
+            .sort({ lastActivityAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
+            .select('-transcript'); // Exclude transcript for list view
+
+        const total = await TrialSession.countDocuments(query);
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                sessions,
+                pagination: {
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    total,
+                    pages: Math.ceil(total / limit)
+                }
+            }
+        });
+
+    } catch (error) {
+        logger.error({ error: error.message, userId }, 'Failed to get user trials');
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to retrieve user trials',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * @desc    Get user trial statistics
+ * @route   GET /api/trials/user/:userId/stats
+ * @access  Private
+ */
+export const getUserStats = async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const stats = await TrialSession.getUserStats(userId);
+
+        return res.status(200).json({
+            success: true,
+            data: stats
+        });
+
+    } catch (error) {
+        logger.error({ error: error.message, userId }, 'Failed to get user stats');
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to retrieve user statistics',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * @desc    Add message to trial transcript
+ * @route   POST /api/trials/:sessionId/message
+ * @access  Private
+ */
+export const addMessage = async (req, res) => {
+    const { sessionId } = req.params;
+    const { role, content } = req.body;
+
+    if (!role || !content) {
+        return res.status(400).json({
+            success: false,
+            message: 'role and content are required'
+        });
+    }
+
+    try {
+        const session = await TrialSession.findById(sessionId);
+
+        if (!session) {
+            return res.status(404).json({
+                success: false,
+                message: 'Trial session not found'
+            });
+        }
+
+        if (session.status !== 'Active') {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot add messages to a non-active session'
+            });
+        }
+
+        await session.addTranscriptEntry(role, content);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Message added to transcript',
+            data: {
+                messageCount: session.transcript.length,
+                lastActivityAt: session.lastActivityAt
+            }
+        });
+
+    } catch (error) {
+        logger.error({ error: error.message, sessionId }, 'Failed to add message');
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to add message',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * @desc    Complete a trial session
+ * @route   POST /api/trials/:sessionId/complete
+ * @access  Private
+ */
+export const completeSession = async (req, res) => {
+    const { sessionId } = req.params;
+    const { performance } = req.body;
+
+    try {
+        const session = await TrialSession.findById(sessionId);
+
+        if (!session) {
+            return res.status(404).json({
+                success: false,
+                message: 'Trial session not found'
+            });
+        }
+
+        if (session.status === 'Completed') {
+            return res.status(400).json({
+                success: false,
+                message: 'Session is already completed'
+            });
+        }
+
+        await session.completeSession(performance || {});
+
+        return res.status(200).json({
+            success: true,
+            message: 'Trial session completed',
+            data: {
+                sessionId: session._id,
+                status: session.status,
+                completedAt: session.completedAt,
+                totalDuration: session.totalDuration,
+                performance: session.performance
+            }
+        });
+
+    } catch (error) {
+        logger.error({ error: error.message, sessionId }, 'Failed to complete session');
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to complete session',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * @desc    Advance to next trial day
+ * @route   POST /api/trials/:sessionId/advance-day
+ * @access  Private
+ */
+export const advanceDay = async (req, res) => {
+    const { sessionId } = req.params;
+
+    try {
+        const session = await TrialSession.findById(sessionId);
+
+        if (!session) {
+            return res.status(404).json({
+                success: false,
+                message: 'Trial session not found'
+            });
+        }
+
+        if (session.status !== 'Active') {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot advance day on a non-active session'
+            });
+        }
+
+        if (session.currentDay >= session.dayCount) {
+            return res.status(400).json({
+                success: false,
+                message: 'Already at the final day of the trial'
+            });
+        }
+
+        await session.advanceDay();
+
+        // Add system message for day advancement
+        await session.addTranscriptEntry(
+            'System',
+            `Day ${session.currentDay} of the trial has begun.`
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: `Advanced to Day ${session.currentDay}`,
+            data: {
+                currentDay: session.currentDay,
+                dayCount: session.dayCount,
+                dayProgress: session.dayProgress
+            }
+        });
+
+    } catch (error) {
+        logger.error({ error: error.message, sessionId }, 'Failed to advance day');
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to advance day',
+            error: error.message
+        });
+    }
+};
+
+export default {
+    initTrial,
+    getTrialSession,
+    getUserTrials,
+    getUserStats,
+    addMessage,
+    completeSession,
+    advanceDay
+};

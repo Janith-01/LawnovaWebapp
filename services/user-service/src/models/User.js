@@ -54,7 +54,7 @@ const userSchema = new mongoose.Schema(
       },
       languagePreference: {
         type: String,
-        enum: ['en', 'si', 'ta'],
+        enum: ['en', 'si', 'ta', 'hi', 'bn'],
         default: 'en',
       },
       bio: {
@@ -62,6 +62,33 @@ const userSchema = new mongoose.Schema(
         default: null,
         maxlength: 500,
       },
+    },
+    // Mock Trial Role History for Fair Rotation Algorithm
+    mockTrialProfile: {
+      roleCounts: {
+        judge: { type: Number, default: 0 },
+        defenseLawyer: { type: Number, default: 0 },
+        prosecutionLawyer: { type: Number, default: 0 },
+        victim: { type: Number, default: 0 },
+        witness: { type: Number, default: 0 },
+        client: { type: Number, default: 0 },
+      },
+      performanceScore: {
+        type: Number,
+        default: 50, // Base score out of 100
+        min: 0,
+        max: 100,
+      },
+      syllabusProgress: {
+        crossExamination: { type: Number, default: 0 },
+        legalArgumentation: { type: Number, default: 0 },
+        caseAnalysis: { type: Number, default: 0 },
+        courtProcedure: { type: Number, default: 0 },
+        evidencePresentation: { type: Number, default: 0 },
+      },
+      totalTrialsParticipated: { type: Number, default: 0 },
+      lastRoleAssigned: { type: String, default: null },
+      lastTrialDate: { type: Date, default: null },
     },
     security: {
       failedLoginAttempts: {
