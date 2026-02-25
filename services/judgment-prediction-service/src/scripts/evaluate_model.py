@@ -10,7 +10,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 sys.path.append(os.getcwd())
 
 def evaluate():
-    model_path = "models/judgment_predictor"
+    model_path = "models"
     data_path = "data/dataset.csv"
     
     if not os.path.exists(model_path):
