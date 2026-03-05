@@ -1,1 +1,13 @@
 node_modules
+
+# Judgment Prediction Service - Raw Data
+services/judgment-prediction-service/data/
+services/judgment-prediction-service/models/
+services/judgment-prediction-service/.env
+services/judgment-prediction-service/server.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env

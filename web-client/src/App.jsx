@@ -146,7 +146,7 @@ function App() {
                 <Route path="/messages" element={<PlaceholderPage title="Messages" />} />
                 <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
                 <Route path="/drafts" element={<PlaceholderPage title="Drafting Assistant" />} />
-                <Route path="/judgment-prediction" element={<PlaceholderPage title="AI Judgment Prediction" />} />
+                {/* Judgment Prediction is already routed above */}
 
                 {/* AI Roleplay Setup Routes (with sidebar) */}
                 <Route path="/roleplay" element={<CaseBriefing />} />
