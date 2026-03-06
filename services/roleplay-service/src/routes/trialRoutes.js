@@ -97,4 +97,15 @@ router.post(
     trialController.completeSession
 );
 
+/**
+ * @route   POST /api/trials/:sessionId/finalize
+ * @desc    Finalize a trial and fetch Audit report
+ * @access  Private
+ */
+router.post(
+    '/:sessionId/finalize',
+    validate(trialSchemas.sessionIdParam, 'params'),
+    trialController.finalizeTrial
+);
+
 export default router;

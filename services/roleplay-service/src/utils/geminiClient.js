@@ -31,7 +31,7 @@ function parseGeminiJSON(responseText) {
 function createModel(systemPrompt) {
     return genAI.getGenerativeModel(
         {
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.5-flash',
             systemInstruction: { parts: [{ text: systemPrompt }] }
         },
         { apiVersion: 'v1' }
@@ -244,7 +244,7 @@ ${winProbability < 40
 
 === RESPONSE RULES ===
 1. Speak in FIRST PERSON as a judge would in court
-2. Keep response UNDER 50 WORDS
+2. Keep response between 200 and 800 WORDS
 3. If an objection was raised, you MUST rule (Sustained/Overruled)
 4. If evidence is presented, decide on its admissibility
 5. Do NOT mention probability scores or that you are an AI
@@ -254,7 +254,7 @@ ${winProbability < 40
 Respond ONLY with your dialogue as the Judge. No JSON, no explanations.`;
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
         const formattedHistory = buildHistoryContext(history, userRole);
 
         const prompt = `${systemInstruction}
@@ -270,7 +270,7 @@ Respond as ${speakerName || 'Judge Dissanayake'}:`;
         const result = await model.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
             generationConfig: {
-                maxOutputTokens: 120,
+                maxOutputTokens: 1500,
                 temperature: 0.6,
             }
         });
@@ -372,7 +372,7 @@ Object if the opposing counsel:
 
 === RESPONSE RULES ===
 1. Speak in FIRST PERSON as opposing counsel
-2. Keep response UNDER 50 WORDS
+2. Keep response between 100 and 500 WORDS
 3. Start with "Objection, Your Honor!" if objecting (state grounds)
 4. If rebutting, challenge their logic or evidence directly
 5. Be realistic - don't object to everything, pick your battles
@@ -382,7 +382,7 @@ Object if the opposing counsel:
 Respond ONLY with your dialogue. No JSON, no explanations.`;
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
         const formattedHistory = buildHistoryContext(history, userRole);
 
         const prompt = `${systemInstruction}
@@ -398,7 +398,7 @@ Respond as ${finalSpeakerName}:`;
         const result = await model.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
             generationConfig: {
-                maxOutputTokens: 120,
+                maxOutputTokens: 1500,
                 temperature: 0.75,
             }
         });
@@ -491,7 +491,7 @@ ${winProbability < 40
 
 === RESPONSE RULES ===
 1. Speak in FIRST PERSON ("I saw...", "I heard...", "I was...")
-2. Keep response UNDER 50 WORDS
+2. Keep response between 100 and 500 WORDS
 3. Only answer what you would REASONABLY KNOW based on your role
 4. You CAN ask for clarification ("Could you repeat that?")
 5. You CAN say "I don't recall" or "I'm not sure" if appropriate
@@ -502,7 +502,7 @@ ${winProbability < 40
 Respond ONLY with your testimony. No JSON, no explanations.`;
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
         const formattedHistory = buildHistoryContext(history, userRole);
 
         const prompt = `${systemInstruction}
@@ -518,7 +518,7 @@ Respond as ${witness.name} (${witness.role}, ${finalPersonality}):`;
         const result = await model.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
             generationConfig: {
-                maxOutputTokens: 100,
+                maxOutputTokens: 1500,
                 temperature: 0.85, // Higher temperature for more varied responses
             }
         });
@@ -760,7 +760,7 @@ async function generateVerdict(history, avgProbability) {
 
         const result = await verdictModel.generateContent({
             contents: [{ role: 'user', parts: [{ text: `${historyContext}\n\nDeliver your final verdict.` }] }],
-            generationConfig: { maxOutputTokens: 150, temperature: 0.6 }
+            generationConfig: { maxOutputTokens: 2000, temperature: 0.6 }
         });
 
         const text = result.response.text().trim();
@@ -884,7 +884,7 @@ Return ONLY valid JSON (no markdown):
     "openingHint": "Strategic advice for ${finalUserRole}"
 }`;
 
-        const caseModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const caseModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
         const result = await caseModel.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],

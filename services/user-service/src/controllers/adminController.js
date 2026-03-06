@@ -1,4 +1,5 @@
 import { successResponse } from '../utils/responses.js';
+import User from '../models/User.js';
 import {
   getAllUsers,
   getUserById,
@@ -127,6 +128,59 @@ export const issuePasswordResetController = async (req, res, next) => {
         resetLink: result.resetLink,
       })
     );
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /admin/users/search
+ * Search users by email or username (for service-to-service calls)
+ * Called by other microservices to resolve user identifiers
+ */
+export const searchUsersController = async (req, res, next) => {
+  try {
+    const { email, username } = req.query;
+
+    // Require at least one search parameter
+    if (!email && !username) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_SEARCH_PARAMS',
+          message: 'Either email or username is required',
+        },
+      });
+    }
+
+    let user = null;
+
+    if (email) {
+      user = await User.findOne({ email: email.toLowerCase() }).select(
+        '-security.failedLoginAttempts -security.lockUntil -passwordHash'
+      );
+    } else if (username) {
+      // The core User model does not currently store a dedicated username.
+      // For identifier-based invites, treat '@username' as the email local-part.
+      const safeUsername = String(username).toLowerCase().trim();
+      const emailPrefixRegex = new RegExp(`^${safeUsername.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}@`, 'i');
+
+      user = await User.findOne({ email: emailPrefixRegex }).select(
+        '-security.failedLoginAttempts -security.lockUntil -passwordHash'
+      );
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found',
+        },
+      });
+    }
+
+    return res.status(200).json(successResponse(user));
   } catch (error) {
     next(error);
   }

@@ -29,8 +29,8 @@ if (!process.env.GEMINI_API_KEY) {
 
 // Initialize Clients
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" }); // Using stable model
-const chroma = new ChromaClient({ path: "http://localhost:8000" }); // Port 8000 is default
+const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
+const chroma = new ChromaClient({ host: "localhost", port: 8000 });
 
 // Configuration
 const DATA_DIR = path.resolve(__dirname, '../lk_act_data'); // Folder containing your law text files

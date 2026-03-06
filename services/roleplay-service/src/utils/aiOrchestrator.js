@@ -6,7 +6,9 @@ const genAI = process.env.GEMINI_API_KEY
     ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
     : null;
 
-const GEMINI_MODEL = 'gemini-flash-latest'; // Fast & cheap
+const GEMINI_MODEL = 'gemini-2.5-flash'; // Cheapest capable model
+
+const HEARTBEAT_INTERVAL_MS = 30000; // *   - Every 30 seconds of user silence → Director picks next speaker → Actor generates dialogue
 
 
 const ROLE_PROMPTS = {
@@ -26,7 +28,7 @@ LANGUAGE:
 - Use "Sustained", "Overruled", "Proceed", "Order in the court"
 - Address lawyers as "Counsel" or "Mr./Ms. [Name]"
 - Never use casual language
-- Keep rulings under 3 sentences
+- Keep rulings between 200 and 800 words
 
 FORBIDDEN:
 - Never say "The court acknowledges that" (too passive)
@@ -51,7 +53,7 @@ LANGUAGE:
 - Use "Objection, Your Honor!" when appropriate
 - Use "I put it to you that..." for accusations
 - Sharp, pointed questions
-- Under 40 words per response
+- Keep responses between 100 and 500 words
 
 FORBIDDEN:
 - Never say "The court acknowledges" (only Judge says that)
@@ -76,7 +78,7 @@ LANGUAGE:
 - Use "I object, Your Honor!" when prosecution overreaches
 - Use "My client maintains that..." 
 - Calm, measured responses
-- Under 40 words per response
+- Keep responses between 100 and 500 words
 
 FORBIDDEN:
 - Never say "The court acknowledges" or "Sustained/Overruled"
@@ -100,7 +102,7 @@ LANGUAGE:
 - Use natural speech patterns
 - Can say "I don't remember" if appropriate
 - Emotional reactions are allowed
-- Under 60 words per response
+- Keep responses between 100 and 500 words
 
 FORBIDDEN:
 - Never use legal jargon (you're not a lawyer)
@@ -123,7 +125,7 @@ LANGUAGE:
 - "All rise for the Honorable Judge Dissanayake"
 - "Please state your full name and occupation for the record"
 - "Do you swear to tell the truth, the whole truth, and nothing but the truth?"
-- Maximum 2 sentences
+- Maximum 3 sentences
 
 FORBIDDEN:
 - Never give opinions
@@ -220,6 +222,11 @@ export async function directCourtroomScene(history, caseDetails, userMessage) {
             lowerMessage.includes('call') &&
             (lowerMessage.includes(w.name?.toLowerCase().split(' ')[0]) || lowerMessage.includes('witness'))
         );
+
+        // EVIDENCE PHASE CHECK: If we are in Evidence/Examination stage, prioritize Witness
+        const caseStage = caseDetails?.caseStage || '';
+        const isEvidentiaryPhase = caseStage.includes('Evidence') || caseStage.includes('Examination') || caseStage.includes('Testimony');
+
         if (calledWitness || (lowerMessage.includes('call') && lowerMessage.includes('stand'))) {
             console.log('📋 DIRECTOR: Witness call detected → Clerk to swear in');
             const witnessName = calledWitness?.name || witnesses[0]?.name || 'the witness';
@@ -230,27 +237,43 @@ export async function directCourtroomScene(history, caseDetails, userMessage) {
             };
         }
 
-        // Rule 3: Prevent Judge from speaking twice in a row
-        if (lastSpeaker?.speakerRole === 'Judge') {
-            console.log('📋 DIRECTOR: Judge just spoke → Forcing opponent or witness');
+        // Rule 2.5: Swearing-in procedure → Witness MUST respond
+        if (lastSpeaker?.speakerRole === 'Clerk' &&
+            (lastSpeaker.content.toLowerCase().includes('do you swear') ||
+                lastSpeaker.content.toLowerCase().includes('state your name'))) {
+            console.log('📋 DIRECTOR: Swearing-in handover detected → Forcing Witness');
+            const witnessName = witnesses[0]?.name || 'Witness';
+            return {
+                nextSpeakerRole: 'Witness',
+                speakerName: witnessName,
+                instruction: 'Accept the oath and state your full name and occupation as per the record.'
+            };
+        }
+
+        // Is this an autonomous background turn?
+        const isAutonomous = lowerMessage.includes('[autonomous mode');
+
+        // Rule 3: Prevent Judge from speaking twice in a row (but allow AI to decide in autonomous mode)
+        if (lastSpeaker?.speakerRole === 'Judge' && !isAutonomous) {
+            console.log('📋 DIRECTOR: Judge just spoke (User mode) → Forcing opponent or witness');
             if (lowerMessage.includes('?')) {
                 const witnessName = witnesses[0]?.name || 'Witness';
                 return {
                     nextSpeakerRole: 'Witness',
                     speakerName: witnessName,
-                    instruction: 'Answer the question based on what you know about the case.'
+                    instruction: 'Answer the Judge\'s question based on your character profile.'
                 };
             } else {
                 return {
                     nextSpeakerRole: opponentRole,
                     speakerName: opponentName,
-                    instruction: 'Challenge or respond to the opposing counsel\'s statement.'
+                    instruction: 'Respond to the Judge\'s direction or continue your examination.'
                 };
             }
         }
 
-        // Rule 4: If user addresses "Your Honor" → Judge responds
-        if (lowerMessage.includes('your honor') || lowerMessage.includes('your honour')) {
+        // Rule 4: If user addresses "Your Honor" → Judge responds (skip if autonomous)
+        if (!isAutonomous && (lowerMessage.includes('your honor') || lowerMessage.includes('your honour'))) {
             return {
                 nextSpeakerRole: 'Judge',
                 speakerName: 'Judge Dissanayake',
@@ -277,12 +300,15 @@ CURRENT STATE:
 - Witnesses Available: ${witnesses.map(w => w.name).join(', ') || 'None'}
 
 DECISION RULES:
-- If the user finishes examining a witness → ${opponentRole} cross-examines
-- If the case is stalling → Judge intervenes to move things along
-- If someone needs to be sworn in → Clerk handles it
-- Default to ${opponentRole} if unsure
+- If the previous speaker was the Clerk swearing in a witness → "Witness" MUST answer.
+- If the previous speaker asked a question → "Witness" or "${opponentRole}" answers.
+- EVIDENCE PHASE: Currently in "${caseDetails?.caseStage || 'General'}" phase. If a witness is present, prioritize "Witness" for testimony or "${opponentRole}" for cross-examination.
+- STALLING PREVENTION: If the courtroom is silent ([AUTONOMOUS MODE]), and there is no obvious next step, select "Judge" to prompt the next logical speaker or give a ruling to keep the session alive.
+- If the Judge just spoke and directed a specific party (e.g., "Witness, proceed" or "Counsel, your move"), you MUST select that party next.
+- IMPORTANT: Under [AUTONOMOUS MODE], the Witness SHOULD speak if they were just asked a question or if they need to continue their testimony. Do not just loop between Judge and Counsel.
+- Default to "Judge" if the trial is at a standstill, or "${opponentRole}" (Opposing Counsel) if you need a challenge.
 
-USER'S LATEST ACTION: "${userMessage}"
+USER/SYSTEM LATEST ACTION: "${userMessage}"
 
 OUTPUT: Return ONLY valid JSON (no explanation):
 {"nextSpeakerRole": "Judge|${opponentRole}|Witness|Clerk", "speakerName": "Full Name", "instruction": "What this person should do"}`;
@@ -352,12 +378,29 @@ export async function generateActorDialogue(speakerRole, speakerName, caseDetail
     let personalityNote = '';
 
     if (safeRole === 'Witness') {
-        const witnessData = caseDetails?.witnesses?.find(w => w.name === safeName);
-        if (witnessData) {
-            personalityNote = `\nYOUR PERSONALITY: ${witnessData.personality || 'Cooperative'}`;
-            personalityNote += `\nYOUR ROLE IN CASE: ${witnessData.role || 'Witness'}`;
-            personalityNote += `\nYOUR AFFILIATION: ${witnessData.affiliation || 'Neutral'}`;
+        // Try exact match first, then partial match
+        let witnessData = caseDetails?.witnesses?.find(w => w.name === safeName);
+        if (!witnessData && safeName) {
+            witnessData = caseDetails?.witnesses?.find(w =>
+                safeName.toLowerCase().includes(w.name.toLowerCase()) ||
+                w.name.toLowerCase().includes(safeName.toLowerCase())
+            );
         }
+
+        if (witnessData) {
+            personalityNote = `
+YOUR PROFILE:
+- Name: ${witnessData.name}
+- Personality: ${witnessData.personality || 'Cooperative'}
+- Role/Occupation: ${witnessData.role || 'Witness'}
+- Affiliation: ${witnessData.affiliation || 'Neutral'}
+- Testimony Focus: You must testify consistently with your role as ${witnessData.role}.
+`;
+        }
+
+        // Include knowledge of ALL witnesses for context
+        const allWitnesses = caseDetails?.witnesses?.map(w => `- ${w.name} (${w.role})`).join('\n') || 'None';
+        personalityNote += `\nOTHER WITNESSES IN CASE:\n${allWitnesses}`;
     }
 
     // ============ CONTEXT INJECTION: SRI LANKAN LAWS ============
@@ -431,7 +474,7 @@ ${legalContext ? `\n--- 📚 ADDITIONAL LEGAL REFERENCE ---\n${legalContext.subs
 ${roleInstructions}
 
 --- ⚡ RESPONSE REQUIREMENTS ---
-1. **BE DETAILED:** Generate 3-5 sentences of substantive dialogue (40-80 words)
+1. **BE DETAILED:** Generate a substantive response between 100 and 500 words
 2. **CITE SPECIFICS:** Reference case facts, dates, amounts, or witness names
 3. **USE LEGAL LANGUAGE:** Cite law sections when relevant
 4. **STAY IN CHARACTER:** Maintain ${finalName}'s personality throughout
@@ -446,7 +489,7 @@ NOW RESPOND AS ${finalName}:`;
             model: GEMINI_MODEL,
             generationConfig: {
                 temperature: 0.75, // Slightly higher for creative legal arguments
-                maxOutputTokens: 400 // Increased for longer, detailed responses
+                maxOutputTokens: 1500 // Enough for 100-500 word responses
             }
         });
 

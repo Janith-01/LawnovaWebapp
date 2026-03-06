@@ -19,8 +19,8 @@ if (!apiKey) {
 }
 
 const genAI = new GoogleGenerativeAI(apiKey);
-const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
-const chroma = new ChromaClient({ path: "http://localhost:8000" });
+const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
+const chroma = new ChromaClient({ host: "localhost", port: 8000 });
 const COLLECTION_NAME = "sri_lanka_law";
 
 // --- QUERY FUNCTION ---
