@@ -1,6 +1,8 @@
 import OpenAI from 'openai';
 import TrialSession from '../models/TrialSession.js';
+import RoleplaySession from '../models/RoleplaySession.js';
 import logger from '../utils/logger.js';
+import axios from 'axios';
 
 /**
  * OpenAI client instance (lazy-loaded)
@@ -557,6 +559,77 @@ export const advanceDay = async (req, res) => {
     }
 };
 
+/**
+ * @desc    Finalize a trial by auditing user arguments
+ * @route   POST /api/trials/:sessionId/finalize
+ * @access  Private
+ */
+export const finalizeTrial = async (req, res) => {
+    const { sessionId } = req.params;
+
+    try {
+        // 1. Fetch the complete history from the RoleplaySession MongoDB.
+        const session = await RoleplaySession.findOne({ sessionId: sessionId });
+        if (!session) {
+            return res.status(404).json({ success: false, message: 'RoleplaySession not found' });
+        }
+
+        // 2. Send the user's segments to the Python Audit Service.
+        let auditReport = [];
+        try {
+            console.log(`[FINALIZE] Session ${sessionId}: Auditing ${session.history.length} items via Python Audit Service (Port 5002)...`);
+            const auditUrl = 'http://127.0.0.1:5002/api/audit-transcript';
+            const auditResponse = await axios.post(auditUrl, { history: session.history });
+
+            // 3. Receive the 'Strong/Weak' breakdown.
+            if (auditResponse.data && auditResponse.data.status === 'success') {
+                const results = auditResponse.data.results;
+                results.forEach((r) => {
+                    auditReport.push({
+                        originalText: r.argument,
+                        score: r.score,
+                        verdict: r.status,
+                        reason: r.reason
+                    });
+                });
+                console.log(`[FINALIZE] Audit successful: ${auditReport.length} results received.`);
+            }
+        } catch (auditError) {
+            console.error(`[FINALIZE] Audit Service Error (Non-fatal): ${auditError.message}`);
+            // Fallback: an empty audit report is better than a 500 crash
+        }
+
+        // 4. Update the session status to 'COMPLETED' and save the auditReport using updateOne to avoid VersionErrors
+        await RoleplaySession.updateOne(
+            { sessionId: sessionId },
+            {
+                $set: {
+                    status: 'completed',
+                    auditReport: auditReport
+                }
+            }
+        );
+
+        // 5. Redirect the frontend to the /results/:sessionId page
+        return res.status(200).json({
+            success: true,
+            message: 'Trial finalized successfully',
+            redirectUrl: `/results/${sessionId}`,
+            data: {
+                auditReport,
+                status: session.status
+            }
+        });
+    } catch (error) {
+        logger.error({ error: error.message, sessionId }, 'Failed to finalize trial');
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to finalize trial',
+            error: error.message
+        });
+    }
+};
+
 export default {
     initTrial,
     getTrialSession,
@@ -564,5 +637,6 @@ export default {
     getUserStats,
     addMessage,
     completeSession,
-    advanceDay
+    advanceDay,
+    finalizeTrial
 };

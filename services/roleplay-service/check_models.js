@@ -14,10 +14,10 @@ async function check() {
         if (data.error) {
             console.error("❌ Google Error:", data.error.message);
         } else {
-            console.log("\n✅ YOUR AVAILABLE MODELS:");
-            // Filter only models that can generate text
-            const list = data.models.filter(m => m.supportedGenerationMethods.includes("generateContent"));
-            list.forEach(m => console.log(`   "${m.name.replace("models/", "")}"`));
+            console.log("\n✅ ALL YOUR AVAILABLE MODELS:");
+            data.models.forEach(m => {
+                console.log(`   "${m.name.replace("models/", "")}" [Methods: ${m.supportedGenerationMethods.join(', ')}]`);
+            });
         }
     } catch (e) {
         console.error("❌ Network Error:", e);

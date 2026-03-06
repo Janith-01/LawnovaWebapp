@@ -5,7 +5,7 @@ dotenv.config();
 
 // Initialize clients
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" }); // Updated to latest embedding model
+const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
 const chroma = new ChromaClient({ host: "localhost", port: 8000 });
 
 export async function retrieveRelevantLaws(userArgument) {

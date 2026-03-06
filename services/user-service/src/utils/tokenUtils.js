@@ -5,11 +5,12 @@ import config from '../config/index.js';
 /**
  * Generate JWT access token
  */
-export const generateAccessToken = (userId, role) => {
+export const generateAccessToken = (userId, role, email) => {
   return jwt.sign(
     {
       sub: userId,
       role,
+      email,
     },
     config.jwt.secret,
     {

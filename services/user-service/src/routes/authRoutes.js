@@ -9,6 +9,14 @@ import {
 } from '../controllers/authController.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 import { authLimiter, passwordResetLimiter } from '../middleware/rateLimiter.js';
+import { validate } from '../middleware/validate.js';
+import {
+  registerSchema,
+  loginSchema,
+  refreshSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from '../utils/validators.js';
 
 const router = express.Router();
 
@@ -16,19 +24,19 @@ const router = express.Router();
  * POST /auth/register
  * Register a new user
  */
-router.post('/register', authLimiter, registerController);
+router.post('/register', authLimiter, validate(registerSchema), registerController);
 
 /**
  * POST /auth/login
  * Authenticate user and return tokens
  */
-router.post('/login', authLimiter, loginController);
+router.post('/login', authLimiter, validate(loginSchema), loginController);
 
 /**
  * POST /auth/refresh
  * Refresh access token with token rotation
  */
-router.post('/refresh', refreshController);
+router.post('/refresh', validate(refreshSchema), refreshController);
 
 /**
  * POST /auth/logout
@@ -40,12 +48,12 @@ router.post('/logout', requireAuth, logoutController);
  * POST /auth/forgot-password
  * Request password reset (always returns 200)
  */
-router.post('/forgot-password', passwordResetLimiter, forgotPasswordController);
+router.post('/forgot-password', passwordResetLimiter, validate(forgotPasswordSchema), forgotPasswordController);
 
 /**
  * POST /auth/reset-password
  * Reset password with token
  */
-router.post('/reset-password', passwordResetLimiter, resetPasswordController);
+router.post('/reset-password', passwordResetLimiter, validate(resetPasswordSchema), resetPasswordController);
 
 export default router;

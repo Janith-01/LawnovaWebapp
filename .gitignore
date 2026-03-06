@@ -1,1 +1,89 @@
 node_modules
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+*.pyc
+
+# Large model files
+*.bin
+*.pt
+*.pth
+*.safetensors
+LAWNOVA_FINAL_BRAIN_v1/
+LAWNOVA_FINAL_BRAIN_v1.bak/
+checkpoint-*/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# Build outputs
+dist/
+build/
+*.exe
+*.dll
+*.pyd
+*.so
+*.dylib
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backups
+*.bak
+**/*.bak/
+**/*.bak
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose*.yml
+
+# Git submodules (these .bak folders)
+services/roleplay-service/dataset/lk_acts.bak/
+services/roleplay-service/dataset/lk_appeal_court_judgements.bak/
+services/roleplay-service/dataset/lk_supreme_court_judgements.bak/
