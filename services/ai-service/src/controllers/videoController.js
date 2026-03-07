@@ -77,8 +77,33 @@ export const deleteRoom = async (req, res) => {
     }
 };
 
+/**
+ * Controller to send an app message
+ * POST /api/video/rooms/:roomName/message
+ */
+export const sendMessage = async (req, res) => {
+    try {
+        const { roomName } = req.params;
+        const messageBody = req.body; // { type, data }
+
+        if (!roomName) {
+            return res.status(400).json({ success: false, message: 'Room name is required' });
+        }
+
+        const result = await videoService.sendAppMessage(roomName, messageBody);
+        res.json({
+            success: true,
+            data: result
+        });
+    } catch (error) {
+        console.error('[VideoController] Send app message error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 export default {
     createRoom,
     getToken,
     deleteRoom,
+    sendMessage,
 };

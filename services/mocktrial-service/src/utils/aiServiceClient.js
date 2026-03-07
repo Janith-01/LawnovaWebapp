@@ -80,4 +80,22 @@ export const deleteDailyRoom = async (roomName) => {
     }
 };
 
+/**
+ * Send a Daily.co app message via AI-Service
+ */
+export const sendDailyAppMessage = async (roomName, type, data) => {
+    try {
+        const response = await aiServiceClient.post(`/api/video/rooms/${roomName}/message`, {
+            type,
+            data
+        });
+        return response.data;
+    } catch (error) {
+        const apiError = error.response?.data?.message || error.message;
+        console.error(`[AI Service Client] App Message Send Failed: ${apiError}`);
+        // Don't throw for broadcast failures
+        return { success: false, error: apiError };
+    }
+};
+
 export default aiServiceClient;

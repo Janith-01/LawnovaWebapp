@@ -53,10 +53,21 @@ app.use((req, res, next) => {
   if (!secret) return next();
 
   const authHeader = req.headers.authorization;
-  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length).trim() : null;
   const cookieToken = req.cookies?.access_token;
+  if (req.originalUrl.includes('trigger-learning')) {
+    console.log(`[Gateway] DEBUG Auth: Cookie found? ${!!cookieToken}. Auth Header found? ${!!authHeader}`);
+    if (!cookieToken && !authHeader) {
+      console.log(`[Gateway] DEBUG Auth: Headers dump:`, JSON.stringify(req.headers));
+    }
+  }
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length).trim() : null;
   const token = bearerToken || cookieToken;
-  if (!token) return next();
+  if (!token) {
+    if (req.originalUrl.includes('trigger-learning')) {
+      console.log(`[Gateway] DEBUG Auth: No token found for trigger-learning. Headers:`, JSON.stringify(req.headers));
+    }
+    return next();
+  }
 
   try {
     const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
@@ -67,7 +78,10 @@ app.use((req, res, next) => {
         email: decoded.email || null,
       };
     }
-  } catch {
+  } catch (err) {
+    if (req.originalUrl.includes('trigger-learning')) {
+      console.error(`[Gateway] DEBUG Auth: JWT Verify failed for trigger-learning:`, err.message);
+    }
     // Ignore invalid/expired tokens here; downstream services will enforce auth.
   }
 

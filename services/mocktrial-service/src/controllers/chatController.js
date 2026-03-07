@@ -14,7 +14,7 @@ const chatController = {
      */
     sendMessage: async (req, res) => {
         const { roomId } = req.params;
-        const { message } = req.body;
+        const { message, skipAi } = req.body;
         const userId = req.headers['user-id'];
         const userEmail = req.headers['user-email'];
         const userName = req.headers['user-name'] || userEmail?.split('@')[0] || 'Student';
@@ -54,7 +54,15 @@ const chatController = {
                 });
             }
 
-            // 3. Call AI Service for response
+            // 3. Call AI Service for response (unless skipAi is true)
+            if (skipAi) {
+                await room.save();
+                return res.json({
+                    success: true,
+                    data: { userMessage }
+                });
+            }
+
             let aiResponse = '';
             try {
                 const aiResult = await axios.post(`${AI_SERVICE_URL}/api/chat/ask`, {
@@ -106,6 +114,49 @@ const chatController = {
                 success: false,
                 message: error.message
             });
+        }
+    },
+
+    /**
+     * POST /api/rooms/:roomId/chat/save-ai
+     * Save an AI response that was generated/streamed separately
+     */
+    saveAiMessage: async (req, res) => {
+        const { roomId } = req.params;
+        const { message } = req.body;
+
+        if (!message) {
+            return res.status(400).json({ success: false, message: 'AI message is required' });
+        }
+
+        try {
+            const room = await Room.findById(roomId);
+            if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
+
+            const aiMessage = {
+                sender: 'AI',
+                userId: null,
+                userName: 'AI Legal Assistant',
+                message,
+                timestamp: new Date()
+            };
+
+            room.chatHistory.push(aiMessage);
+            await room.save();
+
+            // Broadcast
+            const io = req.io;
+            if (io) {
+                io.to(`room:${roomId}`).emit('chat:message', {
+                    ...aiMessage,
+                    roomId
+                });
+            }
+
+            res.json({ success: true, data: aiMessage });
+        } catch (error) {
+            logger.error('[ChatController] saveAiMessage error:', error);
+            res.status(500).json({ success: false, message: error.message });
         }
     },
 

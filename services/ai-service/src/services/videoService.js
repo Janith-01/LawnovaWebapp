@@ -79,21 +79,39 @@ export const generateMeetingToken = async (roomName, user) => {
 };
 
 /**
- * Delete/Close a Daily room
+ * Send an app message to all participants in a Daily room
+ * @param {string} roomName 
+ * @param {Object} messageBody - { type, data }
+ */
+export const sendAppMessage = async (roomName, messageBody) => {
+    try {
+        const payload = {
+            recipient: '*',
+            request_id: `msg-${Date.now()}`,
+            data: JSON.stringify(messageBody)
+        };
+
+        const response = await dailyClient.post(`/rooms/${roomName}/send-app-message`, payload);
+        console.log(`[VideoService] App message sent to room ${roomName}`);
+        return response.data;
+    } catch (error) {
+        console.error('Daily API Error (sendAppMessage):', error.response?.data || error.message);
+        throw new Error('Failed to send Daily app message');
+    }
+};
+
+/**
+ * Delete a Daily room
  * @param {string} roomName 
  */
 export const deleteDailyRoom = async (roomName) => {
     try {
         const response = await dailyClient.delete(`/rooms/${roomName}`);
-        console.log(`[VideoService] Daily room ${roomName} deleted successfully`);
         return response.data;
     } catch (error) {
-        // 404 means room already deleted - that's fine
-        if (error.response?.status === 404) {
-            console.log(`[VideoService] Daily room ${roomName} already deleted`);
-            return { deleted: true, alreadyGone: true };
-        }
         console.error('Daily API Error (deleteDailyRoom):', error.response?.data || error.message);
+        // If it's already deleted (404), we can ignore
+        if (error.response?.status === 404) return { deleted: true, message: 'Room not found' };
         throw new Error('Failed to delete Daily room');
     }
 };
@@ -102,4 +120,5 @@ export default {
     createDailyRoom,
     generateMeetingToken,
     deleteDailyRoom,
+    sendAppMessage,
 };

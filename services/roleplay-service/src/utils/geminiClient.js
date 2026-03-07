@@ -382,7 +382,7 @@ Object if the opposing counsel:
 Respond ONLY with your dialogue. No JSON, no explanations.`;
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
         const formattedHistory = buildHistoryContext(history, userRole);
 
         const prompt = `${systemInstruction}
@@ -502,7 +502,7 @@ ${winProbability < 40
 Respond ONLY with your testimony. No JSON, no explanations.`;
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
         const formattedHistory = buildHistoryContext(history, userRole);
 
         const prompt = `${systemInstruction}
