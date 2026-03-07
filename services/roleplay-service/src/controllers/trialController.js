@@ -3,6 +3,7 @@ import TrialSession from '../models/TrialSession.js';
 import RoleplaySession from '../models/RoleplaySession.js';
 import logger from '../utils/logger.js';
 import axios from 'axios';
+import { generateVerdict } from '../utils/aiOrchestrator.js';
 
 /**
  * OpenAI client instance (lazy-loaded)
@@ -599,13 +600,25 @@ export const finalizeTrial = async (req, res) => {
             // Fallback: an empty audit report is better than a 500 crash
         }
 
-        // 4. Update the session status to 'COMPLETED' and save the auditReport using updateOne to avoid VersionErrors
+        // 3.5 Generate FINAL VERDICT using AI Orchestrator
+        let verdict_data = null;
+        try {
+            console.log(`[FINALIZE] Session ${sessionId}: Generating final verdict based on 3-day transcript...`);
+            verdict_data = await generateVerdict(session.history, session.caseDetails);
+        } catch (verdictError) {
+            console.error(`[FINALIZE] Verdict Generation Error (Non-fatal): ${verdictError.message}`);
+        }
+
+        // 4. Update the session status to 'COMPLETED' and save the results
         await RoleplaySession.updateOne(
             { sessionId: sessionId },
             {
                 $set: {
-                    status: 'completed',
-                    auditReport: auditReport
+                    status: 'finished',
+                    auditReport: auditReport,
+                    'verdict.verdict_data': verdict_data,
+                    'verdict.outcome': verdict_data?.outcome || 'Not Guilty',
+                    'verdict.summary': verdict_data?.reasoning || 'Trial ended early.'
                 }
             }
         );
