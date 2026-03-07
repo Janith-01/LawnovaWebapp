@@ -62,7 +62,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Log requests in development
+
     if (import.meta.env.DEV) {
       console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
     }

@@ -79,6 +79,7 @@ export const generateMeetingToken = async (roomName, user) => {
 };
 
 /**
+/**
  * Send an app message to all participants in a Daily room
  * @param {string} roomName 
  * @param {Object} messageBody - { type, data }
@@ -101,17 +102,23 @@ export const sendAppMessage = async (roomName, messageBody) => {
 };
 
 /**
- * Delete a Daily room
+ * Delete/Close a Daily room
+
  * @param {string} roomName 
  */
 export const deleteDailyRoom = async (roomName) => {
     try {
         const response = await dailyClient.delete(`/rooms/${roomName}`);
+        console.log(`[VideoService] Daily room ${roomName} deleted successfully`);
         return response.data;
     } catch (error) {
+        // 404 means room already deleted - that's fine
+        if (error.response?.status === 404) {
+            console.log(`[VideoService] Daily room ${roomName} already deleted`);
+            return { deleted: true, alreadyGone: true };
+        }
         console.error('Daily API Error (deleteDailyRoom):', error.response?.data || error.message);
-        // If it's already deleted (404), we can ignore
-        if (error.response?.status === 404) return { deleted: true, message: 'Room not found' };
+
         throw new Error('Failed to delete Daily room');
     }
 };
@@ -121,4 +128,5 @@ export default {
     generateMeetingToken,
     deleteDailyRoom,
     sendAppMessage,
+
 };

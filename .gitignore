@@ -19,6 +19,7 @@ htmlcov/
 .dmypy.json
 dmypy.json
 *.pyc
+*.pyo
 
 # Large model files
 *.bin
@@ -87,3 +88,10 @@ docker-compose*.yml
 services/roleplay-service/dataset/lk_acts.bak/
 services/roleplay-service/dataset/lk_appeal_court_judgements.bak/
 services/roleplay-service/dataset/lk_supreme_court_judgements.bak/
+
+# Judgment Prediction Service - Raw Data
+services/judgment-prediction-service/data/
+services/judgment-prediction-service/models/
+services/judgment-prediction-service/.env
+services/judgment-prediction-service/server.log
+
