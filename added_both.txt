@@ -1,0 +1,20 @@
+﻿
+AA services/ai-service/src/controllers/videoController.js
+AA services/ai-service/src/routes/videoRoutes.js
+AA services/ai-service/src/services/videoService.js
+AA services/judgment-prediction-service/src/llm/gemini.py
+AA services/judgment-prediction-service/src/processing/segmentation/gemini.py
+AA services/mocktrial-service/src/controllers/chatController.js
+AA services/mocktrial-service/src/controllers/roomController.js
+AA services/mocktrial-service/src/middleware/validate.js
+AA services/mocktrial-service/src/models/Room.js
+AA services/mocktrial-service/src/routes/roomRoutes.js
+AA services/mocktrial-service/src/services/roleAssignmentService.js
+AA services/mocktrial-service/src/utils/aiServiceClient.js
+AA web-client/src/components/courtroom/LearningPopup.jsx
+AA web-client/src/pages/mocktrials/CourtroomPage.jsx
+AA web-client/src/pages/mocktrials/MockTrialDashboard.jsx
+AA web-client/src/pages/mocktrials/RoleAssignmentViewPage.jsx
+AA web-client/src/services/mockTrialService.js
+
+

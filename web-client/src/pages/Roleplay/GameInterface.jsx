@@ -61,6 +61,9 @@ const GameInterface = () => {
     const [currentSpeakerRole, setCurrentSpeakerRole] = useState('Judge');
     const [currentSpeakerName, setCurrentSpeakerName] = useState('Judge Dissanayake');
     const [isObjectionPending, setIsObjectionPending] = useState(false);
+    const [isListening, setIsListening] = useState(false);
+    const recognitionRef = useRef(null);
+    const baseTextRef = useRef('');
     const socketRef = useRef(null);
     const { isDarkMode } = useTheme();
 
@@ -203,10 +206,87 @@ const GameInterface = () => {
 
     // Track user activity to reset heartbeat
     useEffect(() => {
-        if (inputText.length > 0 && socketRef.current) {
-            socketRef.current.emit('user-active', sessionId);
+        if (!socketRef.current || !sessionId) return;
+
+        if (isListening) {
+            // Crucial: Pause the autonomous heartbeat while user is dictating argument
+            socketRef.current.emit('pause-heartbeat', sessionId);
+        } else {
+            // Resume heartbeat when mic is off
+            socketRef.current.emit('resume-heartbeat', sessionId);
+            if (inputText.length > 0) {
+                socketRef.current.emit('user-active', sessionId);
+            }
         }
-    }, [inputText, sessionId]);
+    }, [isListening, inputText, sessionId]);
+
+    // === SPEECH RECOGNITION INITIALIZATION ===
+    useEffect(() => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            console.warn("Speech recognition not supported in this browser.");
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+            setIsListening(true);
+            baseTextRef.current = inputText;
+            console.log("🎤 Voice input active...");
+        };
+
+        recognition.onresult = (event) => {
+            let transcript = '';
+            for (let i = 0; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+            }
+            // Real-time transcript update: show spoken text in input field
+            setInputText(baseTextRef.current + (baseTextRef.current ? ' ' : '') + transcript);
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            setIsListening(false);
+            if (event.error !== 'no-speech') {
+                toast.error(`Mic error: ${event.error}`);
+            }
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+            console.log("🎤 Voice input stopped.");
+            // Auto-send argument if something was captured
+            if (inputText.trim() && inputText !== baseTextRef.current) {
+                setTimeout(() => {
+                    handleSendMessage();
+                }, 500);
+            }
+        };
+
+        recognitionRef.current = recognition;
+
+        return () => {
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
+        };
+    }, [sessionId, inputText]); // Re-init on sessionId to ensure references are fresh
+
+    const toggleListening = () => {
+        if (isListening) {
+            recognitionRef.current?.stop();
+        } else {
+            try {
+                recognitionRef.current?.start();
+            } catch (err) {
+                console.error("Mic start failed:", err);
+            }
+        }
+    };
 
     // Check if current day is complete (minimum turns requirement met)
     useEffect(() => {
@@ -838,8 +918,19 @@ const GameInterface = () => {
                                             disabled={isLoading}
                                             className="w-full px-6 py-4 pr-14 rounded-2xl border-2 bg-slate-900/50 border-slate-700/50 text-white placeholder:text-slate-600 focus:border-purple-500/50 focus:ring-4 focus:ring-purple-500/10 transition-all outline-none text-sm backdrop-blur-xl"
                                         />
-                                        <button className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-xl text-slate-500 hover:text-purple-400 hover:bg-purple-500/10 transition-all">
-                                            <Mic size={18} />
+                                        <button
+                                            onClick={toggleListening}
+                                            disabled={isLoading}
+                                            className={`absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all z-10 ${isListening
+                                                    ? 'text-red-500 animate-pulse bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.5)] border border-red-500/50'
+                                                    : 'text-slate-500 hover:text-purple-400 hover:bg-purple-500/10'
+                                                }`}
+                                            title={isListening ? "Stop listening" : "Speak your argument"}
+                                        >
+                                            {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+                                            {isListening && (
+                                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                                            )}
                                         </button>
                                     </div>
                                     <button

@@ -302,9 +302,10 @@ CURRENT STATE:
 DECISION RULES:
 - If the previous speaker was the Clerk swearing in a witness → "Witness" MUST answer.
 - If the previous speaker asked a question → "Witness" or "${opponentRole}" answers.
-- EVIDENCE PHASE: Currently in "${caseDetails?.caseStage || 'General'}" phase. If a witness is present, prioritize "Witness" for testimony or "${opponentRole}" for cross-examination.
+- EVIDENCE PHASE (Day 1 & 2): Currently in "${caseDetails?.caseStage || 'General'}" phase. If a witness is present, prioritize "Witness" for testimony or "${opponentRole}" for cross-examination.
+- CLOSING PHASE (Day 3): Focus on "${opponentRole}" making final arguments or "Judge" preparing the verdict.
 - STALLING PREVENTION: If the courtroom is silent ([AUTONOMOUS MODE]), and there is no obvious next step, select "Judge" to prompt the next logical speaker or give a ruling to keep the session alive.
-- If the Judge just spoke and directed a specific party (e.g., "Witness, proceed" or "Counsel, your move"), you MUST select that party next.
+- ALTERNATE SPEAKERS: In [AUTONOMOUS MODE], if the last speaker was "${opponentRole}", prioritize "Judge" or "Witness" to avoid counsel monologues. If the last speaker was "Witness", the next should be the examining counsel ("${opponentRole}" or User - but you can only pick AI).
 - IMPORTANT: Under [AUTONOMOUS MODE], the Witness SHOULD speak if they were just asked a question or if they need to continue their testimony. Do not just loop between Judge and Counsel.
 - Default to "Judge" if the trial is at a standstill, or "${opponentRole}" (Opposing Counsel) if you need a challenge.
 
