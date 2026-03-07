@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAppMessage } from '@daily-co/daily-react';
 import {
     X, ChevronLeft, ChevronRight, RotateCcw, CheckCircle, XCircle,
     BookOpen, Brain, Award, Sparkles
@@ -108,6 +109,8 @@ const LearningPopup = ({ roomId, onClose }) => {
     const [showPopup, setShowPopup] = useState(false);
     const [learningData, setLearningData] = useState(null);
     const [activeTab, setActiveTab] = useState('flashcards');
+    const [isLoading, setIsLoading] = useState(false);
+    const [loadingMessage, setLoadingMessage] = useState('');
 
     // Internal tracking for room details (captured from socket event)
     const [activeRoomId, setActiveRoomId] = useState(roomId);
@@ -123,6 +126,39 @@ const LearningPopup = ({ roomId, onClose }) => {
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [showResult, setShowResult] = useState(false);
     const [quizCompleted, setQuizCompleted] = useState(false);
+
+    // ============================================
+    // DAILY.CO APP MESSAGE LISTENERS
+    // ============================================
+    const handleAppMessage = useCallback((event) => {
+        const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        console.log('[LearningPopup] Daily App Message received:', msg);
+
+        if (msg.type === 'LOADING_LEARNING') {
+            setIsLoading(true);
+            setLoadingMessage(msg.data?.message || 'Generating study materials...');
+            toast.info(msg.data?.message || 'Generating study materials...', {
+                icon: <Brain className="w-4 h-4 text-purple-400" />
+            });
+        }
+
+        if (msg.type === 'STUDY_MATERIAL_READY') {
+            setIsLoading(false);
+            console.log('[LearningPopup] Study materials ready via Daily');
+
+            const data = msg.data;
+            const rid = data?.trialId || data?.roomId || roomId;
+            setActiveRoomId(rid);
+            if (data?.trialTopic) setActiveTopic(data.trialTopic);
+
+            setLearningData(data.learningMaterials);
+            setShowPopup(true);
+        }
+    }, [roomId]);
+
+    useAppMessage({
+        onAppMessage: handleAppMessage
+    });
 
     // TRIGGER & STATE: Listen for TRIAL_COMPLETED socket event
     useEffect(() => {
@@ -274,123 +310,151 @@ const LearningPopup = ({ roomId, onClose }) => {
         onClose?.();
     };
 
-    if (!showPopup) return null;
-
     return (
         <AnimatePresence>
-            {/* Blurred Backdrop */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-md flex items-center justify-center p-6 font-['Inter']"
-                onClick={handleFinishReview}
-            >
-                {/* Main Container */}
+            {/* Loading Overlay */}
+            {isLoading && (
                 <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.9, opacity: 0 }}
-                    className="w-full max-w-7xl h-[90vh] bg-[#1E293B] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-                    onClick={(e) => e.stopPropagation()}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[250] bg-black/80 backdrop-blur-xl flex flex-col items-center justify-center p-6"
                 >
-                    {/* Header */}
-                    <div className="p-6 border-b border-slate-700 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-[#9333EA] flex items-center justify-center">
-                                <Sparkles className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl font-bold text-white">Learning Review</h1>
-                                <p className="text-sm text-slate-400">Master key concepts from your trial</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={handleFinishReview}
-                            className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
-                        >
-                            <X className="w-5 h-5 text-slate-400" />
-                        </button>
+                    <div className="relative mb-8">
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                            className="w-24 h-24 rounded-full border-t-4 border-b-4 border-purple-500 shadow-lg shadow-purple-500/20"
+                        />
+                        <Brain className="w-10 h-10 text-purple-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                     </div>
-
-                    {/* Tab Navigation */}
-                    <div className="px-6 py-4 border-b border-slate-700 flex gap-3">
-                        <button
-                            onClick={() => setActiveTab('flashcards')}
-                            className={cn(
-                                "px-6 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all",
-                                activeTab === 'flashcards'
-                                    ? "bg-[#9333EA] text-white"
-                                    : "bg-slate-800 text-slate-400 hover:bg-slate-700"
-                            )}
-                        >
-                            <BookOpen className="w-4 h-4" />
-                            Flashcards ({flashcards.length})
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('quiz')}
-                            className={cn(
-                                "px-6 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all",
-                                activeTab === 'quiz'
-                                    ? "bg-[#9333EA] text-white"
-                                    : "bg-slate-800 text-slate-400 hover:bg-slate-700"
-                            )}
-                        >
-                            <Brain className="w-4 h-4" />
-                            Quiz ({quizzes.length} Questions)
-                        </button>
-                    </div>
-
-                    {/* Content Area */}
-                    <div className="flex-1 overflow-hidden p-6">
-                        {activeTab === 'flashcards' ? (
-                            <FlashcardPanel
-                                currentCard={currentCard}
-                                currentIndex={currentCardIndex}
-                                total={flashcards.length}
-                                isFlipped={isFlipped}
-                                onFlip={() => setIsFlipped(!isFlipped)}
-                                onPrev={prevCard}
-                                onNext={nextCard}
-                            />
-                        ) : (
-                            <QuizPanel
-                                currentQuestion={currentQuestion}
-                                currentIndex={currentQuestionIndex}
-                                total={quizzes.length}
-                                selectedAnswer={selectedAnswer}
-                                showResult={showResult}
-                                quizCompleted={quizCompleted}
-                                score={score}
-                                correctAnswers={correctAnswers}
-                                onSelectAnswer={handleAnswerSelect}
-                                onSubmit={submitAnswer}
-                                onNext={nextQuestion}
-                                onReset={resetQuiz}
-                            />
-                        )}
-                    </div>
-
-                    {/* Footer */}
-                    <div className="p-6 border-t border-slate-700 flex items-center justify-between">
-                        <div className="text-sm text-slate-400">
-                            {activeTab === 'flashcards'
-                                ? `Card ${currentCardIndex + 1} of ${flashcards.length}`
-                                : quizCompleted
-                                    ? `Quiz Complete: ${score}%`
-                                    : `Question ${currentQuestionIndex + 1} of ${quizzes.length}`
-                            }
-                        </div>
-                        <button
-                            onClick={handleFinishReview}
-                            className="px-6 py-2.5 rounded-lg bg-[#9333EA] hover:bg-[#7e22ce] text-white font-semibold transition-all flex items-center gap-2"
-                        >
-                            Finish Review
-                            <CheckCircle className="w-4 h-4" />
-                        </button>
-                    </div>
+                    <motion.h2
+                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="text-2xl font-serif font-bold text-white text-center mb-2"
+                    >
+                        {loadingMessage || 'Analyzing Proceedings...'}
+                    </motion.h2>
+                    <p className="text-slate-400 text-center max-w-md italic">
+                        The Senior Law Professor is cross-referencing your trial transcript with the Sri Lankan legal corpus.
+                    </p>
                 </motion.div>
-            </motion.div>
+            )}
+
+            {!showPopup ? null : (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-md flex items-center justify-center p-6 font-['Inter']"
+                    onClick={handleFinishReview}
+                >
+                    {/* Main Container */}
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.9, opacity: 0 }}
+                        className="w-full max-w-7xl h-[90vh] bg-[#1E293B] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div className="p-6 border-b border-slate-700 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-[#9333EA] flex items-center justify-center">
+                                    <Sparkles className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-bold text-white">Learning Review</h1>
+                                    <p className="text-sm text-slate-400">Master key concepts from your trial</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleFinishReview}
+                                className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
+                            >
+                                <X className="w-5 h-5 text-slate-400" />
+                            </button>
+                        </div>
+
+                        {/* Tab Navigation */}
+                        <div className="px-6 py-4 border-b border-slate-700 flex gap-3">
+                            <button
+                                onClick={() => setActiveTab('flashcards')}
+                                className={cn(
+                                    "px-6 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all",
+                                    activeTab === 'flashcards'
+                                        ? "bg-[#9333EA] text-white"
+                                        : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                                )}
+                            >
+                                <BookOpen className="w-4 h-4" />
+                                Flashcards ({flashcards.length})
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('quiz')}
+                                className={cn(
+                                    "px-6 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all",
+                                    activeTab === 'quiz'
+                                        ? "bg-[#9333EA] text-white"
+                                        : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                                )}
+                            >
+                                <Brain className="w-4 h-4" />
+                                Quiz ({quizzes.length} Questions)
+                            </button>
+                        </div>
+
+                        {/* Content Area */}
+                        <div className="flex-1 overflow-hidden p-6">
+                            {activeTab === 'flashcards' ? (
+                                <FlashcardPanel
+                                    currentCard={currentCard}
+                                    currentIndex={currentCardIndex}
+                                    total={flashcards.length}
+                                    isFlipped={isFlipped}
+                                    onFlip={() => setIsFlipped(!isFlipped)}
+                                    onPrev={prevCard}
+                                    onNext={nextCard}
+                                />
+                            ) : (
+                                <QuizPanel
+                                    currentQuestion={currentQuestion}
+                                    currentIndex={currentQuestionIndex}
+                                    total={quizzes.length}
+                                    selectedAnswer={selectedAnswer}
+                                    showResult={showResult}
+                                    quizCompleted={quizCompleted}
+                                    score={score}
+                                    correctAnswers={correctAnswers}
+                                    onSelectAnswer={handleAnswerSelect}
+                                    onSubmit={submitAnswer}
+                                    onNext={nextQuestion}
+                                    onReset={resetQuiz}
+                                />
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-6 border-t border-slate-700 flex items-center justify-between">
+                            <div className="text-sm text-slate-400">
+                                {activeTab === 'flashcards'
+                                    ? `Card ${currentCardIndex + 1} of ${flashcards.length}`
+                                    : quizCompleted
+                                        ? `Quiz Complete: ${score}%`
+                                        : `Question ${currentQuestionIndex + 1} of ${quizzes.length}`
+                                }
+                            </div>
+                            <button
+                                onClick={handleFinishReview}
+                                className="px-6 py-2.5 rounded-lg bg-[#9333EA] hover:bg-[#7e22ce] text-white font-semibold transition-all flex items-center gap-2"
+                            >
+                                Finish Review
+                                <CheckCircle className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
         </AnimatePresence>
     );
 };
@@ -425,7 +489,7 @@ const FlashcardPanel = ({ currentCard, currentIndex, total, isFlipped, onFlip, o
                 >
                     {/* Front of Card */}
                     <div
-                        className="absolute inset-0 flex items-center justify-center p-8 bg-[#1E293B] border-2 border-slate-700 rounded-2xl shadow-xl"
+                        className="absolute inset-0 flex flex-col items-center justify-center p-8 bg-[#1E293B] border-2 border-slate-700 rounded-2xl shadow-xl"
                         style={{
                             backfaceVisibility: 'hidden',
                             WebkitBackfaceVisibility: 'hidden'
@@ -433,11 +497,16 @@ const FlashcardPanel = ({ currentCard, currentIndex, total, isFlipped, onFlip, o
                     >
                         <div className="text-center">
                             <p className="text-xs font-semibold text-[#9333EA] uppercase tracking-wider mb-4">
-                                Front
+                                Front {currentCard.citation && <span className="text-slate-500 ml-2">• Citations Included</span>}
                             </p>
                             <h2 className="text-2xl font-bold text-[#FFFFFF] leading-relaxed">
                                 {currentCard.front}
                             </h2>
+                            {currentCard.category && (
+                                <span className="inline-block mt-4 px-3 py-1 rounded-full bg-slate-800 text-[10px] text-slate-400 font-bold uppercase tracking-widest border border-slate-700">
+                                    {currentCard.category}
+                                </span>
+                            )}
                             <p className="text-sm text-slate-400 mt-6">
                                 Click to reveal answer
                             </p>
@@ -446,20 +515,27 @@ const FlashcardPanel = ({ currentCard, currentIndex, total, isFlipped, onFlip, o
 
                     {/* Back of Card */}
                     <div
-                        className="absolute inset-0 flex items-center justify-center p-8 bg-[#1E293B] border-2 border-[#9333EA] rounded-2xl shadow-xl"
+                        className="absolute inset-0 flex flex-col items-center justify-center p-8 bg-[#1E293B] border-2 border-[#9333EA] rounded-2xl shadow-xl"
                         style={{
                             backfaceVisibility: 'hidden',
                             WebkitBackfaceVisibility: 'hidden',
                             transform: 'rotateY(180deg)'
                         }}
                     >
-                        <div className="text-center">
+                        <div className="text-center overflow-y-auto max-h-full scrollbar-hide">
                             <p className="text-xs font-semibold text-[#9333EA] uppercase tracking-wider mb-4">
                                 Back
                             </p>
-                            <p className="text-lg text-[#FFFFFF] leading-relaxed">
+                            <p className="text-lg text-[#FFFFFF] leading-relaxed mb-6">
                                 {currentCard.back}
                             </p>
+
+                            {currentCard.citation && (
+                                <div className="p-3 rounded-lg bg-slate-900/50 border border-slate-800 text-left">
+                                    <p className="text-[10px] text-purple-400 font-black uppercase tracking-[0.1em] mb-1">Legal Citation</p>
+                                    <p className="text-xs text-slate-300 italic">{currentCard.citation}</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </motion.div>

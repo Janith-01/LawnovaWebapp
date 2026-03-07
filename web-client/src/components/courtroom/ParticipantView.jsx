@@ -1,5 +1,5 @@
 import React from 'react';
-import { useMediaTrack } from '@daily-co/daily-react';
+import { useMediaTrack, useParticipantProperty } from '@daily-co/daily-react';
 import { Gavel, Shield, Scale, User, MicOff, CameraOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -13,13 +13,13 @@ const ROLE_ICONS = {
 };
 
 const ParticipantView = ({ participant, role, isLocal = false }) => {
+    const isVideoOff = !useParticipantProperty(participant.session_id, 'video');
+    const isAudioOff = !useParticipantProperty(participant.session_id, 'audio');
+
+    // We still need the video track to render the video
     const videoTrack = useMediaTrack(participant.session_id, 'video');
-    const audioTrack = useMediaTrack(participant.session_id, 'audio');
 
     const Icon = ROLE_ICONS[role] || User;
-
-    const isVideoOff = videoTrack.isOff || !videoTrack.track;
-    const isAudioOff = audioTrack.isOff || !audioTrack.track;
 
     return (
         <div className={cn(

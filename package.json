@@ -7,13 +7,14 @@
   "scripts": {
     "start": "node api-gateway/server.js",
     "dev": "nodemon api-gateway/server.js",
-    "start-all": "concurrently --delay 2000 -p \"[{name}]\" -n \"Frontend,Gateway,User,Roleplay,MockTrial,AI,Audit\" -c \"cyan,yellow,green,blue,magenta,red,blue\" --kill-others \"npm run start:web\" \"npm run start:gateway\" \"npm run start:user\" \"npm run start:roleplay\" \"npm run start:mocktrial\" \"npm run start:ainode\" \"npm run start:audit\"",
+    "start-all": "concurrently --delay 2000 -p \"[{name}]\" -n \"Frontend,Gateway,User,Roleplay,MockTrial,AINode,AIPython,Audit\" -c \"cyan,yellow,green,blue,magenta,red,white,blue\" --kill-others \"npm run start:web\" \"npm run start:gateway\" \"npm run start:user\" \"npm run start:roleplay\" \"npm run start:mocktrial\" \"npm run start:ainode\" \"npm run start:aipython\" \"npm run start:audit\"",
     "start:web": "cd web-client && npm run dev",
     "start:gateway": "cd api-gateway && npm start",
     "start:user": "cd services/user-service && npm start",
     "start:roleplay": "cd services/roleplay-service && npm start",
     "start:mocktrial": "cd services/mocktrial-service && npm start",
     "start:ainode": "cd services/ai-service && npm start",
+    "start:aipython": "cd services/ai-service && scripts\\.venv\\Scripts\\python app.py",
     "start:audit": "cd services/roleplay-service/python_backend && python app.py"
   },
   "keywords": [

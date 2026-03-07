@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { streamChat, testConnection } from '../controllers/aiController.js';
+import { streamChat, askAgent, testConnection, generateLearningMaterials } from '../controllers/aiController.js';
 import transcriptIngestion from '../services/transcriptIngestionService.js';
 import { predictJudgment, getMockCases } from '../controllers/predictionController.js';
 
@@ -18,6 +18,7 @@ router.get('/test', testConnection);
  * @access  Private
  */
 router.post('/chat/stream', streamChat);
+router.post('/chat/ask', askAgent);
 
 /**
  * @route   POST /ai/predict-judgment
@@ -25,6 +26,13 @@ router.post('/chat/stream', streamChat);
  * @access  Public
  */
 router.post('/predict-judgment', predictJudgment);
+
+/**
+ * @route   POST /ai/generate-learning
+ * @desc    Generate learning materials from transcript via RAG/Gemini
+ * @access  Internal
+ */
+router.post('/generate-learning', generateLearningMaterials);
 
 /**
  * @route   GET /ai/cases

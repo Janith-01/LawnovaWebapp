@@ -225,8 +225,16 @@ const mockTrialService = {
      * @param {string} roomId - Room ID
      * @param {string} message - User's question
      */
-    sendChatMessage: async (roomId, message) => {
-        const response = await api.post(`/api/mock-trials/rooms/${roomId}/chat`, { message });
+    sendChatMessage: async (roomId, message, skipAi = false) => {
+        const response = await api.post(`/api/mock-trials/rooms/${roomId}/chat`, { message, skipAi });
+        return response.data;
+    },
+
+    /**
+     * Save an AI message to history
+     */
+    saveAiMessage: async (roomId, message) => {
+        const response = await api.post(`/api/mock-trials/rooms/${roomId}/chat/save-ai`, { message });
         return response.data;
     },
 

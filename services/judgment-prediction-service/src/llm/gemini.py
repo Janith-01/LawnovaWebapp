@@ -19,7 +19,7 @@ class GeminiExplainer:
             try:
                 # Use the SDK client initialization
                 self.client = genai.Client(api_key=api_key)
-                self.model_id = "gemini-2.0-flash"
+                self.model_id = "gemini-2.5-flash"
                 logger.info(f"Gemini Client initialized: {self.model_id}")
             except Exception as e:
                 logger.error(f"Initialization failed: {e}")

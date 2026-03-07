@@ -21,6 +21,13 @@ import {
     ChevronDown,
     Sparkles,
     Zap,
+    Users,
+    Activity,
+    Video,
+    ShieldAlert,
+    FileSignature,
+    PenTool,
+    Search,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import mockTrialService from '@/services/mockTrialService';
@@ -65,6 +72,90 @@ const ROLE_CONFIG = {
         description: 'Defends the accused, challenges evidence for acquittal.',
         complexity: 4,
         skills: ['Cross-Examination', 'Case Strategy', 'Persuasion'],
+    },
+    'Court Clerk': {
+        icon: FileSignature,
+        gradient: 'from-slate-500 to-slate-700',
+        bgLight: 'bg-slate-500/10',
+        borderColor: 'border-slate-500/30',
+        textColor: 'text-slate-400',
+        badgeColor: 'bg-slate-500/20 text-slate-300',
+        ringColor: 'ring-slate-500/40',
+        description: 'Swears in witnesses and marks exhibits into evidence.',
+        complexity: 2,
+        skills: ['Organization', 'Attention to Detail', 'Procedural Knowledge'],
+    },
+    'Jury Foreman': {
+        icon: Users,
+        gradient: 'from-amber-500 to-amber-700',
+        bgLight: 'bg-amber-500/10',
+        borderColor: 'border-amber-500/30',
+        textColor: 'text-amber-400',
+        badgeColor: 'bg-amber-500/20 text-amber-300',
+        ringColor: 'ring-amber-500/40',
+        description: 'Leads jury deliberations and reads the final verdict.',
+        complexity: 3,
+        skills: ['Leadership', 'Active Listening', 'Consensus Building'],
+    },
+    'Expert Witness': {
+        icon: Activity,
+        gradient: 'from-teal-500 to-teal-700',
+        bgLight: 'bg-teal-500/10',
+        borderColor: 'border-teal-500/30',
+        textColor: 'text-teal-400',
+        badgeColor: 'bg-teal-500/20 text-teal-300',
+        ringColor: 'ring-teal-500/40',
+        description: 'Provides specialized knowledge or opinions to assist the court.',
+        complexity: 4,
+        skills: ['Subject Expertise', 'Clear Communication', 'Credibility'],
+    },
+    'Eyewitness': {
+        icon: Eye,
+        gradient: 'from-sky-500 to-sky-700',
+        bgLight: 'bg-sky-500/10',
+        borderColor: 'border-sky-500/30',
+        textColor: 'text-sky-400',
+        badgeColor: 'bg-sky-500/20 text-sky-300',
+        ringColor: 'ring-sky-500/40',
+        description: 'Testifies about what they directly saw or heard regarding the case.',
+        complexity: 2,
+        skills: ['Memory Recall', 'Composure under Cross', 'Honesty'],
+    },
+    'Bailiff': {
+        icon: ShieldAlert,
+        gradient: 'from-stone-500 to-stone-700',
+        bgLight: 'bg-stone-500/10',
+        borderColor: 'border-stone-500/30',
+        textColor: 'text-stone-400',
+        badgeColor: 'bg-stone-500/20 text-stone-300',
+        ringColor: 'ring-stone-500/40',
+        description: 'Maintains courtroom security and order.',
+        complexity: 1,
+        skills: ['Authoritative Presence', 'Vigilance'],
+    },
+    'Court Reporter': {
+        icon: PenTool,
+        gradient: 'from-rose-500 to-rose-700',
+        bgLight: 'bg-rose-500/10',
+        borderColor: 'border-rose-500/30',
+        textColor: 'text-rose-400',
+        badgeColor: 'bg-rose-500/20 text-rose-300',
+        ringColor: 'ring-rose-500/40',
+        description: 'Creates a verbatim transcript of the proceedings.',
+        complexity: 2,
+        skills: ['Typing Speed', 'Accuracy', 'Listening'],
+    },
+    'Investigating Officer': {
+        icon: Search,
+        gradient: 'from-cyan-500 to-cyan-700',
+        bgLight: 'bg-cyan-500/10',
+        borderColor: 'border-cyan-500/30',
+        textColor: 'text-cyan-400',
+        badgeColor: 'bg-cyan-500/20 text-cyan-300',
+        ringColor: 'ring-cyan-500/40',
+        description: 'Testifies regarding the investigation and collected evidence.',
+        complexity: 3,
+        skills: ['Fact Reporting', 'Procedure Knowledge', 'Professionalism'],
     },
 };
 
@@ -335,7 +426,18 @@ const RoleAssignmentViewPage = () => {
     const roleAssignments = useMemo(() => {
         if (!room?.participants) return {};
         const assignments = {};
-        const mainRoles = ['Judge', 'Prosecution Lawyer', 'Defense Lawyer'];
+        const mainRoles = [
+            'Judge',
+            'Prosecution Lawyer',
+            'Defense Lawyer',
+            'Jury Foreman',
+            'Expert Witness',
+            'Eyewitness',
+            'Court Clerk',
+            'Bailiff',
+            'Court Reporter',
+            'Investigating Officer'
+        ];
         mainRoles.forEach(role => {
             assignments[role] = room.participants.find(p => p.assignedRole === role) || null;
         });
@@ -379,7 +481,7 @@ const RoleAssignmentViewPage = () => {
 
     const acceptedCount = room?.participants?.filter(p => p.status === 'Accepted').length || 0;
     const assignedCount = Object.values(roleAssignments).filter(Boolean).length;
-    const allRolesAssigned = assignedCount === 3;
+    const allRolesAssigned = assignedCount === 10;
 
 
 
@@ -423,7 +525,7 @@ const RoleAssignmentViewPage = () => {
                     {isLocked ? <Lock className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
                     <span>{isLocked ? 'Roles Locked' : 'Pending Assignment'}</span>
                     <span className="text-xs bg-white px-2 py-1 rounded-lg border">
-                        {assignedCount}/3
+                        {assignedCount}/10
                     </span>
                 </motion.div>
             </motion.div>
@@ -435,20 +537,40 @@ const RoleAssignmentViewPage = () => {
                 onToggle={() => setShowAlgoInfo(!showAlgoInfo)}
             />
 
-            {/* Warning Banner */}
-            {acceptedCount < 3 && !isLocked && isOwner && (
+            {/* Assignment Status Banner */}
+            {acceptedCount < 10 && !isLocked && isOwner && (
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center gap-4"
+                    className={cn(
+                        "mb-6 p-4 rounded-2xl flex items-center gap-4 border",
+                        acceptedCount < 3 ? "bg-amber-50 border-amber-200" : "bg-blue-50 border-blue-200"
+                    )}
                 >
-                    <AlertTriangle className="w-6 h-6 text-amber-600 shrink-0" />
-                    <p className="text-sm text-amber-800 flex-1">
-                        <strong>3 participants required</strong> for role assignment. Currently have {acceptedCount}.
-                    </p>
+                    {acceptedCount < 3 ? (
+                        <AlertTriangle className="w-6 h-6 text-amber-600 shrink-0" />
+                    ) : (
+                        <Info className="w-6 h-6 text-blue-600 shrink-0" />
+                    )}
+
+                    <div className="flex-1">
+                        {acceptedCount < 3 ? (
+                            <p className="text-sm text-amber-800">
+                                <strong>3 participants minimum required</strong> to start role assignment. Currently have {acceptedCount} (maximum 10).
+                            </p>
+                        ) : (
+                            <p className="text-sm text-blue-800">
+                                <strong>Ready to lock assignments!</strong> You have {acceptedCount} participants. You can lock now, or invite more (maximum 10).
+                            </p>
+                        )}
+                    </div>
+
                     <button
                         onClick={() => navigate(`/mock-trials/${roomId}/invite`)}
-                        className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-semibold transition-all"
+                        className={cn(
+                            "px-4 py-2 text-white rounded-xl text-sm font-semibold transition-all",
+                            acceptedCount < 3 ? "bg-amber-500 hover:bg-amber-600" : "bg-blue-500 hover:bg-blue-600"
+                        )}
                     >
                         Invite More
                     </button>
@@ -478,8 +600,8 @@ const RoleAssignmentViewPage = () => {
                     <div className="flex items-center justify-between gap-4">
                         {/* Progress Indicator */}
                         <div className="flex items-center gap-3">
-                            <div className="flex gap-1.5">
-                                {[0, 1, 2].map((i) => (
+                            <div className="flex gap-1.5 flex-wrap w-24 sm:w-auto">
+                                {[...Array(10)].map((_, i) => (
                                     <div
                                         key={i}
                                         className={cn(
@@ -492,7 +614,7 @@ const RoleAssignmentViewPage = () => {
                                 ))}
                             </div>
                             <span className="text-sm text-gray-600">
-                                {assignedCount}/3 Roles Assigned
+                                {assignedCount}/10 Roles Assigned
                             </span>
                         </div>
 

@@ -1,8 +1,0 @@
-# Penal Code of Sri Lanka - Section 300
-Whoever commits any act with such intention or knowledge and under such circumstances that if he by that act caused death he would be guilty of murder, shall be punished with imprisonment of either description for a term which may extend to ten years, and shall also be liable to fine; and if hurt is caused to any person by such act, the offender shall be liable either to imprisonment of either description for a term which may extend to twenty years, or to imprisonment for life, and shall also be liable to fine.
-
-# Penal Code of Sri Lanka - Section 367
-Whoever commits theft shall be punished with imprisonment of either description for a term which may extend to three years, or with fine, or with both.
-
-# Penal Code of Sri Lanka - Section 370
-Whoever commits theft, having made preparation for causing death or hurt or restraint, or fear of death or of hurt or of restraint, to any person, in order to the committing of such theft, or in order to the retiring after the committing of such theft, or in order to the retaining of property taken by such theft, shall be punished with rigorous imprisonment for a term which may extend to ten years, and shall also be liable to fine.

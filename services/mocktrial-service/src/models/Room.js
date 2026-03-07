@@ -13,6 +13,13 @@ export const TRIAL_ROLES = {
     VICTIM: { key: 'Victim', dbKey: 'victim', complexity: 2, required: 1 },
     WITNESS: { key: 'Witness', dbKey: 'witness', complexity: 2, required: 0 }, // Flexible count
     CLIENT: { key: 'Client', dbKey: 'client', complexity: 3, required: 1 },
+    JURY_FOREMAN: { key: 'Jury Foreman', dbKey: 'juryForeman', complexity: 3, required: 1 },
+    EXPERT_WITNESS: { key: 'Expert Witness', dbKey: 'expertWitness', complexity: 4, required: 1 },
+    EYEWITNESS: { key: 'Eyewitness', dbKey: 'eyewitness', complexity: 2, required: 1 },
+    COURT_CLERK: { key: 'Court Clerk', dbKey: 'courtClerk', complexity: 2, required: 1 },
+    BAILIFF: { key: 'Bailiff', dbKey: 'bailiff', complexity: 1, required: 1 },
+    COURT_REPORTER: { key: 'Court Reporter', dbKey: 'courtReporter', complexity: 2, required: 1 },
+    INVESTIGATING_OFFICER: { key: 'Investigating Officer', dbKey: 'investigatingOfficer', complexity: 3, required: 1 },
 };
 
 /**
@@ -35,7 +42,7 @@ const participantSchema = new Schema({
     invitedRole: {
         type: String,
         enum: {
-            values: ['Judge', 'Defense Lawyer', 'Prosecution Lawyer', 'Victim', 'Witness', 'Client', 'Unassigned'],
+            values: ['Judge', 'Defense Lawyer', 'Prosecution Lawyer', 'Victim', 'Witness', 'Client', 'Jury Foreman', 'Expert Witness', 'Eyewitness', 'Court Clerk', 'Bailiff', 'Court Reporter', 'Investigating Officer', 'Unassigned'],
             message: '{VALUE} is not a valid role'
         },
         default: 'Unassigned'
@@ -44,7 +51,7 @@ const participantSchema = new Schema({
     assignedRole: {
         type: String,
         enum: {
-            values: ['Judge', 'Defense Lawyer', 'Prosecution Lawyer', 'Victim', 'Witness', 'Client', null],
+            values: ['Judge', 'Defense Lawyer', 'Prosecution Lawyer', 'Victim', 'Witness', 'Client', 'Jury Foreman', 'Expert Witness', 'Eyewitness', 'Court Clerk', 'Bailiff', 'Court Reporter', 'Investigating Officer', null],
             message: '{VALUE} is not a valid assigned role'
         },
         default: null
@@ -161,9 +168,13 @@ const roomSchema = new Schema({
             ['Judge', 1],
             ['Defense Lawyer', 1],
             ['Prosecution Lawyer', 1],
-            ['Victim', 1],
-            ['Witness', 2],
-            ['Client', 1]
+            ['Jury Foreman', 1],
+            ['Expert Witness', 1],
+            ['Eyewitness', 1],
+            ['Court Clerk', 1],
+            ['Bailiff', 1],
+            ['Court Reporter', 1],
+            ['Investigating Officer', 1]
         ])
     },
     // Unique room code for joining

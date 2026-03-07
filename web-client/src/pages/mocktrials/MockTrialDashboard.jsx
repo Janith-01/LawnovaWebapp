@@ -44,6 +44,7 @@ import {
     Info,
     Brain,
     Scale,
+    Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
@@ -664,52 +665,56 @@ const PerformanceChart = ({ isLoading }) => {
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#1E293B] rounded-2xl border border-slate-700/50 p-6 h-full shadow-xl"
+            className="bg-[#1E293B] rounded-3xl border border-slate-700/50 p-6 sm:p-8 h-full shadow-xl relative overflow-hidden"
         >
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="font-serif font-bold text-lg text-white">
-                    Performance Insights
+            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 blur-3xl -mr-16 -mt-16" />
+            <div className="flex items-center justify-between mb-8 relative z-10">
+                <h3 className="font-serif font-bold text-xl text-white">
+                    Performance Range
                 </h3>
-                <span className="text-xs text-slate-500">Last 5 sessions</span>
+                <span className="text-xs font-semibold text-purple-300 bg-purple-500/10 px-3 py-1.5 rounded-full border border-purple-500/20">Last 5</span>
             </div>
 
-            <div className="h-48">
+            <div className="h-[280px] relative z-10">
                 <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
+                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                             <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#6D28D9" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#6D28D9" stopOpacity={0} />
+                                <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.4} />
+                                <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
                             </linearGradient>
                             <linearGradient id="colorArgument" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#F97316" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#F97316" stopOpacity={0} />
+                                <stop offset="5%" stopColor="#EC4899" stopOpacity={0.4} />
+                                <stop offset="95%" stopColor="#EC4899" stopOpacity={0} />
                             </linearGradient>
                         </defs>
-                        <XAxis dataKey="session" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} domain={[0, 100]} />
+                        <XAxis dataKey="session" axisLine={false} tickLine={false} tick={{ fontSize: 13, fill: '#64748B', fontWeight: 500 }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 13, fill: '#64748B' }} domain={[0, 100]} />
                         <Tooltip
                             contentStyle={{
-                                backgroundColor: '#1F2937',
-                                border: 'none',
-                                borderRadius: '8px',
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                border: '1px solid rgba(51, 65, 85, 0.5)',
+                                borderRadius: '12px',
                                 color: '#fff',
+                                backdropFilter: 'blur(8px)',
+                                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)'
                             }}
+                            itemStyle={{ fontSize: '14px', fontWeight: 600 }}
                         />
-                        <Area type="monotone" dataKey="score" stroke="#6D28D9" strokeWidth={2} fill="url(#colorScore)" name="Overall Score" />
-                        <Area type="monotone" dataKey="argument" stroke="#F97316" strokeWidth={2} fill="url(#colorArgument)" name="Argument Strength" />
+                        <Area type="monotone" dataKey="score" stroke="#8B5CF6" strokeWidth={3} fill="url(#colorScore)" name="Overall Score" activeDot={{ r: 6, fill: '#8B5CF6', stroke: '#fff', strokeWidth: 2 }} />
+                        <Area type="monotone" dataKey="argument" stroke="#EC4899" strokeWidth={3} fill="url(#colorArgument)" name="Argument Strength" activeDot={{ r: 6, fill: '#EC4899', stroke: '#fff', strokeWidth: 2 }} />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
 
-            <div className="flex items-center justify-center gap-6 mt-4">
+            <div className="flex items-center justify-center gap-8 mt-6 relative z-10">
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-purple-500" />
-                    <span className="text-xs text-slate-400">Overall Score</span>
+                    <div className="w-3.5 h-3.5 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.6)]" />
+                    <span className="text-sm font-medium text-slate-300">Overall</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-orange-500" />
-                    <span className="text-xs text-slate-400">Argument Strength</span>
+                    <div className="w-3.5 h-3.5 rounded-full bg-pink-500 shadow-[0_0_8px_rgba(236,72,153,0.6)]" />
+                    <span className="text-sm font-medium text-slate-300">Argument</span>
                 </div>
             </div>
         </motion.div>
@@ -953,80 +958,7 @@ const NotificationsPanel = () => {
     );
 };
 
-// ============================================
-// QUICK ACTIONS COMPONENT
-// ============================================
 
-const QuickActions = ({ onCreateTrial }) => {
-    const navigate = useNavigate();
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-[#1E293B] rounded-2xl p-6 text-white border border-slate-700/50 shadow-xl"
-        >
-            <h3 className="font-serif font-bold text-lg mb-4 text-white">Quick Actions</h3>
-            <div className="space-y-3">
-                <button
-                    onClick={onCreateTrial}
-                    className="w-full flex items-center gap-3 p-3 bg-slate-800/50 hover:bg-slate-700/50 rounded-xl transition-all group border border-slate-700/30"
-                >
-                    <div className="p-2 bg-purple-500/20 text-purple-400 rounded-lg border border-purple-500/20">
-                        <Plus className="w-4 h-4" />
-                    </div>
-                    <span className="font-medium text-slate-200">Create New Trial</span>
-                    <ArrowRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-all text-purple-400" />
-                </button>
-
-                {/* Flashcards & Quizzes Button */}
-                <button
-                    onClick={() => navigate('/learning-materials')}
-                    className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 hover:from-amber-500/20 hover:to-yellow-500/20 rounded-xl transition-all group border border-amber-500/30 hover:border-amber-400/50 shadow-lg shadow-amber-500/5"
-                >
-                    <div className="p-2 bg-gradient-to-br from-amber-500 to-yellow-600 text-slate-900 rounded-lg shadow-lg shadow-amber-500/30">
-                        <Brain className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 text-left">
-                        <span className="font-semibold text-white block">Flashcards & Quizzes</span>
-                        <span className="text-xs text-amber-400/80">Study smart, master fast</span>
-                    </div>
-                    <ArrowRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-amber-400" />
-                </button>
-
-                {/* Judgment Prediction Button */}
-                <button
-                    onClick={() => navigate('/judgment-prediction')}
-                    className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 hover:from-purple-500/20 hover:to-indigo-500/20 rounded-xl transition-all group border border-purple-500/30 hover:border-purple-400/50 shadow-lg shadow-purple-500/5"
-                >
-                    <div className="p-2 bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-lg shadow-lg shadow-purple-500/30">
-                        <Scale className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 text-left">
-                        <span className="font-semibold text-white block">AI Verdict Predictor</span>
-                        <span className="text-xs text-purple-400/80">Predict case outcomes</span>
-                    </div>
-                    <ArrowRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-purple-400" />
-                </button>
-
-                <button className="w-full flex items-center gap-3 p-3 bg-slate-800/50 hover:bg-slate-700/50 rounded-xl transition-all group border border-slate-700/30">
-                    <div className="p-2 bg-blue-500/20 text-blue-400 rounded-lg border border-blue-500/20">
-                        <BookOpen className="w-4 h-4" />
-                    </div>
-                    <span className="font-medium text-slate-200">Browse Syllabus</span>
-                    <ArrowRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-all text-blue-400" />
-                </button>
-                <button className="w-full flex items-center gap-3 p-3 bg-slate-800/50 hover:bg-slate-700/50 rounded-xl transition-all group border border-slate-700/30">
-                    <div className="p-2 bg-green-500/20 text-green-400 rounded-lg border border-green-500/20">
-                        <Users className="w-4 h-4" />
-                    </div>
-                    <span className="font-medium text-slate-200">Find Partners</span>
-                    <ArrowRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-all text-green-400" />
-                </button>
-            </div>
-        </motion.div>
-    );
-};
 
 // ============================================
 // RECENT SESSIONS PANEL COMPONENT
@@ -1308,26 +1240,35 @@ const MockTrialDashboard = () => {
                 animate="visible"
                 className="space-y-6"
             >
-                {/* Header */}
+                {/* Welcome Banner */}
                 <motion.div
                     variants={itemVariants}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                    className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-900 via-[#1E1B4B] to-slate-900 border border-indigo-500/20 shadow-2xl p-8 sm:p-12 z-10"
                 >
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-primary-200">
-                            Welcome back, {username}!
-                        </h1>
-                        <p className="text-gray-500 dark:text-primary-400 mt-1">
-                            Here's your legal practice overview
-                        </p>
+                    {/* Decorative Elements */}
+                    <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-[80px] pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-64 h-64 bg-purple-500/20 rounded-full blur-[80px] pointer-events-none" />
+
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                        <div>
+                            <h1 className="text-3xl sm:text-5xl font-serif font-bold text-white mb-4 tracking-tight">
+                                Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">{username}</span>!
+                            </h1>
+                            <p className="text-indigo-200/80 text-lg max-w-xl leading-relaxed">
+                                Master your litigation skills with AI-driven courtroom simulations. Ready to take the stand?
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={handleCreateTrial}
+                                className="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold px-8 py-4 rounded-2xl transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] hover:-translate-y-1 group border border-white/10"
+                            >
+                                <Sparkles className="w-6 h-6 group-hover:animate-pulse text-indigo-200" />
+                                <span className="text-lg">Start Simulation</span>
+                            </button>
+                        </div>
                     </div>
-                    <button
-                        onClick={handleCreateTrial}
-                        className="inline-flex items-center gap-2 bg-[#9333EA] hover:bg-[#7E22CE] text-white font-semibold px-6 py-3 rounded-xl transition-all shadow-lg hover:shadow-xl group"
-                    >
-                        <Zap className="w-5 h-5 group-hover:animate-bounce" />
-                        Quick Create
-                    </button>
                 </motion.div>
 
                 {/* Tabs */}
@@ -1409,43 +1350,45 @@ const MockTrialDashboard = () => {
                                 )}
                             </div>
 
-                            {/* Main Content Grid */}
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                {/* Left Column - Schedule (2/3) */}
-                                <div className="lg:col-span-2 space-y-4">
-                                    <motion.div variants={itemVariants}>
-                                        <h2 className="font-serif font-bold text-xl text-gray-900">
-                                            Your Upcoming Schedule
-                                        </h2>
-                                    </motion.div>
+                            {/* Main Content Grid Area */}
+                            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                                {/* Left Content - Schedule (3 cols) */}
+                                <div className="lg:col-span-3 space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <motion.div variants={itemVariants}>
+                                            <h2 className="font-serif font-bold text-2xl text-white">
+                                                Your Upcoming Schedule
+                                            </h2>
+                                        </motion.div>
+                                    </div>
 
-                                    <motion.div variants={containerVariants} className="space-y-3">
+                                    <motion.div variants={containerVariants} className="space-y-4">
                                         {isLoading ? (
                                             <>
-                                                <SessionCardSkeleton />
                                                 <SessionCardSkeleton />
                                                 <SessionCardSkeleton />
                                             </>
                                         ) : upcomingSessions.length === 0 ? (
                                             <motion.div
                                                 variants={itemVariants}
-                                                className="bg-[#1E293B] rounded-2xl border border-slate-700/50 p-8 text-center shadow-xl"
+                                                className="bg-slate-800/40 rounded-[2rem] border border-slate-700/50 p-12 text-center shadow-2xl backdrop-blur-md relative overflow-hidden group hover:border-indigo-500/30 transition-colors"
                                             >
-                                                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-800 flex items-center justify-center">
-                                                    <Gavel className="w-8 h-8 text-purple-400" />
+                                                <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                                                <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-slate-800 flex items-center justify-center shadow-inner border border-slate-700/50 rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                                                    <Gavel className="w-12 h-12 text-indigo-400" />
                                                 </div>
-                                                <h3 className="font-semibold text-white mb-2">
+                                                <h3 className="text-2xl font-serif font-bold text-white mb-3">
                                                     No Upcoming Trials
                                                 </h3>
-                                                <p className="text-slate-400 mb-4">
-                                                    Create your first mock trial to start practicing
+                                                <p className="text-slate-400 mb-8 max-w-sm mx-auto text-lg">
+                                                    Schedule your first mock trial session and invite peers to practice together.
                                                 </p>
                                                 <button
                                                     onClick={handleCreateTrial}
-                                                    className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-purple-900/20"
+                                                    className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold px-8 py-4 rounded-xl transition-all shadow-lg border border-slate-600 hover:border-slate-500"
                                                 >
-                                                    <Plus className="w-4 h-4" />
-                                                    Create Trial
+                                                    <Plus className="w-5 h-5" />
+                                                    Schedule Session
                                                 </button>
                                             </motion.div>
                                         ) : (
@@ -1464,10 +1407,38 @@ const MockTrialDashboard = () => {
                                     </motion.div>
                                 </div>
 
-                                {/* Right Column - Insights (1/3) */}
-                                <div className="space-y-6">
-                                    <PerformanceChart isLoading={isLoading} />
-                                    <QuickActions onCreateTrial={handleCreateTrial} />
+                                {/* Right Content - Insights & Tools (2 cols) */}
+                                <div className="lg:col-span-2 space-y-8 flex flex-col">
+                                    <div className="flex-1">
+                                        <PerformanceChart isLoading={isLoading} />
+                                    </div>
+
+                                    {/* Action Shortcuts replacement for Quick Actions */}
+                                    <div className="grid grid-cols-2 gap-4 mt-auto">
+                                        <button
+                                            onClick={() => navigate('/learning-materials')}
+                                            className="group relative overflow-hidden p-6 rounded-[2rem] border border-amber-500/20 bg-gradient-to-b from-[#1E293B] to-slate-900 text-left transition-all hover:shadow-[0_15px_30px_rgba(245,158,11,0.1)] hover:border-amber-500/40 flex flex-col h-full hover:translate-y-[-2px]"
+                                        >
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-amber-500/20 transition-colors" />
+                                            <div className="p-3 bg-amber-500/10 rounded-2xl w-fit mb-4 text-amber-400 group-hover:scale-110 group-hover:bg-amber-500/20 transition-all border border-amber-500/20">
+                                                <Brain className="w-6 h-6" />
+                                            </div>
+                                            <span className="font-semibold text-lg text-white block mb-1">Study Tools</span>
+                                            <span className="text-sm text-slate-400">AI Flashcards & Quizzes</span>
+                                        </button>
+
+                                        <button
+                                            onClick={() => navigate('/judgment-prediction')}
+                                            className="group relative overflow-hidden p-6 rounded-[2rem] border border-indigo-500/20 bg-gradient-to-b from-[#1E293B] to-slate-900 text-left transition-all hover:shadow-[0_15px_30px_rgba(99,102,241,0.1)] hover:border-indigo-500/40 flex flex-col h-full hover:translate-y-[-2px]"
+                                        >
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-indigo-500/20 transition-colors" />
+                                            <div className="p-3 bg-indigo-500/10 rounded-2xl w-fit mb-4 text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-500/20 transition-all border border-indigo-500/20">
+                                                <Scale className="w-6 h-6" />
+                                            </div>
+                                            <span className="font-semibold text-lg text-white block mb-1">Predict Case</span>
+                                            <span className="text-sm text-slate-400">AI legal foresight</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>

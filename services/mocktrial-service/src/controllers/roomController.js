@@ -1137,8 +1137,7 @@ const roomController = {
                 data: {
                     roomId: room._id,
                     status: room.roomStatus,
-                    completedAt: room.completedAt,
-                    learningMaterials: getMockLearningMaterials()
+                    completedAt: room.completedAt
                 }
             });
         }
@@ -1170,30 +1169,32 @@ const roomController = {
         }
 
         // RAG TRIGGER: Initiate transcript parsing and keyword extraction
-        let learningMaterials = getMockLearningMaterials(); // Default fallback
+        let learningMaterials = {
+            flashcards: [],
+            quizzes: [],
+            summary: {
+                title: 'No Learning Materials Generated',
+                keyTopics: [],
+                recommendations: []
+            }
+        };
 
         try {
             // Import the AI service client
             const aiServiceClient = (await import('../utils/aiServiceClient.js')).default;
 
             // Trigger transcript parsing for RAG-driven learning materials
-            const ragResponse = await aiServiceClient.post('/api/ai/transcript/ingest', {
-                type: 'TRANSCRIPT_READY',
-                roomId: roomId,
+            const ragResponse = await aiServiceClient.post('/api/ai/generate-learning', {
                 sessionId: roomId,
-                topic: room.topic,
-                participants: room.participants.length,
-                trigger: 'SESSION_COMPLETION'
+                topic: room.topic
             });
 
-            logger.info({
-                roomId,
-                ragStatus: ragResponse.data
-            }, 'RAG pipeline triggered for learning material generation');
-
-            // TODO: In production, replace getMockLearningMaterials() with actual RAG-generated content
-            // For now, we use mock data as the RAG pipeline processes asynchronously
-            // Future: Implement webhook or polling mechanism to retrieve generated materials
+            if (ragResponse.data?.success && ragResponse.data?.data) {
+                learningMaterials = ragResponse.data.data;
+                logger.info({
+                    roomId
+                }, 'RAG pipeline dynamically generated learning materials from transcript');
+            }
 
         } catch (ragErr) {
             logger.warn({
@@ -1295,152 +1296,6 @@ const roomController = {
     },
 };
 
-/**
- * Mock Learning Materials - Static fallback when RAG pipeline is not ready
- * Focus on Sri Lankan Evidence Act and Matrimonial Rights Act
- */
-const getMockLearningMaterials = () => ({
-    flashcards: [
-        {
-            id: 'fc-1',
-            category: 'Sri Lankan Evidence Act',
-            front: 'What is a Dying Declaration under Section 32?',
-            back: 'A statement made by a person who is dead, regarding the cause of their death or circumstances leading to it. Admissible as evidence when the declarant believed death was imminent.',
-            difficulty: 'medium'
-        },
-        {
-            id: 'fc-2',
-            category: 'Sri Lankan Evidence Act',
-            front: 'Define Hearsay Evidence',
-            back: 'Evidence of a statement made out of court that is offered to prove the truth of the matter asserted. Generally inadmissible unless it falls under recognized exceptions.',
-            difficulty: 'easy'
-        },
-        {
-            id: 'fc-3',
-            category: 'Sri Lankan Evidence Act',
-            front: 'What is the purpose of Cross-Examination?',
-            back: 'To test the accuracy, credibility, and reliability of witness testimony. The cross-examiner can ask leading questions and challenge inconsistencies.',
-            difficulty: 'easy'
-        },
-        {
-            id: 'fc-4',
-            category: 'Matrimonial Rights Act',
-            front: 'What are the grounds for divorce under the Marriage Registration Ordinance?',
-            back: 'Adultery, malicious desertion for 2+ years, incurable impotence at time of marriage, and cruelty making cohabitation unsafe.',
-            difficulty: 'hard'
-        },
-        {
-            id: 'fc-5',
-            category: 'Matrimonial Rights Act',
-            front: 'What is the Matrimonial Rights and Inheritance Ordinance?',
-            back: 'Governs property rights between spouses, ensuring equitable distribution of marital assets and protecting the rights of surviving spouses in inheritance.',
-            difficulty: 'medium'
-        },
-        {
-            id: 'fc-6',
-            category: 'Sri Lankan Evidence Act',
-            front: 'What is Documentary Evidence?',
-            back: 'Evidence furnished by written documents, records, photographs, or any other material that can be read or examined. Must be authenticated before admission.',
-            difficulty: 'easy'
-        },
-        {
-            id: 'fc-7',
-            category: 'Court Procedure',
-            front: 'What is Examination-in-Chief?',
-            back: 'The initial questioning of a witness by the party who called them. Leading questions are generally not permitted during examination-in-chief.',
-            difficulty: 'medium'
-        },
-        {
-            id: 'fc-8',
-            category: 'Court Procedure',
-            front: 'What is Re-Examination?',
-            back: 'Questioning by the original party after cross-examination, limited to matters raised during cross-examination. Used to clarify or rehabilitate witness credibility.',
-            difficulty: 'medium'
-        }
-    ],
-    quizzes: [
-        {
-            id: 'quiz-1',
-            question: 'Under Sri Lankan law, hearsay evidence is:',
-            options: [
-                'Always admissible in court',
-                'Generally inadmissible with recognized exceptions',
-                'Only admissible in civil cases',
-                'Admissible only if the declarant is present'
-            ],
-            correctAnswer: 1,
-            explanation: 'Hearsay evidence is generally inadmissible because the declarant cannot be cross-examined, but exceptions exist such as dying declarations and business records.',
-            topic: 'Hearsay Evidence'
-        },
-        {
-            id: 'quiz-2',
-            question: 'Which of the following is NOT a valid exception to the hearsay rule?',
-            options: [
-                'Dying declarations',
-                'Business records made in ordinary course',
-                'Statements made by the accused to police',
-                'Res gestae (spontaneous statements)'
-            ],
-            correctAnswer: 2,
-            explanation: 'Statements made to police by the accused are typically subject to special rules regarding confessions and are not a hearsay exception.',
-            topic: 'Hearsay Evidence'
-        },
-        {
-            id: 'quiz-3',
-            question: 'During cross-examination, leading questions are:',
-            options: [
-                'Never permitted',
-                'Only permitted with court approval',
-                'Generally permitted and encouraged',
-                'Only permitted for hostile witnesses'
-            ],
-            correctAnswer: 2,
-            explanation: 'Leading questions are generally permitted during cross-examination as the purpose is to test and challenge the witness\'s testimony.',
-            topic: 'Cross-examination Procedures'
-        },
-        {
-            id: 'quiz-4',
-            question: 'The order of witness examination in Sri Lankan courts is:',
-            options: [
-                'Cross-examination → Examination-in-chief → Re-examination',
-                'Examination-in-chief → Cross-examination → Re-examination',
-                'Re-examination → Examination-in-chief → Cross-examination',
-                'Cross-examination → Re-examination → Examination-in-chief'
-            ],
-            correctAnswer: 1,
-            explanation: 'The standard order is: (1) Examination-in-chief by the calling party, (2) Cross-examination by the opposing party, (3) Re-examination by the calling party.',
-            topic: 'Cross-examination Procedures'
-        },
-        {
-            id: 'quiz-5',
-            question: 'A dying declaration is admissible when:',
-            options: [
-                'The declarant must be alive to testify',
-                'The declarant believed death was imminent at the time of the statement',
-                'The statement was made in writing only',
-                'The statement must be witnessed by at least two people'
-            ],
-            correctAnswer: 1,
-            explanation: 'Under Section 32 of the Evidence Ordinance, a dying declaration is admissible when made by a person who believed death was imminent, regarding the cause or circumstances of their death.',
-            topic: 'Hearsay Evidence'
-        }
-    ],
-    summary: {
-        title: 'Trial Session Learning Summary',
-        keyTopics: [
-            'Sri Lankan Evidence Act',
-            'Hearsay Evidence and Exceptions',
-            'Cross-examination Procedures',
-            'Matrimonial Rights Act'
-        ],
-        recommendations: [
-            'Review Section 32 of the Evidence Ordinance for dying declarations',
-            'Study the exceptions to the hearsay rule',
-            'Practice formulating cross-examination questions',
-            'Understand the sequence of witness examination'
-        ]
-    }
-});
 
 /**
  * Trigger Learning Material Generation (Owner Only)
@@ -1463,97 +1318,66 @@ roomController.triggerLearning = async (req, res) => {
             throw new ApiError(404, 'Room not found');
         }
 
-        if (room.owner.toString() !== userId) {
+        if (room.ownerId.toString() !== userId) {
             throw new ApiError(403, 'Only the session owner can trigger learning materials');
         }
 
-        // 2. MOCK DATA PAYLOAD: Prepare Sri Lankan Legal Syllabus learning materials
-        const learningMaterials = {
-            flashcards: [
-                {
-                    front: "Section 32 - Evidence Act",
-                    back: "Dying Declarations - Statements made by a person as to the cause of his death or any of the circumstances of the transaction which resulted in his death, in cases in which the cause of that person's death comes into question."
-                },
-                {
-                    front: "Section 114 - Evidence Act",
-                    back: "Court May Presume Existence of Certain Facts - The Court may presume the existence of any fact which it thinks likely to have happened, regard being had to the common course of natural events and human conduct."
-                },
-                {
-                    front: "Right to Silence",
-                    back: "An accused person has the constitutional right to remain silent and cannot be compelled to testify against themselves. This principle is enshrined in Article 13(3) of the Constitution of Sri Lanka."
-                },
-                {
-                    front: "Burden of Proof",
-                    back: "In criminal cases, the burden of proof lies with the prosecution. They must prove the guilt of the accused beyond reasonable doubt. The accused is presumed innocent until proven guilty."
-                },
-                {
-                    front: "Section 109 - Evidence Act",
-                    back: "Burden of Proof - Whoever desires any Court to give judgment as to any legal right or liability dependent on the existence of facts which he asserts, must prove that those facts exist."
-                }
-            ],
-            quizzes: [
-                {
-                    question: "What is the standard of proof required in criminal trials in Sri Lanka?",
-                    options: [
-                        "Balance of probabilities",
-                        "Beyond reasonable doubt",
-                        "Clear and convincing evidence",
-                        "Preponderance of evidence"
-                    ],
-                    correctAnswer: 1,
-                    explanation: "In criminal cases, the prosecution must prove guilt beyond reasonable doubt, which is a higher standard than civil cases."
-                },
-                {
-                    question: "Under which section of the Evidence Act are dying declarations admissible?",
-                    options: [
-                        "Section 30",
-                        "Section 32",
-                        "Section 114",
-                        "Section 109"
-                    ],
-                    correctAnswer: 1,
-                    explanation: "Section 32 of the Evidence Act deals with dying declarations and statements made by persons who cannot be called as witnesses."
-                },
-                {
-                    question: "Who bears the burden of proof in a criminal trial?",
-                    options: [
-                        "The accused",
-                        "The victim",
-                        "The prosecution",
-                        "The judge"
-                    ],
-                    correctAnswer: 2,
-                    explanation: "The prosecution bears the burden of proving the guilt of the accused beyond reasonable doubt."
-                },
-                {
-                    question: "What right does Article 13(3) of the Constitution guarantee?",
-                    options: [
-                        "Right to a fair trial",
-                        "Right to legal representation",
-                        "Right to remain silent",
-                        "Right to bail"
-                    ],
-                    correctAnswer: 2,
-                    explanation: "Article 13(3) guarantees the right to silence - an accused cannot be compelled to testify against themselves."
-                },
-                {
-                    question: "What can the Court presume under Section 114 of the Evidence Act?",
-                    options: [
-                        "Only facts proven by documentation",
-                        "Facts likely to have happened based on common course of events",
-                        "Only facts testified by witnesses",
-                        "Facts admitted by the accused"
-                    ],
-                    correctAnswer: 1,
-                    explanation: "Section 114 allows courts to presume facts that are likely to have happened based on the common course of natural events and human conduct."
-                }
-            ],
-            roomId: room._id,
-            trialTopic: room.topic,
-            generatedAt: new Date().toISOString()
+        // 2. Fetch RAG DATA PAYLOAD: Generate dynamic learning materials from the transcript using the AI service 
+        let learningMaterials = {
+            flashcards: [],
+            quizzes: [],
+            summary: {
+                title: 'No Learning Materials Generated',
+                keyTopics: [],
+                recommendations: []
+            }
         };
 
-        // 3. BROADCAST: Send to all participants in the room
+        const { sendDailyAppMessage } = await import('../utils/aiServiceClient.js');
+
+        // BROADCAST LOADING STATE: Tell everyone the AI is thinking
+        if (room.dailyRoomName) {
+            await sendDailyAppMessage(room.dailyRoomName, 'LOADING_LEARNING', {
+                message: 'Senior Sri Lankan Law Professor is generating study materials...',
+                ownerId: userId
+            });
+        }
+
+        try {
+            const aiServiceClient = (await import('../utils/aiServiceClient.js')).default;
+            const ragResponse = await aiServiceClient.post('/api/ai/generate-learning', {
+                sessionId: roomId,
+                topic: room.topic
+            });
+
+            if (ragResponse.data?.success && ragResponse.data?.data) {
+                learningMaterials = ragResponse.data.data;
+                // Make sure it has roomId and generatedAt
+                learningMaterials.roomId = room._id;
+                learningMaterials.trialTopic = room.topic;
+                learningMaterials.generatedAt = new Date().toISOString();
+                logger.info({ roomId }, 'RAG pipeline successfully generated learning materials for triggerLearning');
+            }
+        } catch (ragErr) {
+            logger.warn({ roomId, error: ragErr.message }, 'RAG generation failed - using mock learning materials for triggerLearning');
+            learningMaterials.roomId = room._id;
+            learningMaterials.trialTopic = room.topic;
+            learningMaterials.generatedAt = new Date().toISOString();
+        }
+
+        // 3. BROADCAST: Send to all participants in the room via Daily.co App Message
+        if (room.dailyRoomName) {
+            await sendDailyAppMessage(room.dailyRoomName, 'STUDY_MATERIAL_READY', {
+                learningMaterials,
+                roomId: room._id,
+                trialTopic: room.topic,
+                triggeredBy: userId,
+                timestamp: new Date().toISOString()
+            });
+            logger.info({ roomId, dailyRoom: room.dailyRoomName }, '[triggerLearning] Learning materials broadcast via Daily.co App Message');
+        }
+
+        // Fallback or secondary broadcast via standard WebSockets
         if (io) {
             // Broadcast to room channel
             io.to(`room:${roomId}`).emit('SHOW_LEARNING_POPUP', {
