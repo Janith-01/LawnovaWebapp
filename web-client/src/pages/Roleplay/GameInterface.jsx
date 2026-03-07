@@ -64,6 +64,7 @@ const GameInterface = () => {
     const [isListening, setIsListening] = useState(false);
     const recognitionRef = useRef(null);
     const baseTextRef = useRef('');
+    const latestInputTextRef = useRef(inputText);
     const socketRef = useRef(null);
     const { isDarkMode } = useTheme();
 
@@ -204,6 +205,11 @@ const GameInterface = () => {
         };
     }, [sessionId]);
 
+    // Keep latest input text in a ref to avoid stale closures in recognition handlers
+    useEffect(() => {
+        latestInputTextRef.current = inputText;
+    }, [inputText]);
+
     // Track user activity to reset heartbeat
     useEffect(() => {
         if (!socketRef.current || !sessionId) return;
@@ -235,7 +241,7 @@ const GameInterface = () => {
 
         recognition.onstart = () => {
             setIsListening(true);
-            baseTextRef.current = inputText;
+            baseTextRef.current = latestInputTextRef.current;
             console.log("🎤 Voice input active...");
         };
 
@@ -244,23 +250,27 @@ const GameInterface = () => {
             for (let i = 0; i < event.results.length; i++) {
                 transcript += event.results[i][0].transcript;
             }
-            // Real-time transcript update: show spoken text in input field
+            // Real-time transcript update
             setInputText(baseTextRef.current + (baseTextRef.current ? ' ' : '') + transcript);
         };
 
         recognition.onerror = (event) => {
-            console.error('Speech recognition error:', event.error);
-            setIsListening(false);
-            if (event.error !== 'no-speech') {
+            // "no-speech" is common and not always a failure, just stop being red
+            if (event.error === 'no-speech') {
+                console.debug('Speech recognition: no speech detected.');
+            } else {
+                console.error('Speech recognition error:', event.error);
                 toast.error(`Mic error: ${event.error}`);
             }
+            setIsListening(false);
         };
 
         recognition.onend = () => {
             setIsListening(false);
             console.log("🎤 Voice input stopped.");
             // Auto-send argument if something was captured
-            if (inputText.trim() && inputText !== baseTextRef.current) {
+            const finalInput = latestInputTextRef.current;
+            if (finalInput.trim() && finalInput !== baseTextRef.current) {
                 setTimeout(() => {
                     handleSendMessage();
                 }, 500);
@@ -274,7 +284,7 @@ const GameInterface = () => {
                 recognitionRef.current.stop();
             }
         };
-    }, [sessionId, inputText]); // Re-init on sessionId to ensure references are fresh
+    }, [sessionId]); // Removed inputText dependency
 
     const toggleListening = () => {
         if (isListening) {
@@ -922,8 +932,8 @@ const GameInterface = () => {
                                             onClick={toggleListening}
                                             disabled={isLoading}
                                             className={`absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all z-10 ${isListening
-                                                    ? 'text-red-500 animate-pulse bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.5)] border border-red-500/50'
-                                                    : 'text-slate-500 hover:text-purple-400 hover:bg-purple-500/10'
+                                                ? 'text-red-500 animate-pulse bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.5)] border border-red-500/50'
+                                                : 'text-slate-500 hover:text-purple-400 hover:bg-purple-500/10'
                                                 }`}
                                             title={isListening ? "Stop listening" : "Speak your argument"}
                                         >
