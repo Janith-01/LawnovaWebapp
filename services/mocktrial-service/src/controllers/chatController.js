@@ -161,6 +161,7 @@ const chatController = {
     },
 
     /**
+
      * GET /api/rooms/:roomId/chat
      * Get chat history for a room
      */

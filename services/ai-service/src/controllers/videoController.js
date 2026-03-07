@@ -106,4 +106,5 @@ export default {
     getToken,
     deleteRoom,
     sendMessage,
+
 };

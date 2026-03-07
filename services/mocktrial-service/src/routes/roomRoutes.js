@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import roomController from '../controllers/roomController.js';
 import chatController from '../controllers/chatController.js';
-import { broadcastStudySuite } from '../controllers/aiController.js';
+
 import { validate, roomSchemas } from '../middleware/validate.js';
 
 const router = Router();
@@ -233,6 +233,13 @@ router.post(
     validate(roomSchemas.roomIdParam, 'params'),
     chatController.saveAiMessage
 );
+
+/**
+ * @route   GET /api/rooms/:roomId/chat
+ * @desc    Get chat history for a room
+ * @access  Private (Participants)
+ */
+
 router.get(
     '/:roomId/chat',
     validate(roomSchemas.roomIdParam, 'params'),
@@ -273,7 +280,8 @@ router.patch(
 router.post(
     '/:roomId/trigger-learning',
     validate(roomSchemas.roomIdParam, 'params'),
-    broadcastStudySuite
+    roomController.triggerLearning
+
 );
 
 export default router;

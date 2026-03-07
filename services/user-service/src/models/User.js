@@ -76,6 +76,7 @@ const userSchema = new mongoose.Schema(
         bailiff: { type: Number, default: 0 },
         courtReporter: { type: Number, default: 0 },
         investigatingOfficer: { type: Number, default: 0 },
+
         victim: { type: Number, default: 0 },
         witness: { type: Number, default: 0 },
         client: { type: Number, default: 0 },

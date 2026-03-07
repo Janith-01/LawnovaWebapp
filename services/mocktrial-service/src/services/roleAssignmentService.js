@@ -12,6 +12,8 @@ class RoleAssignmentService {
     constructor() {
         this.algorithmVersion = '1.0.0';
 
+        // Role complexity mapping (higher = more complex, needs better performance)
+
         this.roleComplexity = {
             'Judge': 5,
             'Defense Lawyer': 4,
@@ -23,6 +25,7 @@ class RoleAssignmentService {
             'Bailiff': 1,
             'Court Reporter': 2,
             'Investigating Officer': 3,
+
             'Client': 3,
             'Victim': 2,
             'Witness': 2
@@ -216,7 +219,8 @@ class RoleAssignmentService {
             { role: 'Bailiff', min: 1, max: 1 },
             { role: 'Court Reporter', min: 1, max: 1 },
             { role: 'Investigating Officer', min: 1, max: 1 },
-            { role: 'Client', min: 0, max: 1 },
+            { role: 'Client', min: 1, max: 1 },
+
             { role: 'Victim', min: 0, max: 1 },
             { role: 'Witness', min: 0, max: 10 } // Flexible
         ];
@@ -604,6 +608,7 @@ class RoleAssignmentService {
             'Bailiff': 'bailiff',
             'Court Reporter': 'courtReporter',
             'Investigating Officer': 'investigatingOfficer',
+
             'Victim': 'victim',
             'Witness': 'witness',
             'Client': 'client'
