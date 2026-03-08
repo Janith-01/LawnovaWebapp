@@ -258,6 +258,37 @@ const mockTrialService = {
         const response = await api.delete(`/api/mock-trials/rooms/${roomId}/chat`);
         return response.data;
     },
+
+    // ============================================
+    // TRIAL SESSION & TIMER OPERATIONS
+    // ============================================
+
+    /**
+     * Start/Initialize a trial session timer
+     * @param {string} roomId - Room ID
+     */
+    startTrialSession: async (roomId) => {
+        const response = await api.post(`/api/mock-trials/rooms/${roomId}/session/start`);
+        return response.data;
+    },
+
+    /**
+     * Get current session status/time allocations
+     * @param {string} roomId - Room ID
+     */
+    getTrialSessionStatus: async (roomId) => {
+        const response = await api.get(`/api/mock-trials/rooms/${roomId}/session/status`);
+        return response.data;
+    },
+
+    /**
+     * Move trial to next stage (Opening -> Direct -> Cross etc.)
+     * @param {string} roomId - Room ID
+     */
+    nextTrialStage: async (roomId) => {
+        const response = await api.patch(`/api/mock-trials/rooms/${roomId}/session/next`);
+        return response.data;
+    },
 };
 
 export default mockTrialService;

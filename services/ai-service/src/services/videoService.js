@@ -37,6 +37,7 @@ export const createDailyRoom = async (trialId) => {
                 start_audio_off: true,
                 start_video_off: false,
                 enable_recording: 'cloud',
+                enable_transcription: true,
                 exp: Math.floor(Date.now() / 1000) + 86400,
             },
         });

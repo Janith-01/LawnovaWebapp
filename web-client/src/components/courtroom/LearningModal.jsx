@@ -159,7 +159,7 @@ const LearningModal = ({ roomId, isOpen, onClose }) => {
         if (onClose) onClose();
     };
 
-    if (!showPopup && !isLoading) return null;
+    if (!showPopup && !isLoading && !isOpen) return null;
 
     return (
         <AnimatePresence>
@@ -175,7 +175,7 @@ const LearningModal = ({ roomId, isOpen, onClose }) => {
                     onClick={handleClose}
                 />
 
-                {isLoading ? (
+                {isLoading || (isOpen && !showPopup && !learningData) ? (
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}

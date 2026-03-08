@@ -15,6 +15,7 @@ import ParticipantView from '@/components/courtroom/ParticipantView';
 import GeminiChatSidebar from '@/components/courtroom/GeminiChatSidebar';
 import LearningModal from '@/components/courtroom/LearningModal';
 import MasterGenerateButton from '@/components/courtroom/MasterGenerateButton';
+import CourtroomTimer from '@/components/courtroom/CourtroomTimer';
 import { useAuth } from '@/context/AuthContext';
 import { io } from 'socket.io-client';
 
@@ -77,9 +78,41 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
             } else if (msg?.type === 'STUDY_MATERIAL_AVAILABLE') {
                 toast.dismiss('sync-toast');
                 toast.success('AI Data Synced successfully!');
+                // Requirement: Trigger Global UI state (Learning Modal)
+                setIsTriggeringLearning(true);
             }
         }, [])
     });
+
+    // REQUIREMENT: Live Transcription Ingestion for RAG pipeline
+    useDailyEvent('transcription-message', useCallback((ev) => {
+        if (!ev.text || !roomId) return;
+
+        // Identify speaker details from Daily participant
+        const speakerId = ev.participantId;
+        const speaker = daily.participants()[speakerId];
+        let role = 'Participant';
+        let name = speaker?.user_name || 'Anonymous';
+
+        if (name.includes('|')) {
+            const parts = name.split('|');
+            role = parts[0];
+            name = parts[1];
+        }
+
+        // Async Ingestion to AI Service (via Gateway)
+        api.post('/api/ai/transcript/ingest', {
+            type: 'TRANSCRIPTION_MESSAGE',
+            sessionId: roomId,
+            message: {
+                speakerRole: role,
+                speakerName: name,
+                text: ev.text,
+                timestamp: new Date().toISOString(),
+                confidence: ev.confidence
+            }
+        }).catch(err => console.debug('[Transcript] Ingestion skip:', err.message));
+    }, [daily, roomId]));
 
     // Owner check for Complete Session button
     const isOwner = useMemo(() => {
@@ -163,6 +196,16 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
         socket.on('connect', () => {
             console.log('[Courtroom] Socket connected for completion events');
             socket.emit('join:room', { roomId });
+        });
+
+        // Requirement 5: Display 'Penalty Applied: +1:00' toast
+        socket.on('TIME_INFLATED', (data) => {
+            console.log('[AI Penalty] Time inflator triggered:', data);
+            toast.error(`Penalty Applied: +1:00`, {
+                description: `Legal context missing in your ${data.stageName}`,
+                duration: 6000,
+                icon: <ShieldAlert className="w-5 h-5 text-red-500" />
+            });
         });
 
         // Listen for trial completion event (from owner completing session)
@@ -271,9 +314,9 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
 
     // Complete Session (Owner only + Session Started)
     const handleCompleteSession = async () => {
-        // Owner-only restriction
-        if (!isOwner) {
-            toast.error('Only the room owner can complete the session');
+        // Judge-level restriction (includes owners)
+        if (!isJudge) {
+            toast.error('Only the room owner or the Judge can complete the session');
             return;
         }
 
@@ -370,7 +413,7 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
      * Calls AI to analyze the current transcript and generate quizzes for everyone
      */
     const handleTriggerLearning = async () => {
-        if (!isOwner) return;
+        if (!isJudge) return;
 
         try {
             setIsTriggeringLearning(true);
@@ -386,6 +429,7 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
 
             // Call the new broadcastStudySuite controller
             const response = await api.post(`/api/mock-trials/rooms/${roomId}/trigger-learning`);
+            console.log('[Courtroom] trigger-learning response:', response.data);
 
             // Validate JSON Data before broadcasting
             const aiData = response.data?.data;
@@ -488,6 +532,10 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
                     </div>
                 </div>
 
+                <div className="flex-1 flex justify-center">
+                    <CourtroomTimer roomId={roomId} isJudge={isJudge} />
+                </div>
+
                 <div className="flex items-center gap-3">
                     <div className="bg-gray-800 rounded-xl px-4 py-1.5 border border-gray-700">
                         <span className="text-gray-400 text-xs font-medium uppercase tracking-wider block">Case</span>
@@ -577,8 +625,8 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
                                     ))}
                                 </div>
 
-                                {/* CONDITIONAL RENDERING: Show only for Owner AND after session started */}
-                                {isOwner && isSessionStarted && (
+                                {/* CONDITIONAL RENDERING: Show for Judge/Owner AND after session started */}
+                                {isJudge && isSessionStarted && (
                                     <div className="p-4 border-t border-gray-800 bg-gray-900/50">
                                         <button
                                             onClick={handleCompleteSession}
@@ -600,7 +648,7 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
                                         <div className="mt-3 flex items-center justify-center gap-2">
                                             <div className="h-1 flex-1 bg-gradient-to-r from-transparent via-gray-800 to-transparent" />
                                             <span className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-black">
-                                                Owner Only
+                                                Judge/Owner Only
                                             </span>
                                             <div className="h-1 flex-1 bg-gradient-to-r from-transparent via-gray-800 to-transparent" />
                                         </div>
@@ -636,10 +684,10 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
                         <div className="w-px h-8 bg-gray-800 mx-1" />
 
                         {/* Owner Action: Master Generate Button */}
-                        {isOwner && (
+                        {isJudge && (
                             <>
                                 <MasterGenerateButton
-                                    isOwner={isOwner}
+                                    isOwner={isJudge}
                                     isProcessing={isTriggeringLearning}
                                     onClick={handleTriggerLearning}
                                 />
