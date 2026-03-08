@@ -21,6 +21,7 @@
     "license": "MIT",
     "dependencies": {
         "@anthropic-ai/sdk": "^0.26.1",
+        "@chroma-core/default-embed": "^0.1.9",
         "@google/generative-ai": "^0.24.1",
         "@langchain/core": "^1.1.8",
         "@langchain/textsplitters": "^1.0.1",
@@ -39,7 +40,8 @@
         "mongoose": "^8.0.0",
         "openai": "^4.104.0",
         "pino": "^8.17.2",
-        "pino-pretty": "^10.3.1"
+        "pino-pretty": "^10.3.1",
+        "socket.io": "^4.8.3"
     },
     "devDependencies": {
         "jest": "^29.7.0",

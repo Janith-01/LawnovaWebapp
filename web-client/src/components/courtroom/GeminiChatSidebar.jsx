@@ -6,17 +6,17 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
-import mockTrialService from '@/services/mockTrialService';
-import { io } from 'socket.io-client';
+import { TokenManager } from '@/services/api';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 const GeminiChatSidebar = ({ roomId, isOpen, onClose }) => {
     const { user, token } = useAuth();
     const [messages, setMessages] = useState([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+    const [thought, setThought] = useState(null);
     const messagesEndRef = useRef(null);
     const socketRef = useRef(null);
 
@@ -29,98 +29,116 @@ const GeminiChatSidebar = ({ roomId, isOpen, onClose }) => {
         scrollToBottom();
     }, [messages, scrollToBottom]);
 
-    // Load chat history on mount
-    useEffect(() => {
-        const loadHistory = async () => {
-            try {
-                setIsLoadingHistory(true);
-                const response = await mockTrialService.getChatHistory(roomId);
-                // Safe access with optional chaining
-                const history = response?.data?.messages || [];
-                setMessages(history);
-            } catch (error) {
-                console.error('Failed to load chat history:', error);
-            } finally {
-                setIsLoadingHistory(false);
-            }
-        };
+    // Intentionally omitting shared Socket.IO listeners here to ensure 'Local-Only Display'
+    // and private AI conversations that do not broadcast to the rest of the room.
 
-        if (roomId && isOpen) {
-            loadHistory();
-        }
-    }, [roomId, isOpen]);
-
-    // Socket.io connection for real-time updates
-    useEffect(() => {
-        if (!roomId || !token) return;
-
-        const socket = io(SOCKET_URL, {
-            auth: { token },
-            transports: ['websocket', 'polling']
-        });
-
-        socket.on('connect', () => {
-            console.log('[GeminiChat] Socket connected');
-            socket.emit('join:room', { roomId });
-        });
-
-        // Listen for chat messages
-        socket.on('chat:message', (data) => {
-            if (data?.roomId === roomId) {
-                setMessages(prev => [...prev, {
-                    sender: data.sender,
-                    userName: data.userName,
-                    message: data.message,
-                    timestamp: data.timestamp
-                }]);
-                setIsLoading(false);
-            }
-        });
-
-        socket.on('chat:cleared', (data) => {
-            if (data?.roomId === roomId) {
-                setMessages([]);
-            }
-        });
-
-        socketRef.current = socket;
-
-        return () => {
-            socket.emit('leave:room', { roomId });
-            socket.disconnect();
-        };
-    }, [roomId, token]);
-
-    // Send message
+    // Send message with streaming support
     const handleSend = async () => {
         if (!inputValue.trim() || isLoading) return;
 
         const question = inputValue.trim();
         setInputValue('');
         setIsLoading(true);
+        setThought(null);
 
-        // Optimistically add user message
+        // 1. Save user message locally
         const userMsg = {
             sender: 'User',
             userName: user?.fullName || user?.email || 'You',
             message: question,
             timestamp: new Date().toISOString()
         };
-        setMessages(prev => [...prev, userMsg]);
+
+        setMessages(prev => [...prev.filter(m => m.timestamp !== userMsg.timestamp), userMsg]);
 
         try {
-            await mockTrialService.sendChatMessage(roomId, question);
-            // Response will come via socket
+            // 2. Start streaming AI response directly from AI Service
+            const aiMsgId = Date.now() + '-ai';
+            let fullAiResponse = '';
+
+            const response = await fetch(`${API_BASE_URL}/api/ai/chat/stream`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${TokenManager.getAccessToken()}`
+                },
+                body: JSON.stringify({
+                    messages: [...messages, userMsg].map(m => ({
+                        role: m.sender === 'AI' ? 'assistant' : 'user',
+                        content: m.message
+                    })),
+                    sessionId: roomId
+                })
+            });
+
+            if (!response.ok) throw new Error('Streaming failed');
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            // Add initial AI placeholder
+            setMessages(prev => [...prev, {
+                id: aiMsgId,
+                sender: 'AI',
+                userName: 'AI Legal Assistant',
+                message: '',
+                timestamp: new Date().toISOString()
+            }]);
+
+            let isFirstChunk = true;
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const dataStr = line.replace('data: ', '').trim();
+                        if (dataStr === '[DONE]') continue;
+
+                        try {
+                            const data = JSON.parse(dataStr);
+
+                            if (data.type === 'thought') {
+                                setThought(data.content);
+                            } else if (data.content) {
+                                if (isFirstChunk) {
+                                    setIsLoading(false);
+                                    setThought(null);
+                                    isFirstChunk = false;
+                                }
+
+                                fullAiResponse += data.content;
+                                setMessages(prev => prev.map(m =>
+                                    m.id === aiMsgId ? { ...m, message: fullAiResponse } : m
+                                ));
+                            }
+                        } catch (e) {
+                            // Skip non-json lines
+                        }
+                    }
+                }
+            }
+
+            // 3. Keep response entirely local (avoid shared state)
+            // No server-side persistence here per privacy requirements
+
         } catch (error) {
-            console.error('Failed to send message:', error);
+            console.error('Failed to process AI chat:', error);
             setIsLoading(false);
-            // Add error message
+            setThought(null);
             setMessages(prev => [...prev, {
                 sender: 'AI',
                 userName: 'AI Legal Assistant',
                 message: 'I apologize, there was an error processing your request. Please try again.',
                 timestamp: new Date().toISOString()
             }]);
+        } finally {
+            setIsLoading(false);
+            setThought(null);
         }
     };
 
@@ -143,8 +161,8 @@ const GeminiChatSidebar = ({ roomId, isOpen, onClose }) => {
                             <Sparkles className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h2 className="font-bold text-white">AI Legal Assistant</h2>
-                            <p className="text-[10px] text-gray-500 uppercase tracking-widest">Powered by Gemini</p>
+                            <h2 className="font-bold text-white">Legal AI Agent</h2>
+                            <p className="text-[10px] text-gray-500 uppercase tracking-widest">Powered by LangChain</p>
                         </div>
                     </div>
                     <button
@@ -158,19 +176,14 @@ const GeminiChatSidebar = ({ roomId, isOpen, onClose }) => {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {isLoadingHistory ? (
-                    <div className="flex flex-col items-center justify-center h-full gap-3">
-                        <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
-                        <p className="text-gray-500 text-sm">Loading conversation...</p>
-                    </div>
-                ) : messages?.length === 0 ? (
+                {messages?.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
                         <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center">
                             <MessageSquare className="w-8 h-8 text-purple-400" />
                         </div>
-                        <h3 className="text-white font-semibold">Ask the AI Legal Assistant</h3>
+                        <h3 className="text-white font-semibold">Legal Research Agent</h3>
                         <p className="text-gray-500 text-sm">
-                            Get help with court procedures, legal terminology, and Sri Lankan law concepts.
+                            Ask me to search for Sri Lankan acts or analyze the current trial proceedings in real-time.
                         </p>
                         <div className="grid gap-2 w-full mt-4">
                             {['What is cross-examination?', 'Explain burden of proof', 'Matrimonial Rights Act basics'].map((q) => (
@@ -190,8 +203,8 @@ const GeminiChatSidebar = ({ roomId, isOpen, onClose }) => {
                             <ChatMessage key={idx} message={msg} />
                         ))}
 
-                        {/* Loading indicator */}
-                        {isLoading && (
+                        {/* Loading indicator with thought process */}
+                        {(isLoading || thought) && (
                             <div className="flex items-start gap-3">
                                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0">
                                     <Bot className="w-4 h-4 text-white" />
@@ -200,7 +213,7 @@ const GeminiChatSidebar = ({ roomId, isOpen, onClose }) => {
                                     <div className="flex items-center gap-2">
                                         <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
                                         <span className="text-purple-400 text-sm font-medium animate-pulse">
-                                            Gemini is thinking...
+                                            {thought || "Agent is researching..."}
                                         </span>
                                     </div>
                                 </div>
@@ -244,8 +257,8 @@ const GeminiChatSidebar = ({ roomId, isOpen, onClose }) => {
                 <p className="mt-2 text-[10px] text-gray-600 text-center">
                     AI responses are for educational purposes only
                 </p>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

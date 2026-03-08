@@ -24,11 +24,17 @@ import {
     Mic,
     MicOff,
     Volume2,
-    FolderOpen
+    FolderOpen,
+    ChevronRight,
+    X,
+    StopCircle,
+    FastForward,
+    BarChart3
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '../../context/ThemeContext';
 import EvidenceModal from '../../components/Roleplay/EvidenceModal';
+import io from 'socket.io-client';
 
 // API Configuration - Points to Node.js Backend
 const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/roleplay`;
@@ -50,15 +56,22 @@ const GameInterface = () => {
     const [winProbability, setWinProbability] = useState(50);
     const [gameStatus, setGameStatus] = useState('active');
     const [verdict, setVerdict] = useState(null);
+    const [auditReport, setAuditReport] = useState(null);
     const [citedLaws, setCitedLaws] = useState([]);
     const [currentSpeakerRole, setCurrentSpeakerRole] = useState('Judge');
     const [currentSpeakerName, setCurrentSpeakerName] = useState('Judge Dissanayake');
+    const [isObjectionPending, setIsObjectionPending] = useState(false);
+    const [isListening, setIsListening] = useState(false);
+    const recognitionRef = useRef(null);
+    const baseTextRef = useRef('');
+    const latestInputTextRef = useRef(inputText);
+    const socketRef = useRef(null);
     const { isDarkMode } = useTheme();
 
     // HUD State
     const [currentDay, setCurrentDay] = useState(1);
     const [maxDays, setMaxDays] = useState(3);
-    const [timeRemaining, setTimeRemaining] = useState(360); // 6 minutes per day
+    const [timeRemaining, setTimeRemaining] = useState(240); // 4 minutes per day
     const [activeWitness, setActiveWitness] = useState(null);
 
     // Multi-Day Navigation State
@@ -71,6 +84,10 @@ const GameInterface = () => {
 
     // Confirmation state for toast-based exit confirm
     const [exitConfirmPending, setExitConfirmPending] = useState(false);
+
+    // End Trial Modal State
+    const [showEndTrialModal, setShowEndTrialModal] = useState(false);
+    const [endTrialLoading, setEndTrialLoading] = useState(false);
 
     // Refs
     const chatContainerRef = useRef(null);
@@ -129,6 +146,158 @@ const GameInterface = () => {
         inputRef.current?.focus();
     }, []);
 
+    // === SOCKET.IO INTEGRATION FOR AUTONOMOUS COURTROOM ===
+    useEffect(() => {
+        if (!sessionId) return;
+
+        // Initialize socket connection
+        const SOCKET_URL = import.meta.env.VITE_ROLEPLAY_WS_URL || import.meta.env.VITE_API_BASE_URL?.replace('/api/roleplay', '') || 'http://localhost:5000';
+        socketRef.current = io(SOCKET_URL, {
+            transports: ['websocket', 'polling'],
+            withCredentials: true
+        });
+
+        const socket = socketRef.current;
+
+        socket.on('connect', () => {
+            console.log('🔌 Connected to Courtroom Socket:', socket.id);
+            socket.emit('join-session', sessionId);
+        });
+
+        // Listen for autonomous AI dialogue
+        socket.on('ai-dialogue', (aiMessage) => {
+            console.log('⚖️ Autonomous Dialogue Received:', aiMessage);
+
+            setMessages(prev => {
+                // Prevent duplicates if by some chance the same message arrives via multiple paths
+                if (prev.some(m => m.id === aiMessage.id)) return prev;
+                return [...prev, aiMessage];
+            });
+
+            // Update UI state
+            if (aiMessage.speakerRole) setCurrentSpeakerRole(aiMessage.speakerRole);
+            if (aiMessage.speaker) setCurrentSpeakerName(aiMessage.speaker);
+
+            // If it's a verdict, handle redirection
+            if (aiMessage.action === 'VERDICT') {
+                toast.success('The Judge is delivering the final verdict...');
+                setTimeout(() => navigate(`/results/${sessionId}`), 5000);
+            }
+        });
+
+        // Listen for Objection Rulings
+        socket.on('objection-ruling', (ruling) => {
+            console.log('🔨 Objection Ruling:', ruling);
+            setMessages(prev => [...prev, ruling]);
+            setCurrentSpeakerRole('Judge');
+            setCurrentSpeakerName('Judge Dissanayake');
+            setIsObjectionPending(false);
+            setIsLoading(false);
+            toast.info(`Judge Ruling: ${ruling.content.substring(0, 30)}...`);
+        });
+
+        // Cleanup on unmount
+        return () => {
+            if (socket) {
+                socket.emit('leave-session', sessionId);
+                socket.disconnect();
+            }
+        };
+    }, [sessionId]);
+
+    // Keep latest input text in a ref to avoid stale closures in recognition handlers
+    useEffect(() => {
+        latestInputTextRef.current = inputText;
+    }, [inputText]);
+
+    // Track user activity to reset heartbeat
+    useEffect(() => {
+        if (!socketRef.current || !sessionId) return;
+
+        if (isListening) {
+            // Crucial: Pause the autonomous heartbeat while user is dictating argument
+            socketRef.current.emit('pause-heartbeat', sessionId);
+        } else {
+            // Resume heartbeat when mic is off
+            socketRef.current.emit('resume-heartbeat', sessionId);
+            if (inputText.length > 0) {
+                socketRef.current.emit('user-active', sessionId);
+            }
+        }
+    }, [isListening, inputText, sessionId]);
+
+    // === SPEECH RECOGNITION INITIALIZATION ===
+    useEffect(() => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            console.warn("Speech recognition not supported in this browser.");
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+            setIsListening(true);
+            baseTextRef.current = latestInputTextRef.current;
+            console.log("🎤 Voice input active...");
+        };
+
+        recognition.onresult = (event) => {
+            let transcript = '';
+            for (let i = 0; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+            }
+            // Real-time transcript update
+            setInputText(baseTextRef.current + (baseTextRef.current ? ' ' : '') + transcript);
+        };
+
+        recognition.onerror = (event) => {
+            // "no-speech" is common and not always a failure, just stop being red
+            if (event.error === 'no-speech') {
+                console.debug('Speech recognition: no speech detected.');
+            } else {
+                console.error('Speech recognition error:', event.error);
+                toast.error(`Mic error: ${event.error}`);
+            }
+            setIsListening(false);
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+            console.log("🎤 Voice input stopped.");
+            // Auto-send argument if something was captured
+            const finalInput = latestInputTextRef.current;
+            if (finalInput.trim() && finalInput !== baseTextRef.current) {
+                setTimeout(() => {
+                    handleSendMessage();
+                }, 500);
+            }
+        };
+
+        recognitionRef.current = recognition;
+
+        return () => {
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
+        };
+    }, [sessionId]); // Removed inputText dependency
+
+    const toggleListening = () => {
+        if (isListening) {
+            recognitionRef.current?.stop();
+        } else {
+            try {
+                recognitionRef.current?.start();
+            } catch (err) {
+                console.error("Mic start failed:", err);
+            }
+        }
+    };
+
     // Check if current day is complete (minimum turns requirement met)
     useEffect(() => {
         if (currentDay < maxDays && turnCount >= minTurnsRequirement * currentDay) {
@@ -142,40 +311,104 @@ const GameInterface = () => {
      * Manual Day Progression Handler
      * Allows user to proceed to next day before time runs out
      */
-    const handleProceedToNextDay = () => {
+    const handleProceedToNextDay = async () => {
         if (currentDay >= maxDays) return;
 
-        // Show transition animation
-        setShowDayTransition(true);
+        try {
+            // Notify backend about day progression if we have a session
+            if (sessionId) {
+                await fetch(`${API_BASE_URL}/session/${sessionId}/advance-day`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            }
 
-        setTimeout(() => {
-            // Move to next day
-            const nextDay = currentDay + 1;
-            setCurrentDay(nextDay);
-            setTimeRemaining(360); // Reset timer to 6 minutes
-            setIsDayComplete(false);
+            // Show transition animation
+            setShowDayTransition(true);
 
-            // Add system message for day transition
-            const transitionMessage = {
-                id: Date.now(),
-                type: 'system',
-                content: `📅 **Day ${nextDay} Commences** - The court reconvenes. You have 6 minutes to present your arguments.`,
-                timestamp: new Date()
-            };
-            setMessages(prev => [...prev, transitionMessage]);
+            setTimeout(() => {
+                // Move to next day
+                const nextDay = currentDay + 1;
+                setCurrentDay(nextDay);
+                setTimeRemaining(360); // Reset timer to 6 minutes
+                setIsDayComplete(false);
 
-            // Toast notification
-            toast.success(`Day ${nextDay} has begun!`, {
-                description: `You have 6 minutes to make your case.`,
-                duration: 4000
+                // Add system message for day transition
+                const transitionMessage = {
+                    id: Date.now(),
+                    type: 'ai',
+                    speaker: 'Judge Dissanayake',
+                    speakerRole: 'Judge',
+                    content: `*The gavel strikes* Court is adjourned for today. We will reconvene tomorrow for Day ${nextDay}.\n\n📅 **Day ${nextDay} of ${maxDays}** - The court is now back in session. Counsel, you may proceed.`,
+                    mood: 'Formal',
+                    action: 'Adjourn',
+                    timestamp: new Date()
+                };
+                setMessages(prev => [...prev, transitionMessage]);
+
+                // Toast notification
+                toast.success(`Day ${nextDay} has begun!`, {
+                    description: `You have 6 minutes to present your arguments.`,
+                    duration: 4000
+                });
+
+                // Hide transition
+                setTimeout(() => {
+                    setShowDayTransition(false);
+                }, 500);
+            }, 1000);
+        } catch (error) {
+            console.error("Failed to advance day:", error);
+            toast.error("Failed to advance trial day. Please try again.");
+        }
+    };
+
+    /**
+     * End Trial Handler
+     * Allows user to end the trial early and get a verdict
+     */
+    const handleEndTrial = async () => {
+        setEndTrialLoading(true);
+        setShowEndTrialModal(false);
+        const TRIAL_API_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/trials`;
+
+        // Add system message
+        const endingMessage = {
+            id: Date.now(),
+            type: 'ai',
+            speaker: 'Court Clerk',
+            speakerRole: 'Clerk',
+            content: '⚖️ The trial is concluding. The court will now compile its verdict and audit the transcripts...',
+            mood: 'Formal',
+            timestamp: new Date()
+        };
+        setMessages(prev => [...prev, endingMessage]);
+
+        try {
+            // Request finalization from the new audit orchestration engine
+            const response = await fetch(`${TRIAL_API_URL}/${sessionId}/finalize`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
             });
 
-            // Hide transition
-            setTimeout(() => {
-                setShowDayTransition(false);
-            }, 500);
-        }, 1000);
+            const data = await response.json();
+
+            if (data.success && data.redirectUrl) {
+                toast.success('Trial concluded. Processing final audit report...');
+                setTimeout(() => {
+                    navigate(data.redirectUrl);
+                }, 1500);
+            } else {
+                toast.error(data.message || 'Error compiling audit report.');
+                setEndTrialLoading(false);
+            }
+        } catch (error) {
+            console.error('Error ending trial:', error);
+            toast.error('Network error during finalization.');
+            setEndTrialLoading(false);
+        }
     };
+
 
     /**
      * Format time as MM:SS
@@ -243,6 +476,7 @@ const GameInterface = () => {
                     turnCount: newTurnCount,
                     status,
                     verdict_data,  // New: Full verdict object with outcome, reasoning, etc.
+                    auditReport: auditData,  // Argument audit results from BERT model
                     currentDay: newDay,
                     maxDays: newMaxDays,
                     timeRemaining: newTimeRemaining
@@ -256,8 +490,8 @@ const GameInterface = () => {
                 if (newDay && newDay !== currentDay) {
                     console.log(`📅 Day changed: ${currentDay} → ${newDay}`);
                     setCurrentDay(newDay);
-                    // Reset timer for new day (6 minutes = 360 seconds)
-                    setTimeRemaining(newTimeRemaining || 360);
+                    // Reset timer for new day (4 minutes = 240 seconds)
+                    setTimeRemaining(newTimeRemaining || 240);
                 } else if (newTimeRemaining !== undefined) {
                     setTimeRemaining(newTimeRemaining);
                 }
@@ -288,12 +522,18 @@ const GameInterface = () => {
                     });
                 }
 
-                // Handle VERDICT action - Show judgment modal immediately
+                // Handle VERDICT action - Redirect to results page
                 if (action === 'VERDICT' && verdict_data) {
                     console.log('⚖️ FINAL VERDICT RECEIVED:', verdict_data);
                     setGameStatus('finished');
                     setVerdict(verdict_data);
+                    if (auditData) setAuditReport(auditData);
                     setIsLoading(false);
+
+                    toast.success('Trial finished. Compiling audit report...');
+                    setTimeout(() => {
+                        navigate(`/results/${sessionId}`);
+                    }, 2500);
 
                     // Add the verdict as the final message
                     const verdictMessage = {
@@ -347,6 +587,33 @@ const GameInterface = () => {
         } catch (error) {
             console.error('API Error:', error);
             handleError('Connection to the court failed. Please ensure the server is running.');
+        }
+    };
+
+    /**
+     * Handle Objection Trigger
+     */
+    const handleObjection = () => {
+        if (!sessionId || isObjectionPending) return;
+
+        setIsObjectionPending(true);
+        setIsLoading(true);
+
+        // Add user objection message locally immediately
+        const objMsg = {
+            id: Date.now(),
+            type: 'user',
+            content: 'OBJECTION, YOUR HONOR!',
+            timestamp: new Date()
+        };
+        setMessages(prev => [...prev, objMsg]);
+
+        // Emit to backend via Socket
+        if (socketRef.current) {
+            socketRef.current.emit('objection', {
+                sessionId,
+                objectionText: "I object to this line of reasoning!"
+            });
         }
     };
 
@@ -484,19 +751,49 @@ const GameInterface = () => {
                                 </div>
                             </div>
 
-                            {/* Role Badge */}
-                            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 ${caseInfo.userRole === 'Defense'
-                                ? 'border-cyan-500/50 bg-cyan-500/10 shadow-lg shadow-cyan-500/20'
-                                : 'border-orange-500/50 bg-orange-500/10 shadow-lg shadow-orange-500/20'
-                                }`}>
-                                {caseInfo.userRole === 'Defense'
-                                    ? <Shield size={18} className="text-cyan-400" />
-                                    : <Sword size={18} className="text-orange-400" />
-                                }
-                                <span className={`text-xs font-black ${caseInfo.userRole === 'Defense' ? 'text-cyan-400' : 'text-orange-400'
+                            {/* Role Badge & Game Actions */}
+                            <div className="flex items-center gap-2">
+                                {/* End Trial Early Button */}
+                                {gameStatus === 'active' && (
+                                    <button
+                                        onClick={() => setShowEndTrialModal(true)}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 hover:border-red-500/50 transition-all group"
+                                        title="Conclude trial early and get verdict"
+                                    >
+                                        <StopCircle size={18} className="group-hover:scale-110 transition-transform" />
+                                        <span className="text-xs font-black hidden lg:inline">END TRIAL</span>
+                                    </button>
+                                )}
+
+                                {/* Next Day Button */}
+                                {gameStatus === 'active' && currentDay < maxDays && (
+                                    <button
+                                        onClick={handleProceedToNextDay}
+                                        disabled={!isDayComplete && turnCount < 5} // Requirement: 5 turns or isDayComplete
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all group ${(!isDayComplete && turnCount < 5)
+                                            ? 'opacity-50 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
+                                            : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 shadow-lg shadow-emerald-500/10'
+                                            }`}
+                                        title={(!isDayComplete && turnCount < 5) ? `Complete more turns to proceed (${turnCount}/5)` : "Proceed to next trial day"}
+                                    >
+                                        <FastForward size={18} className="group-hover:translate-x-1 transition-transform" />
+                                        <span className="text-xs font-black hidden lg:inline">NEXT DAY</span>
+                                    </button>
+                                )}
+
+                                <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 ${caseInfo.userRole === 'Defense'
+                                    ? 'border-cyan-500/50 bg-cyan-500/10 shadow-lg shadow-cyan-500/20'
+                                    : 'border-orange-500/50 bg-orange-500/10 shadow-lg shadow-orange-500/20'
                                     }`}>
-                                    {caseInfo.userRole.toUpperCase()}
-                                </span>
+                                    {caseInfo.userRole === 'Defense'
+                                        ? <Shield size={18} className="text-cyan-400" />
+                                        : <Sword size={18} className="text-orange-400" />
+                                    }
+                                    <span className={`text-xs font-black ${caseInfo.userRole === 'Defense' ? 'text-cyan-400' : 'text-orange-400'
+                                        }`}>
+                                        {caseInfo.userRole.toUpperCase()}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
@@ -631,10 +928,32 @@ const GameInterface = () => {
                                             disabled={isLoading}
                                             className="w-full px-6 py-4 pr-14 rounded-2xl border-2 bg-slate-900/50 border-slate-700/50 text-white placeholder:text-slate-600 focus:border-purple-500/50 focus:ring-4 focus:ring-purple-500/10 transition-all outline-none text-sm backdrop-blur-xl"
                                         />
-                                        <button className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-xl text-slate-500 hover:text-purple-400 hover:bg-purple-500/10 transition-all">
-                                            <Mic size={18} />
+                                        <button
+                                            onClick={toggleListening}
+                                            disabled={isLoading}
+                                            className={`absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all z-10 ${isListening
+                                                ? 'text-red-500 animate-pulse bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.5)] border border-red-500/50'
+                                                : 'text-slate-500 hover:text-purple-400 hover:bg-purple-500/10'
+                                                }`}
+                                            title={isListening ? "Stop listening" : "Speak your argument"}
+                                        >
+                                            {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+                                            {isListening && (
+                                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                                            )}
                                         </button>
                                     </div>
+                                    <button
+                                        onClick={handleObjection}
+                                        disabled={isLoading || isObjectionPending}
+                                        className={`px-5 rounded-2xl font-black text-[10px] tracking-tighter transition-all flex flex-col items-center justify-center gap-0.5 border-2 ${isObjectionPending
+                                            ? 'bg-red-500/20 border-red-500/50 text-red-500'
+                                            : 'bg-black/40 border-slate-700 text-slate-400 hover:border-red-500/50 hover:text-red-500'
+                                            }`}
+                                    >
+                                        <AlertTriangle size={18} />
+                                        OBJECTION
+                                    </button>
                                     <button
                                         onClick={handleSendMessage}
                                         disabled={!inputText.trim() || isLoading}
@@ -781,19 +1100,42 @@ const GameInterface = () => {
                         )}
 
                         {/* Action Buttons */}
-                        <div className="grid grid-cols-2 gap-4 mt-6">
-                            <button
-                                onClick={() => setGameStatus('reviewing')}
-                                className="py-4 rounded-2xl font-black text-xs transition-all border border-slate-700 hover:border-slate-600 hover:bg-slate-800/50"
-                            >
-                                REVIEW TRANSCRIPT
-                            </button>
-                            <button
-                                onClick={() => navigate('/roleplay')}
-                                className="py-4 rounded-2xl font-black text-xs bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30 active:scale-95 transition-all"
-                            >
-                                NEW CASE
-                            </button>
+                        <div className="grid grid-cols-1 gap-3 mt-6">
+                            {/* VIEW AUDIT REPORT - Primary CTA */}
+                            {auditReport && auditReport.arguments?.length > 0 && (
+                                <button
+                                    onClick={() => navigate('/roleplay/audit-report', {
+                                        state: {
+                                            auditReport,
+                                            verdictData: verdict,
+                                            sessionId,
+                                            caseTitle: caseInfo.title
+                                        }
+                                    })}
+                                    className="w-full py-4 rounded-2xl font-black text-sm bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 shadow-xl shadow-amber-500/30 hover:shadow-amber-500/50 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5"
+                                >
+                                    <BarChart3 size={18} />
+                                    VIEW AUDIT REPORT
+                                    <span className="text-[10px] font-bold bg-slate-950/20 px-2 py-0.5 rounded-md">
+                                        {auditReport.totalArguments} ARGS
+                                    </span>
+                                </button>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => setGameStatus('reviewing')}
+                                    className="py-4 rounded-2xl font-black text-xs transition-all border border-slate-700 hover:border-slate-600 hover:bg-slate-800/50"
+                                >
+                                    REVIEW TRANSCRIPT
+                                </button>
+                                <button
+                                    onClick={() => navigate('/roleplay')}
+                                    className="py-4 rounded-2xl font-black text-xs bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30 active:scale-95 transition-all"
+                                >
+                                    NEW CASE
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -870,6 +1212,50 @@ const GameInterface = () => {
                 caseDetails={caseDetails}
                 userRole={caseInfo.userRole}
             />
+
+            {/* === END TRIAL CONFIRMATION MODAL === */}
+            {showEndTrialModal && (
+                <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center z-[70] p-4">
+                    <div className="bg-slate-900 border border-slate-700 rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="w-16 h-16 rounded-2xl bg-red-500/20 text-red-500 flex items-center justify-center mx-auto mb-6">
+                            <AlertTriangle size={32} />
+                        </div>
+                        <h2 className="text-2xl font-black text-white text-center mb-2">End Trial Early?</h2>
+                        <p className="text-slate-400 text-center mb-8 text-sm leading-relaxed">
+                            Are you sure you want to conclude the trial now? The Judge will deliver a final verdict based on the arguments presented so far.
+                        </p>
+                        <div className="grid grid-cols-2 gap-4">
+                            <button
+                                onClick={() => setShowEndTrialModal(false)}
+                                className="py-3 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 font-bold transition-all"
+                            >
+                                CANCEL
+                            </button>
+                            <button
+                                onClick={handleEndTrial}
+                                className="py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black shadow-lg shadow-red-500/20 transition-all"
+                            >
+                                END & VERDICT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* === DAY TRANSITION OVERLAY === */}
+            {showDayTransition && (
+                <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-2xl z-[100] flex items-center justify-center animate-in fade-in duration-700">
+                    <div className="text-center space-y-6 animate-in zoom-in-95 duration-1000">
+                        <div className="w-24 h-24 rounded-3xl bg-cyan-500/10 border-2 border-cyan-500/30 flex items-center justify-center mx-auto shadow-2xl shadow-cyan-500/20">
+                            <Gavel size={48} className="text-cyan-400" />
+                        </div>
+                        <div className="space-y-2">
+                            <h2 className="text-5xl font-black text-white tracking-tighter">DAY {currentDay - 1} ADJOURNED</h2>
+                            <p className="text-cyan-400 font-mono text-sm tracking-[0.3em] uppercase">Reconveying for Day {currentDay}...</p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

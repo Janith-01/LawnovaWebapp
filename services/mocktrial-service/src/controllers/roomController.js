@@ -1137,8 +1137,8 @@ const roomController = {
                 data: {
                     roomId: room._id,
                     status: room.roomStatus,
-                    completedAt: room.completedAt,
-                    learningMaterials: getMockLearningMaterials()
+                    completedAt: room.completedAt
+
                 }
             });
         }
@@ -1170,30 +1170,24 @@ const roomController = {
         }
 
         // RAG TRIGGER: Initiate transcript parsing and keyword extraction
-        let learningMaterials = getMockLearningMaterials(); // Default fallback
+        let learningMaterials = getMockLearningMaterials(); // Use mock as default fallback
 
         try {
             // Import the AI service client
             const aiServiceClient = (await import('../utils/aiServiceClient.js')).default;
 
             // Trigger transcript parsing for RAG-driven learning materials
-            const ragResponse = await aiServiceClient.post('/api/ai/transcript/ingest', {
-                type: 'TRANSCRIPT_READY',
-                roomId: roomId,
+            const ragResponse = await aiServiceClient.post('/api/ai/generate-learning', {
                 sessionId: roomId,
-                topic: room.topic,
-                participants: room.participants.length,
-                trigger: 'SESSION_COMPLETION'
+                topic: room.topic
             });
 
-            logger.info({
-                roomId,
-                ragStatus: ragResponse.data
-            }, 'RAG pipeline triggered for learning material generation');
-
-            // TODO: In production, replace getMockLearningMaterials() with actual RAG-generated content
-            // For now, we use mock data as the RAG pipeline processes asynchronously
-            // Future: Implement webhook or polling mechanism to retrieve generated materials
+            if (ragResponse.data?.success && ragResponse.data?.data) {
+                learningMaterials = ragResponse.data.data;
+                logger.info({
+                    roomId
+                }, 'RAG pipeline dynamically generated learning materials from transcript');
+            }
 
         } catch (ragErr) {
             logger.warn({
@@ -1294,6 +1288,7 @@ const roomController = {
         });
     },
 };
+
 
 /**
  * Mock Learning Materials - Static fallback when RAG pipeline is not ready
@@ -1463,97 +1458,68 @@ roomController.triggerLearning = async (req, res) => {
             throw new ApiError(404, 'Room not found');
         }
 
-        if (room.owner.toString() !== userId) {
+
+        if (room.ownerId.toString() !== userId) {
             throw new ApiError(403, 'Only the session owner can trigger learning materials');
         }
 
-        // 2. MOCK DATA PAYLOAD: Prepare Sri Lankan Legal Syllabus learning materials
-        const learningMaterials = {
-            flashcards: [
-                {
-                    front: "Section 32 - Evidence Act",
-                    back: "Dying Declarations - Statements made by a person as to the cause of his death or any of the circumstances of the transaction which resulted in his death, in cases in which the cause of that person's death comes into question."
-                },
-                {
-                    front: "Section 114 - Evidence Act",
-                    back: "Court May Presume Existence of Certain Facts - The Court may presume the existence of any fact which it thinks likely to have happened, regard being had to the common course of natural events and human conduct."
-                },
-                {
-                    front: "Right to Silence",
-                    back: "An accused person has the constitutional right to remain silent and cannot be compelled to testify against themselves. This principle is enshrined in Article 13(3) of the Constitution of Sri Lanka."
-                },
-                {
-                    front: "Burden of Proof",
-                    back: "In criminal cases, the burden of proof lies with the prosecution. They must prove the guilt of the accused beyond reasonable doubt. The accused is presumed innocent until proven guilty."
-                },
-                {
-                    front: "Section 109 - Evidence Act",
-                    back: "Burden of Proof - Whoever desires any Court to give judgment as to any legal right or liability dependent on the existence of facts which he asserts, must prove that those facts exist."
-                }
-            ],
-            quizzes: [
-                {
-                    question: "What is the standard of proof required in criminal trials in Sri Lanka?",
-                    options: [
-                        "Balance of probabilities",
-                        "Beyond reasonable doubt",
-                        "Clear and convincing evidence",
-                        "Preponderance of evidence"
-                    ],
-                    correctAnswer: 1,
-                    explanation: "In criminal cases, the prosecution must prove guilt beyond reasonable doubt, which is a higher standard than civil cases."
-                },
-                {
-                    question: "Under which section of the Evidence Act are dying declarations admissible?",
-                    options: [
-                        "Section 30",
-                        "Section 32",
-                        "Section 114",
-                        "Section 109"
-                    ],
-                    correctAnswer: 1,
-                    explanation: "Section 32 of the Evidence Act deals with dying declarations and statements made by persons who cannot be called as witnesses."
-                },
-                {
-                    question: "Who bears the burden of proof in a criminal trial?",
-                    options: [
-                        "The accused",
-                        "The victim",
-                        "The prosecution",
-                        "The judge"
-                    ],
-                    correctAnswer: 2,
-                    explanation: "The prosecution bears the burden of proving the guilt of the accused beyond reasonable doubt."
-                },
-                {
-                    question: "What right does Article 13(3) of the Constitution guarantee?",
-                    options: [
-                        "Right to a fair trial",
-                        "Right to legal representation",
-                        "Right to remain silent",
-                        "Right to bail"
-                    ],
-                    correctAnswer: 2,
-                    explanation: "Article 13(3) guarantees the right to silence - an accused cannot be compelled to testify against themselves."
-                },
-                {
-                    question: "What can the Court presume under Section 114 of the Evidence Act?",
-                    options: [
-                        "Only facts proven by documentation",
-                        "Facts likely to have happened based on common course of events",
-                        "Only facts testified by witnesses",
-                        "Facts admitted by the accused"
-                    ],
-                    correctAnswer: 1,
-                    explanation: "Section 114 allows courts to presume facts that are likely to have happened based on the common course of natural events and human conduct."
-                }
-            ],
-            roomId: room._id,
-            trialTopic: room.topic,
-            generatedAt: new Date().toISOString()
+        // 2. Fetch RAG DATA PAYLOAD: Generate dynamic learning materials from the transcript using the AI service 
+        let learningMaterials = {
+            flashcards: [],
+            quizzes: [],
+            summary: {
+                title: 'No Learning Materials Generated',
+                keyTopics: [],
+                recommendations: []
+            }
         };
 
-        // 3. BROADCAST: Send to all participants in the room
+        const { sendDailyAppMessage } = await import('../utils/aiServiceClient.js');
+
+        // BROADCAST LOADING STATE: Tell everyone the AI is thinking
+        if (room.dailyRoomName) {
+            await sendDailyAppMessage(room.dailyRoomName, 'LOADING_LEARNING', {
+                message: 'Senior Sri Lankan Law Professor is generating study materials...',
+                ownerId: userId
+            });
+        }
+
+        try {
+            const aiServiceClient = (await import('../utils/aiServiceClient.js')).default;
+            const ragResponse = await aiServiceClient.post('/api/ai/generate-learning', {
+                sessionId: roomId,
+                topic: room.topic
+            });
+
+            if (ragResponse.data?.success && ragResponse.data?.data) {
+                learningMaterials = ragResponse.data.data;
+                // Make sure it has roomId and generatedAt
+                learningMaterials.roomId = room._id;
+                learningMaterials.trialTopic = room.topic;
+                learningMaterials.generatedAt = new Date().toISOString();
+                logger.info({ roomId }, 'RAG pipeline successfully generated learning materials for triggerLearning');
+            }
+        } catch (ragErr) {
+            logger.warn({ roomId, error: ragErr.message }, 'RAG generation failed - using mock learning materials for triggerLearning');
+            learningMaterials.roomId = room._id;
+            learningMaterials.trialTopic = room.topic;
+            learningMaterials.generatedAt = new Date().toISOString();
+        }
+
+        // 3. BROADCAST: Send to all participants in the room via Daily.co App Message
+        if (room.dailyRoomName) {
+            await sendDailyAppMessage(room.dailyRoomName, 'STUDY_MATERIAL_READY', {
+                learningMaterials,
+                roomId: room._id,
+                trialTopic: room.topic,
+                triggeredBy: userId,
+                timestamp: new Date().toISOString()
+            });
+            logger.info({ roomId, dailyRoom: room.dailyRoomName }, '[triggerLearning] Learning materials broadcast via Daily.co App Message');
+        }
+
+        // Fallback or secondary broadcast via standard WebSockets
+
         if (io) {
             // Broadcast to room channel
             io.to(`room:${roomId}`).emit('SHOW_LEARNING_POPUP', {

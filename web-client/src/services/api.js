@@ -9,6 +9,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 // Token management utilities
@@ -56,15 +57,16 @@ const processQueue = (error, token = null) => {
 api.interceptors.request.use(
   (config) => {
     const token = TokenManager.getAccessToken();
+    console.log(`[API Interceptor] Token for ${config.url}:`, token ? 'Found' : 'NOT FOUND');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    // Log requests in development
+
+
     if (import.meta.env.DEV) {
       console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
     }
-    
+
     return config;
   },
   (error) => {
@@ -92,9 +94,9 @@ api.interceptors.response.use(
     // If error is 401 and we haven't tried to refresh yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Don't refresh for auth endpoints
-      if (originalRequest.url?.includes('/auth/login') || 
-          originalRequest.url?.includes('/auth/register') ||
-          originalRequest.url?.includes('/auth/refresh')) {
+      if (originalRequest.url?.includes('/auth/login') ||
+        originalRequest.url?.includes('/auth/register') ||
+        originalRequest.url?.includes('/auth/refresh')) {
         return Promise.reject(error);
       }
 

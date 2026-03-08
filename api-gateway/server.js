@@ -53,10 +53,21 @@ app.use((req, res, next) => {
   if (!secret) return next();
 
   const authHeader = req.headers.authorization;
-  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length).trim() : null;
   const cookieToken = req.cookies?.access_token;
+  if (req.originalUrl.includes('trigger-learning')) {
+    console.log(`[Gateway] DEBUG Auth: Cookie found? ${!!cookieToken}. Auth Header found? ${!!authHeader}`);
+    if (!cookieToken && !authHeader) {
+      console.log(`[Gateway] DEBUG Auth: Headers dump:`, JSON.stringify(req.headers));
+    }
+  }
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length).trim() : null;
   const token = bearerToken || cookieToken;
-  if (!token) return next();
+  if (!token) {
+    if (req.originalUrl.includes('trigger-learning')) {
+      console.log(`[Gateway] DEBUG Auth: No token found for trigger-learning. Headers:`, JSON.stringify(req.headers));
+    }
+    return next();
+  }
 
   try {
     const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
@@ -67,7 +78,10 @@ app.use((req, res, next) => {
         email: decoded.email || null,
       };
     }
-  } catch {
+  } catch (err) {
+    if (req.originalUrl.includes('trigger-learning')) {
+      console.error(`[Gateway] DEBUG Auth: JWT Verify failed for trigger-learning:`, err.message);
+    }
     // Ignore invalid/expired tokens here; downstream services will enforce auth.
   }
 
@@ -85,7 +99,7 @@ app.post('/auth/login', async (req, res) => {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    const userServiceUrl = 'http://localhost:5002/auth/login';
+    const userServiceUrl = 'http://localhost:5005/auth/login';
     const upstream = await fetch(userServiceUrl, {
       method: 'POST',
       headers: {
@@ -182,7 +196,7 @@ app.get('/auth/me', async (req, res) => {
     }
 
     // Fetch user profile from user-service to return a stable name
-    const meResp = await fetch('http://localhost:5002/users/me', {
+    const meResp = await fetch('http://localhost:5005/users/me', {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -247,7 +261,7 @@ const forwardJsonBodyToProxy = (proxyReq, req) => {
 
 // Proxy configuration for user-service
 const userServiceProxy = createProxyMiddleware({
-  target: 'http://localhost:5002',
+  target: 'http://localhost:5005',
   changeOrigin: true,
   // NOTE: Express strips the mount path from req.url when a middleware is mounted
   // (e.g. app.use('/api/users', proxy) makes req.url start with '/me').
@@ -276,7 +290,7 @@ const userServiceProxy = createProxyMiddleware({
     }
 
     forwardJsonBodyToProxy(proxyReq, req);
-    logProxyRequest(req, 'user-service', 5002);
+    logProxyRequest(req, 'user-service', 5005);
   },
   onError: (err, req, res) => {
     console.error('[Gateway] User Service proxy error:', err.message);
@@ -369,24 +383,19 @@ app.use('/api/admin', userServiceProxy);
 app.use('/api/user', userServiceProxy);
 app.use('/api/users', userServiceProxy);
 
-// Proxy configuration for ai-service (AI Digital Paralegal)
 const aiServiceProxy = createProxyMiddleware({
   target: 'http://localhost:5008',
   changeOrigin: true,
   pathRewrite: (path, req) => {
     const original = req.originalUrl || path;
-    // /api/ai/* -> /api/*
     if (original.startsWith('/api/ai')) return original.replace(/^\/api\/ai/, '/api');
-    // /api/video/* -> /api/video/* (keep as is)
     return original;
   },
   onProxyReq: (proxyReq, req, res) => {
-    // 1. Add internal service auth header (REQUIRED for ai-service endpoints)
     const internalSecret = process.env.INTERNAL_SERVICE_SECRET || 'super_secure_internal_secret_key_123';
     proxyReq.setHeader('x-internal-service-auth', internalSecret);
 
-    // 2. Forward Authorization header from browser (for user identification)
-    // This ensures all courtroom participants (Defendant, Prosecution, Judge) are recognized
+
     const authHeader = req.headers.authorization;
     if (authHeader) {
       proxyReq.setHeader('Authorization', authHeader);
@@ -416,7 +425,7 @@ const aiServiceProxy = createProxyMiddleware({
     forwardJsonBodyToProxy(proxyReq, req);
 
     // 6. Log the proxy request
-    logProxyRequest(req, 'ai-service', 5008);
+    logProxyRequest(req, 'ai-service', 5001);
   },
   onProxyRes: (proxyRes, req, res) => {
     // Log response status for debugging
@@ -436,6 +445,7 @@ const aiServiceProxy = createProxyMiddleware({
 const roleplayServiceProxy = createProxyMiddleware({
   target: 'http://localhost:10005',
   changeOrigin: true,
+  ws: true, // Enable websocket proxying
   pathRewrite: (path, req) => {
     return req.originalUrl || path;
   },
@@ -455,11 +465,24 @@ const roleplayServiceProxy = createProxyMiddleware({
 
 app.use('/api/ai', aiServiceProxy);
 app.use('/api/video', aiServiceProxy);
-app.use('/api/chat', aiServiceProxy); // Gemini Chat Completion
+app.use('/api/chat', aiServiceProxy);
 
-// ------------------------------------------------------------------
-// Mock Trial Service Proxy (Room Management)
-// ------------------------------------------------------------------
+// New Audit Route for Flask Microservice
+const auditServiceProxy = createProxyMiddleware({
+  target: 'http://localhost:5001',
+  changeOrigin: true,
+  onProxyReq: (proxyReq, req, res) => {
+    forwardJsonBodyToProxy(proxyReq, req);
+    logProxyRequest(req, 'audit-service', 5001);
+  },
+  onError: (err, req, res) => {
+    console.error('[Gateway] Audit Service proxy error:', err.message);
+    res.status(503).json({ error: 'Audit service unavailable' });
+  },
+});
+app.use('/api/audit', auditServiceProxy);
+
+
 app.use('/api/mock-trials', mocktrialServiceProxy);
 app.use('/api/sessions', mocktrialServiceProxy);
 app.use('/api/dashboard', mocktrialServiceProxy);
@@ -467,6 +490,7 @@ app.use('/api/mocktrial', mocktrialServiceProxy);
 
 // Roleplay Routes
 app.use('/api/roleplay', roleplayServiceProxy);
+app.use('/api/trials', roleplayServiceProxy);
 
 // ------------------------------------------------------------------
 // Judgment Prediction Service Proxy (ML Predictions + Data Pipelines)
@@ -520,7 +544,7 @@ app.get('/health', (req, res) => {
     status: 'OK',
     service: 'API Gateway',
     services: {
-      'user-service': 'http://localhost:5002',
+      'user-service': 'http://localhost:5005',
       'mocktrial-service': 'http://localhost:10004',
       'ai-service': 'http://localhost:5008',
       'roleplay-service': 'http://localhost:10005',
@@ -534,7 +558,7 @@ app.get('/health/services', (req, res) => {
     status: 'API Gateway Health Check',
     timestamp: new Date().toISOString(),
     services: {
-      'user-service': { port: 5002, status: 'configured' },
+      'user-service': { port: 5005, status: 'configured' },
       'mocktrial-service': { port: 10004, status: 'configured' },
       'ai-service': { port: 5008, status: 'configured' },
       'roleplay-service': { port: 10005, status: 'configured' },
@@ -559,13 +583,14 @@ const server = app.listen(PORT, () => {
   console.log(`API Gateway running on port ${PORT}`);
   console.log(`========================================`);
   console.log(`\nService Routes:`);
-  console.log(`  /api/auth/*       → user-service (5002)`);
-  console.log(`  /api/admin/*      → user-service (5002)`);
-  console.log(`  /api/user/*       → user-service (5002)`);
-  console.log(`  /api/users/*      → user-service (5002)`);
+  console.log(`  /api/auth/*       → user-service (5005)`);
+  console.log(`  /api/admin/*      → user-service (5005)`);
+  console.log(`  /api/user/*       → user-service (5005)`);
+  console.log(`  /api/users/*      → user-service (5005)`);
   console.log(`  /api/mock-trials/* → mocktrial-service (10004)`);
   console.log(`  /api/sessions/*   → mocktrial-service (10004)`);
-  console.log(`  /api/ai/*         → ai-service (5008)`);
+  console.log(`  /api/ai/*         → ai-service (5001)
+`);
   console.log(`  /api/roleplay/*   → roleplay-service (10005)`);
   console.log(`  /api/judgment/*   → judgment-prediction-service (8000)`);
   console.log(`\nHealth Checks:`);

@@ -4,15 +4,28 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import http from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 
 import connectDB from './config/database.js';
 import trialRoutes from './routes/trialRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import logger from './utils/logger.js';
+import {
+    initHeartbeatEngine,
+    startHeartbeat,
+    stopHeartbeat,
+    resetIdleTimer,
+    handleObjection,
+    getHeartbeatStats
+} from './engines/courtroomHeartbeat.js';
 
 const app = express();
 const PORT = process.env.PORT || 10005;
+
+// Create HTTP server (shared between Express + Socket.IO)
+const httpServer = http.createServer(app);
 
 // Security middleware
 app.use(helmet());
@@ -35,6 +48,104 @@ app.use(cors({
     },
     credentials: true
 }));
+
+// ============================================================
+// SOCKET.IO SERVER — Real-Time Autonomous Courtroom
+// ============================================================
+const io = new SocketIOServer(httpServer, {
+    cors: {
+        origin: allowedOrigins.includes('*') ? '*' : allowedOrigins,
+        methods: ['GET', 'POST'],
+        credentials: true
+    },
+    transports: ['websocket', 'polling']
+});
+
+// Initialize heartbeat engine with Socket.IO reference
+initHeartbeatEngine(io);
+
+// Socket.IO connection handler
+io.on('connection', (socket) => {
+    logger.info(`[SOCKET] Client connected: ${socket.id}`);
+
+    // --- JOIN SESSION ROOM ---
+    socket.on('join-session', (sessionId) => {
+        if (!sessionId) return;
+
+        socket.join(`session:${sessionId}`);
+        socket.sessionId = sessionId;
+
+        logger.info(`[SOCKET] Client ${socket.id} joined session: ${sessionId}`);
+
+        // Start the autonomous heartbeat for this session
+        startHeartbeat(sessionId);
+
+        socket.emit('session-joined', {
+            sessionId,
+            autonomousMode: true,
+            heartbeatInterval: 30
+        });
+    });
+
+    // --- USER MESSAGE (resets idle timer) ---
+    socket.on('user-active', (sessionId) => {
+        if (sessionId) {
+            resetIdleTimer(sessionId);
+        }
+    });
+
+    // --- OBJECTION! ---
+    socket.on('objection', async ({ sessionId, objectionText }) => {
+        if (!sessionId) return;
+
+        logger.info(`[SOCKET] OBJECTION raised in session ${sessionId}: "${objectionText?.substring(0, 50)}..."`);
+
+        // Emit "objection-raised" to all clients so they know an objection is pending
+        io.to(`session:${sessionId}`).emit('objection-raised', {
+            text: objectionText,
+            timestamp: new Date()
+        });
+
+        // Handle the objection (pauses heartbeat, generates Judge ruling)
+        const ruling = await handleObjection(sessionId, objectionText || 'I object!');
+
+        if (ruling) {
+            io.to(`session:${sessionId}`).emit('objection-ruling', ruling);
+        }
+    });
+
+    // --- PAUSE/RESUME HEARTBEAT ---
+    socket.on('pause-heartbeat', (sessionId) => {
+        if (sessionId) {
+            // Use dynamic import since we're in ESM
+            import('./engines/courtroomHeartbeat.js').then(m => m.pauseHeartbeat(sessionId));
+        }
+    });
+
+    socket.on('resume-heartbeat', (sessionId) => {
+        if (sessionId) {
+            import('./engines/courtroomHeartbeat.js').then(m => m.resumeHeartbeat(sessionId));
+        }
+    });
+
+    // --- DISCONNECT ---
+    socket.on('disconnect', () => {
+        const sessionId = socket.sessionId;
+        logger.info(`[SOCKET] Client disconnected: ${socket.id} (session: ${sessionId || 'none'})`);
+
+        if (sessionId) {
+            // Check if any clients are still in this session room
+            const room = io.sockets.adapter.rooms.get(`session:${sessionId}`);
+            if (!room || room.size === 0) {
+                stopHeartbeat(sessionId);
+                logger.info(`[SOCKET] No clients left in session ${sessionId}, heartbeat stopped.`);
+            }
+        }
+    });
+});
+
+// Make io accessible to route handlers
+app.set('io', io);
 
 // Rate limiting for API endpoints
 const limiter = rateLimit({
@@ -81,7 +192,9 @@ app.get('/health', (req, res) => {
         status: 'healthy',
         features: {
             aiEnabled: openaiConfigured,
-            model: process.env.OPENAI_MODEL || 'gpt-4'
+            model: process.env.OPENAI_MODEL || 'gpt-4',
+            autonomousMode: true,
+            heartbeatStats: getHeartbeatStats()
         },
         timestamp: new Date().toISOString()
     });
@@ -96,8 +209,13 @@ app.get('/api', (req, res) => {
     res.json({
         success: true,
         service: 'roleplay-service',
-        version: '1.0.0',
-        description: 'AI-Powered Interactive Legal Role-Playing Tool for Sri Lankan Law Students',
+        version: '2.0.0',
+        description: 'AI-Powered Autonomous Courtroom Simulation for Sri Lankan Law Students',
+        features: {
+            autonomousMode: 'Real-time AI-to-AI courtroom dialogue via Socket.IO',
+            objectionSystem: 'User can raise objections to interrupt autonomous dialogue',
+            heartbeat: '15-second idle detection triggers autonomous AI turns'
+        },
         endpoints: {
             trials: {
                 initTrial: 'POST /api/trials/init-trial',
@@ -110,21 +228,15 @@ app.get('/api', (req, res) => {
             },
             roleplay: {
                 chat: 'POST /api/roleplay/chat - Send argument to AI Judge'
-            }
-        },
-        documentation: {
-            initTrial: {
-                method: 'POST',
-                path: '/api/trials/init-trial',
-                description: 'Initialize a new AI-powered roleplay trial session',
-                body: {
-                    userId: 'MongoDB ObjectId (required)',
-                    role: '"Lawyer" | "Opposition" (required)',
-                    caseStage: 'Pre-Trial | Opening Statements | Prosecution Evidence | Defense Evidence | Cross-Examination | Closing Arguments | Verdict | Full Trial (required)'
-                },
-                response: {
-                    sessionId: 'MongoDB ObjectId of created session',
-                    scenario: 'AI-generated case scenario with Sri Lankan law context'
+            },
+            socketIO: {
+                connect: 'ws://localhost:10005',
+                events: {
+                    'join-session': 'Join a session room & start heartbeat',
+                    'user-active': 'Reset idle timer on user interaction',
+                    'objection': 'Raise an objection (pauses heartbeat)',
+                    'ai-dialogue': 'Receive autonomous AI dialogue (server → client)',
+                    'objection-ruling': 'Receive Judge ruling on objection (server → client)'
                 }
             }
         }
@@ -143,18 +255,19 @@ const startServer = async () => {
 
         // Check OpenAI configuration
         if (!process.env.OPENAI_API_KEY) {
-            logger.warn('⚠️  OPENAI_API_KEY not configured - AI features will fail');
+            logger.warn('OPENAI_API_KEY not configured - AI features will fail');
         } else {
-            logger.info('✅ OpenAI API configured');
-            logger.info(`🤖 Using model: ${process.env.OPENAI_MODEL || 'gpt-4'}`);
+            logger.info('OpenAI API configured');
+            logger.info(`Using model: ${process.env.OPENAI_MODEL || 'gpt-4'}`);
         }
 
-        app.listen(PORT, '127.0.0.1', () => {
-            logger.info(`🚀 Roleplay Service running on http://127.0.0.1:${PORT}`);
-            logger.info(`📋 Environment: ${process.env.NODE_ENV || 'development'}`);
-            logger.info(`🔗 Health check: http://127.0.0.1:${PORT}/health`);
-            logger.info(`⚖️  AI Legal Roleplay Engine: v1.0.0`);
-            logger.info(`🇱🇰 Jurisdiction: Sri Lankan Law`);
+        httpServer.listen(PORT, '127.0.0.1', () => {
+            logger.info(`Roleplay Service running on http://127.0.0.1:${PORT}`);
+            logger.info(`Socket.IO server ready on ws://127.0.0.1:${PORT}`);
+            logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+            logger.info(`Health check: http://127.0.0.1:${PORT}/health`);
+            logger.info(`Autonomous Courtroom Engine: v2.0.0`);
+            logger.info(`Jurisdiction: Sri Lankan Law`);
         });
     } catch (error) {
         logger.error('Failed to start server:', error);

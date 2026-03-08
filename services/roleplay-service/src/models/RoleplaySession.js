@@ -121,6 +121,11 @@ const HistoryEntrySchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    // Flag: was this turn generated autonomously by the heartbeat engine?
+    isAutonomous: {
+        type: Boolean,
+        default: false
+    },
     timestamp: {
         type: Date,
         default: Date.now
@@ -189,10 +194,10 @@ const roleplaySessionSchema = new mongoose.Schema({
         default: 0
     },
 
-    // Time limit per day (in simulated seconds) - 6 minutes = 360s
+    // Time limit per day (in simulated seconds) - 4 minutes = 240s
     timeLimitPerDay: {
         type: Number,
-        default: 360
+        default: 240
     },
 
     // Legacy: total time elapsed across all days
@@ -233,7 +238,7 @@ const roleplaySessionSchema = new mongoose.Schema({
     // Session status
     status: {
         type: String,
-        enum: ['active', 'adjourned', 'finished', 'abandoned', 'paused'],
+        enum: ['active', 'adjourned', 'finished', 'abandoned', 'paused', 'completed'],
         default: 'active'
     },
 
@@ -247,9 +252,19 @@ const roleplaySessionSchema = new mongoose.Schema({
         summary: {
             type: String,
             default: null
+        },
+        verdict_data: {
+            type: mongoose.Schema.Types.Mixed,
+            default: null
         }
     },
-
+    // Audit report from ML service for user arguments
+    auditReport: [{
+        originalText: String,
+        score: Number,
+        verdict: String,
+        reason: String
+    }],
     // Track which AI persona spoke last
     lastSpeaker: {
         name: {
@@ -260,6 +275,23 @@ const roleplaySessionSchema = new mongoose.Schema({
             type: String,
             default: null // Removed enum to allow dynamic AI-generated roles
         }
+    },
+
+    // ============ AUTONOMOUS MODE FIELDS ============
+    // Whether the courtroom simulation is actively generating autonomous dialogue
+    autonomousMode: {
+        type: Boolean,
+        default: false
+    },
+    // When the user last interacted (for idle detection)
+    lastUserInteraction: {
+        type: Date,
+        default: Date.now
+    },
+    // Count of autonomous turns generated
+    autonomousTurnCount: {
+        type: Number,
+        default: 0
     }
 }, {
     timestamps: true // Adds createdAt and updatedAt

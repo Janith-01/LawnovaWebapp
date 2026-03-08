@@ -98,7 +98,7 @@ async function processPDFs() {
             });
             const docChunks = await splitter.splitText(rawText);
 
-            const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+            const model = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
 
             for (let i = 0; i < docChunks.length; i++) {
                 const result = await model.embedContent(docChunks[i]);

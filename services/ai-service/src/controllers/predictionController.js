@@ -159,7 +159,7 @@ export const predictJudgment = async (req, res) => {
 
         // Use Gemini AI to analyze and generate prediction
         const model = genAI.getGenerativeModel({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.5-flash',
             generationConfig: {
                 temperature: 0.4, // Lower temperature for more consistent legal analysis
                 maxOutputTokens: 1500,

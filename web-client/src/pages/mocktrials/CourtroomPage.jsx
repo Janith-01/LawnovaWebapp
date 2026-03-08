@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { DailyProvider, useDaily, useParticipantIds, useLocalParticipant, useParticipantProperty } from '@daily-co/daily-react';
+import { DailyProvider, useDaily, useParticipantIds, useLocalParticipant, useParticipantProperty, useDailyEvent, useAppMessage } from '@daily-co/daily-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Mic, MicOff, Video, VideoOff, PhoneOff,
@@ -10,9 +10,11 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import mockTrialService from '@/services/mockTrialService';
+import api from '@/services/api';
 import ParticipantView from '@/components/courtroom/ParticipantView';
 import GeminiChatSidebar from '@/components/courtroom/GeminiChatSidebar';
-import LearningPopup from '@/components/courtroom/LearningPopup';
+import LearningModal from '@/components/courtroom/LearningModal';
+import MasterGenerateButton from '@/components/courtroom/MasterGenerateButton';
 import { useAuth } from '@/context/AuthContext';
 import { io } from 'socket.io-client';
 
@@ -23,6 +25,7 @@ const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 // ============================================
 
 const CourtroomInterface = ({ roomId, roomInfo, token }) => {
+    const { user } = useAuth();
     const daily = useDaily();
     const navigate = useNavigate();
     const [isJoining, setIsJoining] = useState(false);
@@ -45,17 +48,56 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
 
     const participantIds = useParticipantIds();
     const localParticipant = useLocalParticipant();
+    const isMicReallyOn = localParticipant?.audio;
+    const isVideoOn = localParticipant?.video;
+
+    // REQUIREMENT: Technical Integrity - Handle "Mic in Use" and "Permissions" errors via event listeners
+    useDailyEvent('camera-error', (ev) => {
+        const errorType = ev.error?.type;
+        const msg = ev.error?.msg || '';
+
+        if (errorType === 'mic-in-use' || msg.includes('Permission denied')) {
+            toast.error("Another application is using your microphone or access was denied. Please close other apps and refresh.", {
+                duration: 5000,
+                icon: <AlertCircle className="w-5 h-5" />
+            });
+        } else if (errorType === 'cam-in-use') {
+            toast.error("Your camera is being used by another application.", { duration: 5000 });
+        } else if (errorType === 'permissions') {
+            toast.error("Microphone/Camera access was denied by the browser. Please check your settings.");
+        }
+    });
+
+    // Listen for custom app messages (for Syncing toast)
+    useAppMessage({
+        onAppMessage: useCallback((ev) => {
+            const msg = typeof ev.data === 'string' ? JSON.parse(ev.data) : ev.data;
+            if (msg?.type === 'SYNCING') {
+                toast.loading('Syncing...', { duration: 3000, id: 'sync-toast' });
+            } else if (msg?.type === 'STUDY_MATERIAL_AVAILABLE') {
+                toast.dismiss('sync-toast');
+                toast.success('AI Data Synced successfully!');
+            }
+        }, [])
+    });
 
     // Owner check for Complete Session button
     const isOwner = useMemo(() => {
-        return roomInfo?.ownerId === roomInfo?.currentUserId || roomInfo?.userRole === 'Owner';
+        return !!roomInfo?.isOwner;
     }, [roomInfo]);
 
     // Permissions check for Judge
     const isJudge = useMemo(() => {
-        const userRole = roomInfo?.userRole?.toLowerCase();
-        return userRole === 'judge' || userRole === 'owner';
-    }, [roomInfo]);
+        if (isOwner) return true;
+        const currentUserId = user?.id || user?._id;
+        const currentUserEmail = user?.email;
+        const me = roomInfo?.participants?.find(p =>
+            (currentUserId && p.userId === currentUserId) ||
+            (currentUserEmail && p.email === currentUserEmail)
+        );
+        const role = me?.assignedRole || me?.invitedRole || '';
+        return role.toLowerCase() === 'judge';
+    }, [roomInfo, isOwner, user]);
 
     // Sorted Participant IDs for the Grid
     const sortedParticipantIds = useMemo(() => {
@@ -332,11 +374,41 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
 
         try {
             setIsTriggeringLearning(true);
-            await mockTrialService.triggerLearning(roomId);
-            toast.success('AI is generating quizzes based on the current proceedings...', {
+            toast.info('AI is generating quizzes based on the current proceedings...', {
                 icon: <Brain className="w-4 h-4 text-purple-400" />,
                 duration: 4000
             });
+
+            // Latency Feedback: Emit "Syncing..." to all screens
+            if (daily) {
+                daily.sendAppMessage({ type: 'SYNCING', payload: { message: 'Syncing...' } }, '*');
+            }
+
+            // Call the new broadcastStudySuite controller
+            const response = await api.post(`/api/mock-trials/rooms/${roomId}/trigger-learning`);
+
+            // Validate JSON Data before broadcasting
+            const aiData = response.data?.data;
+            if (aiData && Array.isArray(aiData.flashcards) && Array.isArray(aiData.quizzes)) {
+
+                // Global Synchronization: push the data with Daily.co sendAppMessage
+                if (daily) {
+                    daily.sendAppMessage({
+                        type: 'STUDY_MATERIAL_AVAILABLE',
+                        payload: aiData
+                    }, '*');
+                }
+
+                // Show locally for the Judge
+                toast.success('Sync complete. Material generated.');
+                // Trigger Local modal update via synthetic event or state (handled by the sender as well if we just let the learning modal listen, but sendAppMessage doesn't trigger for the sender)
+                // We'll emit a custom window event that LearningModal can listen to, or we can just let Daily Handle it if it echoes back? Daily doesn't echo back to the sender.
+                // Alternatively, we just open the modal directly.
+                window.dispatchEvent(new CustomEvent('LOCAL_STUDY_MATERIAL_READY', { detail: aiData }));
+            } else {
+                toast.error('AI returned invalid data structure.');
+            }
+
         } catch (err) {
             console.error('[Courtroom] Failed to trigger learning:', err);
             toast.error('Failed to generate quizzes. Ensure there is enough transcript data.');
@@ -347,13 +419,15 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
 
     // Toggle Media
     const toggleAudio = useCallback(() => {
-        const isMuted = !daily.localAudio();
-        daily.setLocalAudio(isMuted);
+        if (!daily) return;
+        const currentAudio = daily.localAudio();
+        daily.setLocalAudio(!currentAudio);
     }, [daily]);
 
     const toggleVideo = useCallback(() => {
-        const isVideoOff = !daily.localVideo();
-        daily.setLocalVideo(isVideoOff);
+        if (!daily) return;
+        const currentVideo = daily.localVideo();
+        daily.setLocalVideo(!currentVideo);
     }, [daily]);
 
     if (error) {
@@ -544,44 +618,31 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
                             onClick={toggleAudio}
                             className={cn(
                                 "w-12 h-12 rounded-xl flex items-center justify-center transition-all",
-                                daily?.localAudio() ? "bg-gray-800 text-white" : "bg-red-500 text-white"
+                                isMicReallyOn ? "bg-gray-800 text-white mic-active" : "bg-red-500 text-white mic-muted"
                             )}
                         >
-                            {daily?.localAudio() ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+                            {isMicReallyOn ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
                         </button>
                         <button
                             onClick={toggleVideo}
                             className={cn(
                                 "w-12 h-12 rounded-xl flex items-center justify-center transition-all",
-                                daily?.localVideo() ? "bg-gray-800 text-white" : "bg-red-500 text-white"
+                                isVideoOn ? "bg-gray-800 text-white" : "bg-red-500 text-white"
                             )}
                         >
-                            {daily?.localVideo() ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+                            {isVideoOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
                         </button>
 
                         <div className="w-px h-8 bg-gray-800 mx-1" />
 
-                        {/* Owner Action: Generate Quizzes */}
+                        {/* Owner Action: Master Generate Button */}
                         {isOwner && (
                             <>
-                                <button
+                                <MasterGenerateButton
+                                    isOwner={isOwner}
+                                    isProcessing={isTriggeringLearning}
                                     onClick={handleTriggerLearning}
-                                    disabled={isTriggeringLearning}
-                                    className={cn(
-                                        "px-4 h-12 rounded-xl flex items-center gap-2 font-bold text-xs transition-all shadow-lg font-['Inter']",
-                                        isTriggeringLearning
-                                            ? "bg-gray-800 text-gray-500 cursor-wait"
-                                            : "bg-[#9333EA] text-white hover:bg-[#7e22ce] shadow-purple-500/20"
-                                    )}
-                                    title="Generate Quizzes for all participants"
-                                >
-                                    {isTriggeringLearning ? (
-                                        <Loader2 className="w-4 h-4 animate-spin text-purple-300" />
-                                    ) : (
-                                        <Brain className="w-4 h-4" />
-                                    )}
-                                    GENERATE QUIZZES
-                                </button>
+                                />
                                 <div className="w-px h-8 bg-gray-800 mx-1" />
                             </>
                         )}
@@ -632,11 +693,12 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
                 )}
             </AnimatePresence>
 
-            {/* Learning Popup - Triggered on session completion */}
-            <LearningPopup
+            {/* Learning Modal - Triggered on session completion or manual trigger */}
+            <LearningModal
                 roomId={roomId}
+                isOpen={isTriggeringLearning || shouldNavigateToDashboard}
                 onClose={() => {
-                    console.log('Learning popup closed');
+                    console.log('Learning modal closed');
                     if (shouldNavigateToDashboard) {
                         navigate('/dashboard');
                     }
