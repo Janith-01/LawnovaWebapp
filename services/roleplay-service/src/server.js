@@ -53,6 +53,7 @@ app.use(cors({
 // SOCKET.IO SERVER — Real-Time Autonomous Courtroom
 // ============================================================
 const io = new SocketIOServer(httpServer, {
+    path: '/roleplay-socket',
     cors: {
         origin: allowedOrigins.includes('*') ? '*' : allowedOrigins,
         methods: ['GET', 'POST'],

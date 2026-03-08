@@ -359,7 +359,6 @@ const mocktrialServiceProxy = createProxyMiddleware({
 const mocktrialSocketIoProxy = createProxyMiddleware({
   target: 'http://localhost:10004',
   changeOrigin: true,
-  ws: true,
   logLevel: 'debug', // Increased for troubleshooting
   onProxyReqWs: (proxyReq, req, socket, options, head) => {
     // Forward Host and Origin headers to allow handshake
@@ -441,11 +440,25 @@ const aiServiceProxy = createProxyMiddleware({
   }
 });
 
-// Proxy configuration for roleplay-service
+// Socket.IO for Roleplay Service
+const roleplaySocketProxy = createProxyMiddleware({
+  target: 'http://localhost:10005',
+  changeOrigin: true,
+  pathRewrite: {
+    '^/roleplay-socket': '/roleplay-socket'
+  },
+  onProxyReqWs: (proxyReq, req, socket, options, head) => {
+    proxyReq.setHeader('Host', 'localhost:10005');
+  },
+  onError: (err, req, res) => {
+    console.error('[Gateway] Roleplay WebSocket Proxy Error:', err.message);
+  }
+});
+
+// Proxy for HTTP requests to roleplay-service
 const roleplayServiceProxy = createProxyMiddleware({
   target: 'http://localhost:10005',
   changeOrigin: true,
-  ws: true, // Enable websocket proxying
   pathRewrite: (path, req) => {
     return req.originalUrl || path;
   },
@@ -463,13 +476,15 @@ const roleplayServiceProxy = createProxyMiddleware({
   }
 });
 
+app.use('/roleplay-socket', roleplaySocketProxy);
+
 app.use('/api/ai', aiServiceProxy);
 app.use('/api/video', aiServiceProxy);
 app.use('/api/chat', aiServiceProxy);
 
 // New Audit Route for Flask Microservice
 const auditServiceProxy = createProxyMiddleware({
-  target: 'http://localhost:5001',
+  target: 'http://localhost:5002',
   changeOrigin: true,
   onProxyReq: (proxyReq, req, res) => {
     forwardJsonBodyToProxy(proxyReq, req);
@@ -602,11 +617,14 @@ const server = app.listen(PORT, () => {
 // Wire WebSocket upgrade handling for Socket.IO
 server.on('upgrade', (req, socket, head) => {
   try {
-    if (req.url && req.url.startsWith('/socket.io')) {
+    const url = req.url || '';
+    if (url.startsWith('/socket.io')) {
       mocktrialSocketIoProxy.upgrade(req, socket, head);
+    } else if (url.startsWith('/roleplay-socket')) {
+      roleplaySocketProxy.upgrade(req, socket, head);
     }
-  } catch {
-    // ignore
+  } catch (err) {
+    console.error('[Gateway] Upgrade failed:', err.message);
   }
 });
 // Force restart

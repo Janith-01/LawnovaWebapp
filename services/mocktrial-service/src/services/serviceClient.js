@@ -205,7 +205,7 @@ class ServiceClient {
     async sendToAIService(transcriptData) {
         try {
             // Use the transcript ingestion endpoint
-            const response = await this.clients.aiService.post('/ai/transcript/ingest', transcriptData);
+            const response = await this.clients.aiService.post('/api/transcript/ingest', transcriptData);
             logger.info({
                 transcriptId: transcriptData.transcriptId,
                 type: transcriptData.type

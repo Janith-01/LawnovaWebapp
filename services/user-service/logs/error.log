@@ -52,3 +52,5 @@
 {"code":"INVALID_CREDENTIALS","level":"error","message":"Error occurred Invalid email or password","method":"POST","path":"/auth/login","service":"user-service","timestamp":"2026-03-08 02:35:26"}
 {"code":"INVALID_CREDENTIALS","level":"error","message":"Error occurred Invalid email or password","method":"POST","path":"/auth/login","service":"user-service","timestamp":"2026-03-08 02:37:50"}
 {"code":"INVALID_CREDENTIALS","level":"error","message":"Error occurred Invalid email or password","method":"POST","path":"/auth/login","service":"user-service","timestamp":"2026-03-08 02:37:55"}
+{"code":"INVALID_TOKEN","level":"error","message":"Error occurred Refresh token is invalid or expired","method":"POST","path":"/auth/refresh","service":"user-service","timestamp":"2026-03-08 17:56:33"}
+{"code":"INVALID_TOKEN","level":"error","message":"Error occurred Refresh token is invalid or expired","method":"POST","path":"/auth/refresh","service":"user-service","timestamp":"2026-03-08 17:57:01"}
