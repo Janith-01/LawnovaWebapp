@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { getWinProbability } from '../utils/aiJudge.js';
 import {
     generateVerdict,
@@ -43,7 +44,7 @@ export const consultLaw = async (req, res) => {
 
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({
-            model: "gemini-flash-latest"
+            model: "gemini-2.5-flash"
         });
 
         const prompt = `
@@ -92,101 +93,17 @@ export const processUserMessage = async (req, res) => {
             return res.status(404).json({ success: false, error: "Session not found" });
         }
 
-        // 1. CALCULATE TIME COST
-        const wordCount = message.trim().split(/\s+/).length;
-        const timeCost = Math.max(wordCount / 2, 30); // Minimum 30 seconds per turn
-        console.log(`⏱️ Time Cost for turn: ${timeCost}s`);
+        // Update last user interaction timestamp for heartbeat engine
+        session.lastUserInteraction = new Date();
 
-        // 2. UPDATE SESSION TIME
-        session.timeElapsedCurrentDay += timeCost;
-        session.timeElapsed += timeCost;
-
-        // 3. CHECK DAY END
-        if (session.timeElapsedCurrentDay >= session.timeLimitPerDay) {
-            const previousDay = session.currentDay;
-
-            // Move to Next Day
-            session.currentDay += 1;
-            session.timeElapsedCurrentDay = 0;
-
-            console.log(`📅 End of Day ${previousDay} reached! Moving to Day ${session.currentDay}`);
-
-            // Check for Game Over (exceeded max days - Trial Complete!)
-            if (session.currentDay > session.maxDays) {
-                console.log("⚖️ TRIAL CONCLUDED - Day 3 Complete - Generating Final Verdict...");
-
-                // Save the user's final message
-                session.addUserMessage(message);
-
-                // Generate the final verdict with full case analysis
-                const verdictData = await generateVerdict(session.history, session.caseDetails);
-
-                // Map verdict outcome to win/lose for session finalization
-                const sessionOutcome = verdictData.outcome === 'Guilty'
-                    ? (session.caseDetails?.userRole === 'Prosecution' ? 'win' : 'lose')
-                    : (session.caseDetails?.userRole === 'Defense' ? 'win' : 'lose');
-
-                // Finalize the session
-                session.finalize(sessionOutcome, verdictData.judge_statement);
-                session.verdict = {
-                    outcome: sessionOutcome,
-                    summary: verdictData.judge_statement,
-                    verdict_data: verdictData
-                };
-                session.status = 'completed';
-                await session.save();
-
-                console.log(`✅ Verdict: ${verdictData.outcome} (${verdictData.confidence_score}% confidence)`);
-
-                return res.json({
-                    success: true,
-                    data: {
-                        sessionId: session.sessionId,
-                        ai_reply: verdictData.judge_statement,
-                        speaker: "Judge Dissanayake",
-                        speakerRole: "Judge",
-                        mood: "Authoritative",
-                        action: "VERDICT",
-                        status: "finished",
-                        verdict_data: verdictData,
-                        currentDay: session.maxDays,
-                        maxDays: session.maxDays
-                    }
-                });
-            }
-
-            // Force Adjournment - Add the user's message first
-            session.addUserMessage(message);
-
-            // Add the adjournment as an AI response so it shows in chat
-            const adjournmentMessage = {
-                speaker: "Judge Dissanayake",
-                speakerRole: "Judge",
-                text: `*The gavel bangs loudly* Court is adjourned for Day ${previousDay}! We will reconvene tomorrow morning for Day ${session.currentDay}. All parties are dismissed.`,
-                mood: "Stern",
-                action: "ADJOURN"
-            };
-            session.addAIResponse(adjournmentMessage, session.currentWinProbability, null);
-
-            // IMPORTANT: Save the session before responding!
-            await session.save();
-
-            return res.json({
-                success: true,
-                data: {
-                    sessionId: session.sessionId,
-                    ai_reply: adjournmentMessage.text,
-                    speaker: adjournmentMessage.speaker,
-                    speakerRole: adjournmentMessage.speakerRole,
-                    mood: adjournmentMessage.mood,
-                    action: "ADJOURN",
-                    status: "active", // Keep active so they can continue playing
-                    currentDay: session.currentDay, // The NEW day (e.g., 2)
-                    maxDays: session.maxDays,
-                    previousDay: previousDay,
-                    timeRemaining: session.timeLimitPerDay // Full time for new day
-                }
-            });
+        // Pause the heartbeat engine so it doesn't interrupt while we process
+        const io = req.app.get('io');
+        if (io) {
+            io.to(`session:${sessionId}`).emit('heartbeat-reset');
+            try {
+                const { pauseHeartbeat } = await import('../engines/courtroomHeartbeat.js');
+                pauseHeartbeat(sessionId);
+            } catch (e) { /* silent */ }
         }
 
         // 4. ANALYZE & RAG
@@ -226,7 +143,16 @@ export const processUserMessage = async (req, res) => {
         // 7. SAVE STATE
         session.addUserMessage(message);
         session.addAIResponse(safeResponse, winProb, legalContext);
+        session.lastUserInteraction = new Date(); // Update interaction time
         await session.save();
+
+        // 7.5. RESUME HEARTBEAT
+        if (io) {
+            try {
+                const { resumeHeartbeat } = await import('../engines/courtroomHeartbeat.js');
+                resumeHeartbeat(sessionId);
+            } catch (e) { /* silent */ }
+        }
 
         // 8. RESPONSE
         res.status(200).json({
@@ -240,13 +166,22 @@ export const processUserMessage = async (req, res) => {
                 action: safeResponse.action,
                 win_probability: winProb,
                 relevant_laws: legalContext,
-                currentDay: session.currentDay,
-                timeRemaining: session.timeLimitPerDay - session.timeElapsedCurrentDay
+                currentDay: session.currentDay
             }
         });
 
     } catch (error) {
         console.error("❌ processUserMessage Error:", error);
+
+        // Ensure heartbeat resumes if an error occurred during processing
+        const io = req.app.get('io');
+        if (io) {
+            try {
+                const { resumeHeartbeat } = await import('../engines/courtroomHeartbeat.js');
+                resumeHeartbeat(sessionId);
+            } catch (e) { /* silent */ }
+        }
+
         res.status(500).json({ success: false, error: "Internal Server Error", details: error.message });
     }
 };
@@ -313,13 +248,146 @@ export const advanceDay = async (req, res) => {
         const { sessionId } = req.params;
         const session = await RoleplaySession.findOne({ sessionId });
         if (!session) return res.status(404).json({ success: false, error: "Session not found" });
+
+        if (session.status === 'completed') {
+            return res.status(400).json({ success: false, error: "Trial is already completed" });
+        }
+
+        if (session.currentDay >= session.maxDays) {
+            return res.status(400).json({ success: false, error: "Already at the final day of the trial" });
+        }
+
+        const previousDay = session.currentDay;
         session.currentDay += 1;
         session.timeElapsedCurrentDay = 0;
         session.status = 'active';
+
+        // Add adjournment system message to history
+        const adjournMsg = {
+            speaker: "Court Clerk",
+            speakerRole: "Clerk",
+            text: `Court is adjourned for Day ${previousDay}. Day ${session.currentDay} of the trial now commences. All parties, please be seated.`,
+            mood: "Neutral",
+            action: "ADJOURN"
+        };
+        session.addAIResponse(adjournMsg, session.currentWinProbability, null);
         await session.save();
-        res.status(200).json({ success: true, data: session });
+
+        console.log(`[ADVANCE-DAY] Session ${sessionId}: Day ${previousDay} -> Day ${session.currentDay}`);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                sessionId: session.sessionId,
+                currentDay: session.currentDay,
+                maxDays: session.maxDays,
+                timeRemaining: session.timeLimitPerDay,
+                status: session.status,
+                adjournMessage: adjournMsg.text
+            }
+        });
     } catch (error) {
+        console.error("[ADVANCE-DAY] Error:", error.message);
         res.status(500).json({ success: false, error: "Internal Server Error" });
+    }
+};
+
+// ============================================================
+// 4. COMPLETE SESSION (End Trial Early + Audit + Verdict)
+// ============================================================
+export const completeSession = async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const session = await RoleplaySession.findOne({ sessionId });
+
+        if (!session) {
+            return res.status(404).json({ success: false, error: "Session not found" });
+        }
+
+        if (session.status === 'completed') {
+            // Return existing verdict and audit if already completed
+            return res.status(200).json({
+                success: true,
+                data: {
+                    sessionId: session.sessionId,
+                    status: 'finished',
+                    verdict_data: session.verdict?.verdict_data || null,
+                    auditReport: session.auditReport || [],
+                    currentDay: session.currentDay,
+                    maxDays: session.maxDays
+                }
+            });
+        }
+
+        console.log(`[COMPLETE] Ending trial early for session ${sessionId} on Day ${session.currentDay}/${session.maxDays}`);
+
+        // --- Step 1: Audit User Arguments ---
+        console.log("[COMPLETE] Auditing User Arguments...");
+        const auditReport = [];
+        try {
+            if (session.history.length > 0) {
+                const auditUrl = 'http://127.0.0.1:5002/api/audit-transcript';
+                const auditResponse = await axios.post(auditUrl, { history: session.history });
+
+                if (auditResponse.data?.status === 'success') {
+                    const results = auditResponse.data.results;
+                    results.forEach((r) => {
+                        auditReport.push({
+                            originalText: r.argument,
+                            score: r.score,
+                            verdict: r.status,
+                            reason: r.reason
+                        });
+                    });
+                    console.log(`[COMPLETE] Audit completed: ${results.length} arguments analyzed with reasoning.`);
+                }
+            }
+        } catch (auditError) {
+            console.error("[COMPLETE] Audit Service Error (Non-fatal):", auditError.message);
+        }
+        session.auditReport = auditReport;
+
+        // --- Step 2: Generate Final Verdict ---
+        console.log("[COMPLETE] Generating Final Verdict...");
+        const verdictData = await generateVerdict(session.history, session.caseDetails);
+
+        // Map verdict outcome to win/lose
+        const sessionOutcome = verdictData.outcome === 'Guilty'
+            ? (session.caseDetails?.userRole === 'Prosecution' ? 'win' : 'lose')
+            : (session.caseDetails?.userRole === 'Defense' ? 'win' : 'lose');
+
+        // Finalize the session
+        session.finalize(sessionOutcome, verdictData.judge_statement);
+        session.verdict = {
+            outcome: sessionOutcome,
+            summary: verdictData.judge_statement,
+            verdict_data: verdictData
+        };
+        session.status = 'completed';
+        await session.save();
+
+        console.log(`[COMPLETE] Verdict: ${verdictData.outcome} (${verdictData.confidence_score}% confidence)`);
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                sessionId: session.sessionId,
+                ai_reply: verdictData.judge_statement,
+                speaker: "Judge Dissanayake",
+                speakerRole: "Judge",
+                mood: "Authoritative",
+                action: "VERDICT",
+                status: "finished",
+                verdict_data: verdictData,
+                auditReport: auditReport,
+                currentDay: session.currentDay,
+                maxDays: session.maxDays
+            }
+        });
+
+    } catch (error) {
+        console.error("[COMPLETE] Error:", error.message);
+        res.status(500).json({ success: false, error: "Failed to complete session", details: error.message });
     }
 };
 

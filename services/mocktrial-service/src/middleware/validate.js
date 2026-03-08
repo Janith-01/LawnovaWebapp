@@ -32,7 +32,7 @@ export const validate = (schema, property = 'body') => {
 };
 
 // Valid trial roles for the Fair Rotation Engine
-const VALID_INVITED_ROLES = ['Judge', 'Defense Lawyer', 'Prosecution Lawyer', 'Victim', 'Witness', 'Client', 'Unassigned'];
+const VALID_INVITED_ROLES = ['Judge', 'Defense Lawyer', 'Prosecution Lawyer', 'Victim', 'Witness', 'Client', 'Jury Foreman', 'Expert Witness', 'Eyewitness', 'Court Clerk', 'Bailiff', 'Court Reporter', 'Investigating Officer', 'Unassigned'];
 const VALID_ROOM_STATUSES = ['Scheduled', 'RolesAssigned', 'Live', 'Completed'];
 
 /**

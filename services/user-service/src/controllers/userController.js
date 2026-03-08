@@ -219,6 +219,14 @@ export const getUsersByEmails = async (req, res, next) => {
             judge: 0,
             defenseLawyer: 0,
             prosecutionLawyer: 0,
+            juryForeman: 0,
+            expertWitness: 0,
+            eyewitness: 0,
+            courtClerk: 0,
+            bailiff: 0,
+            courtReporter: 0,
+            investigatingOfficer: 0,
+
             victim: 0,
             witness: 0,
             client: 0
@@ -268,6 +276,14 @@ export const updateMockTrialProfile = async (req, res, next) => {
           judge: 0,
           defenseLawyer: 0,
           prosecutionLawyer: 0,
+          juryForeman: 0,
+          expertWitness: 0,
+          eyewitness: 0,
+          courtClerk: 0,
+          bailiff: 0,
+          courtReporter: 0,
+          investigatingOfficer: 0,
+
           victim: 0,
           witness: 0,
           client: 0
@@ -388,6 +404,14 @@ function getRoleDbKey(role) {
     'Judge': 'judge',
     'Defense Lawyer': 'defenseLawyer',
     'Prosecution Lawyer': 'prosecutionLawyer',
+    'Jury Foreman': 'juryForeman',
+    'Expert Witness': 'expertWitness',
+    'Eyewitness': 'eyewitness',
+    'Court Clerk': 'courtClerk',
+    'Bailiff': 'bailiff',
+    'Court Reporter': 'courtReporter',
+    'Investigating Officer': 'investigatingOfficer',
+
     'Victim': 'victim',
     'Witness': 'witness',
     'Client': 'client'

@@ -13,10 +13,19 @@ class RoleAssignmentService {
         this.algorithmVersion = '1.0.0';
 
         // Role complexity mapping (higher = more complex, needs better performance)
+
         this.roleComplexity = {
             'Judge': 5,
             'Defense Lawyer': 4,
             'Prosecution Lawyer': 4,
+            'Jury Foreman': 3,
+            'Expert Witness': 4,
+            'Eyewitness': 2,
+            'Court Clerk': 2,
+            'Bailiff': 1,
+            'Court Reporter': 2,
+            'Investigating Officer': 3,
+
             'Client': 3,
             'Victim': 2,
             'Witness': 2
@@ -203,7 +212,15 @@ class RoleAssignmentService {
             { role: 'Judge', min: 1, max: 1 },
             { role: 'Defense Lawyer', min: 1, max: 2 },
             { role: 'Prosecution Lawyer', min: 1, max: 2 },
+            { role: 'Jury Foreman', min: 1, max: 1 },
+            { role: 'Expert Witness', min: 1, max: 1 },
+            { role: 'Eyewitness', min: 1, max: 1 },
+            { role: 'Court Clerk', min: 1, max: 1 },
+            { role: 'Bailiff', min: 1, max: 1 },
+            { role: 'Court Reporter', min: 1, max: 1 },
+            { role: 'Investigating Officer', min: 1, max: 1 },
             { role: 'Client', min: 1, max: 1 },
+
             { role: 'Victim', min: 0, max: 1 },
             { role: 'Witness', min: 0, max: 10 } // Flexible
         ];
@@ -584,6 +601,14 @@ class RoleAssignmentService {
             'Judge': 'judge',
             'Defense Lawyer': 'defenseLawyer',
             'Prosecution Lawyer': 'prosecutionLawyer',
+            'Jury Foreman': 'juryForeman',
+            'Expert Witness': 'expertWitness',
+            'Eyewitness': 'eyewitness',
+            'Court Clerk': 'courtClerk',
+            'Bailiff': 'bailiff',
+            'Court Reporter': 'courtReporter',
+            'Investigating Officer': 'investigatingOfficer',
+
             'Victim': 'victim',
             'Witness': 'witness',
             'Client': 'client'

@@ -46,9 +46,7 @@ export const trialSchemas = {
     sessionIdParam: Joi.object({
         sessionId: Joi.string()
             .required()
-            .pattern(/^[0-9a-fA-F]{24}$/)
             .messages({
-                'string.pattern.base': 'sessionId must be a valid MongoDB ObjectId',
                 'any.required': 'sessionId is required'
             })
     }),

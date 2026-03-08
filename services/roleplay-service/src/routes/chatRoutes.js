@@ -6,6 +6,7 @@ import {
     generateCase,
     advanceDay,
     resumeSession,
+    completeSession,
     consultLaw // 👈 NEW: Import the new controller function
 } from '../controllers/chatController.js';
 
@@ -24,6 +25,7 @@ router.post('/generate-case', generateCase);
 // Day/Time management (Phase 3)
 router.post('/session/:sessionId/advance-day', advanceDay);
 router.post('/session/:sessionId/resume', resumeSession);
+router.post('/session/:sessionId/complete', completeSession);
 
 // --- NEW RAG FEATURE ---
 // Endpoint to search the Penal Code specifically

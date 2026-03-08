@@ -24,6 +24,7 @@ import CourtroomPage from './pages/mocktrials/CourtroomPage';
 
 // AI Roleplay
 import GameInterface from './pages/Roleplay/GameInterface';
+import TrialResults from './pages/Roleplay/TrialResults';
 import CaseSetup from './pages/Roleplay/CaseSetup';
 import BriefingInterface from './pages/Roleplay/BriefingInterface';
 import CaseBriefing from './pages/Roleplay/CaseBriefing';
@@ -157,6 +158,7 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route path="/roleplay/game" element={<GameInterface />} />
                 <Route path="/roleplay/game/:sessionId" element={<GameInterface />} />
+                <Route path="/results/:sessionId" element={<TrialResults />} />
               </Route>
 
               {/* Admin Routes */}

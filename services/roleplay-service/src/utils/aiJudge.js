@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 1. Define the URL of your Python Microservice
 // We use 127.0.0.1 instead of localhost to avoid Node v17+ DNS issues
-const PYTHON_SERVICE_URL = 'http://127.0.0.1:5001/predict';
+const PYTHON_SERVICE_URL = 'http://127.0.0.1:5002/predict';
 
 /**
  * Sends the user's argument to the Python AI Judge.
