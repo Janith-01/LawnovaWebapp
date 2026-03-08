@@ -71,6 +71,10 @@ router.post('/transcript/ingest', (req, res) => {
                 speakerSummary: data.speakerSummary
             });
             res.json({ success: true, status: 'marked_ready' });
+        } else if (type === 'METADATA_UPDATE') {
+            // Update stage or other trial state
+            transcriptIngestion.updateMetadata(sessionId || roomId, req.body.metadata || {});
+            res.json({ success: true, status: 'metadata_updated' });
         } else {
             res.json({ success: true, ignored: true });
         }

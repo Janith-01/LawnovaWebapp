@@ -65,6 +65,7 @@ const GameInterface = () => {
     const recognitionRef = useRef(null);
     const baseTextRef = useRef('');
     const latestInputTextRef = useRef(inputText);
+    const retryCountRef = useRef(0);
     const socketRef = useRef(null);
     const { isDarkMode } = useTheme();
 
@@ -153,6 +154,7 @@ const GameInterface = () => {
         // Initialize socket connection
         const SOCKET_URL = import.meta.env.VITE_ROLEPLAY_WS_URL || import.meta.env.VITE_API_BASE_URL?.replace('/api/roleplay', '') || 'http://localhost:5000';
         socketRef.current = io(SOCKET_URL, {
+            path: '/roleplay-socket',
             transports: ['websocket', 'polling'],
             withCredentials: true
         });
@@ -255,19 +257,44 @@ const GameInterface = () => {
         };
 
         recognition.onerror = (event) => {
-            // "no-speech" is common and not always a failure, just stop being red
+            // "no-speech" is common and not always a failure
             if (event.error === 'no-speech') {
                 console.debug('Speech recognition: no speech detected.');
+                setIsListening(false);
+            } else if (event.error === 'network') {
+                console.warn('Speech recognition network error. Retrying...');
+                // Try to restart if it's a network glitch
+                if (retryCountRef.current < 2) {
+                    retryCountRef.current += 1;
+                    setTimeout(() => {
+                        try {
+                            recognitionRef.current?.start();
+                        } catch (e) {
+                            console.error("Retry failed:", e);
+                            setIsListening(false);
+                        }
+                    }, 1000);
+                } else {
+                    console.error('Speech recognition: Permanent network error.');
+                    toast.error("Vocal connection unstable. Try typing your argument.");
+                    setIsListening(false);
+                }
             } else {
                 console.error('Speech recognition error:', event.error);
                 toast.error(`Mic error: ${event.error}`);
+                setIsListening(false);
             }
-            setIsListening(false);
         };
 
         recognition.onend = () => {
+            // Reset retry count if we ended normally (no error)
+            if (isListening && !recognitionRef.current?.lastError) {
+                retryCountRef.current = 0;
+            }
+
             setIsListening(false);
             console.log("🎤 Voice input stopped.");
+
             // Auto-send argument if something was captured
             const finalInput = latestInputTextRef.current;
             if (finalInput.trim() && finalInput !== baseTextRef.current) {

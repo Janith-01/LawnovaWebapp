@@ -463,9 +463,18 @@ const roomController = {
             throw new ApiError(404, 'Room not found');
         }
 
-        // Check if user is the owner
-        if (room.ownerId.toString() !== userId) {
-            throw new ApiError(403, 'Only the room owner can update the room status');
+        const userEmail = req.headers['user-email'];
+        const isOwner = room.ownerId.toString() === userId;
+        const participant = room.participants.find(p =>
+            p.userId?.toString() === userId ||
+            (userEmail && p.email === userEmail.toLowerCase())
+        );
+        const isJudge = participant?.assignedRole === 'Judge' || participant?.invitedRole === 'Judge';
+
+        logger.info({ roomId, userId, isOwner, isJudge, role: participant?.assignedRole }, '[updateRoomStatus] Auth check');
+
+        if (!isOwner && !isJudge) {
+            throw new ApiError(403, 'Only the room owner or the Judge can update the room status');
         }
 
         // Validate status transition
@@ -1124,9 +1133,18 @@ const roomController = {
             throw new ApiError(404, 'Trial room not found');
         }
 
-        // AUTHORIZATION CHECK: Only the room owner can complete the session
-        if (room.ownerId.toString() !== userId) {
-            throw new ApiError(403, 'Only the room owner can complete this session');
+        const userEmail = req.headers['user-email'];
+        const isOwner = room.ownerId.toString() === userId;
+        const participant = room.participants.find(p =>
+            p.userId?.toString() === userId ||
+            (userEmail && p.email === userEmail.toLowerCase())
+        );
+        const isJudge = participant?.assignedRole === 'Judge' || participant?.invitedRole === 'Judge';
+
+        logger.info({ roomId, userId, isOwner, isJudge, role: participant?.assignedRole }, '[completeSession] Auth check');
+
+        if (!isOwner && !isJudge) {
+            throw new ApiError(403, 'Only the room owner or the Judge can complete this session');
         }
 
         // Check if already completed
@@ -1177,7 +1195,7 @@ const roomController = {
             const aiServiceClient = (await import('../utils/aiServiceClient.js')).default;
 
             // Trigger transcript parsing for RAG-driven learning materials
-            const ragResponse = await aiServiceClient.post('/api/ai/generate-learning', {
+            const ragResponse = await aiServiceClient.post('/api/generate-learning', {
                 sessionId: roomId,
                 topic: room.topic
             });
@@ -1452,15 +1470,40 @@ roomController.triggerLearning = async (req, res) => {
     try {
         logger.info({ roomId, userId }, '[triggerLearning] Learning trigger requested');
 
-        // 1. AUTHORIZATION: Verify the requester is the room owner
+        // 1. AUTHORIZATION: Verify the requester is the room owner or the assigned Judge
         const room = await Room.findById(roomId);
         if (!room) {
             throw new ApiError(404, 'Room not found');
         }
 
+        const userEmail = req.headers['user-email'];
+        const isOwner = userId && room.ownerId.toString().toLowerCase() === userId.toLowerCase();
+        const participant = room.participants.find(p =>
+            (userId && p.userId?.toString().toLowerCase() === userId.toLowerCase()) ||
+            (userEmail && p.email?.toLowerCase() === userEmail.toLowerCase())
+        );
+        const isJudge = participant?.assignedRole?.toLowerCase() === 'judge' || participant?.invitedRole?.toLowerCase() === 'judge';
 
-        if (room.ownerId.toString() !== userId) {
-            throw new ApiError(403, 'Only the session owner can trigger learning materials');
+        logger.info({
+            roomId,
+            requestUserId: userId,
+            requestUserEmail: userEmail,
+            roomOwnerId: room.ownerId.toString(),
+            isOwner,
+            isJudge,
+            foundParticipant: participant ? {
+                userId: participant.userId,
+                email: participant.email,
+                assignedRole: participant.assignedRole,
+                invitedRole: participant.invitedRole
+            } : 'Not found'
+        }, '[triggerLearning] AUTH DEBUG');
+
+        if (!isOwner && !isJudge) {
+            const allRoles = room.participants.map(p => `${p.email}:${p.assignedRole}/${p.invitedRole}`).join(', ');
+            const errorDetails = `[AUTH_FAIL] RequestUserId: ${userId || 'MISSING'}, RequestUserEmail: ${userEmail || 'MISSING'}, RoomOwnerId: ${room.ownerId}, isOwner: ${!!isOwner}, isJudge: ${!!isJudge}, My Participant: ${participant ? participant.assignedRole + '/' + participant.invitedRole : 'Not found in participants list'}`;
+            logger.warn({ roomId, errorDetails, allRoles }, '[triggerLearning] Authorization Denied');
+            throw new ApiError(403, `Only the session owner or the Judge can trigger learning materials. ${errorDetails}`);
         }
 
         // 2. Fetch RAG DATA PAYLOAD: Generate dynamic learning materials from the transcript using the AI service 
@@ -1486,13 +1529,20 @@ roomController.triggerLearning = async (req, res) => {
 
         try {
             const aiServiceClient = (await import('../utils/aiServiceClient.js')).default;
-            const ragResponse = await aiServiceClient.post('/api/ai/generate-learning', {
+            const ragResponse = await aiServiceClient.post('/api/generate-learning', {
                 sessionId: roomId,
                 topic: room.topic
             });
 
             if (ragResponse.data?.success && ragResponse.data?.data) {
-                learningMaterials = ragResponse.data.data;
+                const aiData = ragResponse.data.data;
+                learningMaterials = {
+                    ...learningMaterials,
+                    ...aiData,
+                    flashcards: Array.isArray(aiData.flashcards) ? aiData.flashcards : learningMaterials.flashcards,
+                    quizzes: Array.isArray(aiData.quizzes) ? aiData.quizzes : learningMaterials.quizzes
+                };
+
                 // Make sure it has roomId and generatedAt
                 learningMaterials.roomId = room._id;
                 learningMaterials.trialTopic = room.topic;
@@ -1552,11 +1602,7 @@ roomController.triggerLearning = async (req, res) => {
         res.status(200).json({
             success: true,
             message: 'Learning materials generated and sent to all participants',
-            data: {
-                flashcardsCount: learningMaterials.flashcards.length,
-                quizzesCount: learningMaterials.quizzes.length,
-                participantsNotified: room.participants.length
-            }
+            data: learningMaterials
         });
 
     } catch (error) {
