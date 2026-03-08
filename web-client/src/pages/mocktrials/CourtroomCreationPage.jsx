@@ -75,7 +75,7 @@ const step2Base = z.object({
     scheduledDate: z.string().min(1, 'Please select a date'),
     scheduledTime: z.string()
         .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Please enter a valid time'),
-    duration: z.number().min(30).max(240).optional(),
+    duration: z.number().min(15).max(60).optional(),
 });
 
 // Step 2 Schema with validation (for step validation)
@@ -463,10 +463,10 @@ const Step2Schedule = ({ form }) => {
                     {...register('duration', { valueAsNumber: true })}
                     className="w-full px-4 py-3 rounded-xl border border-slate-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-900/30 outline-none transition-all bg-[#0F172A] text-white"
                 >
+                    <option value={15} className="bg-slate-900">15 minutes</option>
+                    <option value={30} className="bg-slate-900">30 minutes</option>
+                    <option value={45} className="bg-slate-900">45 minutes</option>
                     <option value={60} className="bg-slate-900">1 hour</option>
-                    <option value={90} className="bg-slate-900">1.5 hours</option>
-                    <option value={120} className="bg-slate-900">2 hours</option>
-                    <option value={180} className="bg-slate-900">3 hours</option>
                 </select>
             </div>
 
@@ -566,7 +566,7 @@ const CourtroomCreationPage = () => {
             description: '',
             scheduledDate: '',
             scheduledTime: '',
-            duration: 90,
+            duration: 60,
             agenda: '',
         },
         mode: 'onChange',

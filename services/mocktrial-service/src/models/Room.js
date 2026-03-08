@@ -123,7 +123,7 @@ const roomSchema = new Schema({
         type: Number,
         default: 60, // Default duration in minutes
         min: [15, 'Duration must be at least 15 minutes'],
-        max: [480, 'Duration cannot exceed 8 hours']
+        max: [60, 'Duration cannot exceed 1 hour']
     },
     agenda: {
         type: String,

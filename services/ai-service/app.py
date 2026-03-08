@@ -9,9 +9,11 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'scripts'))
 
 from retrieval import search_legal_documents
-from scripts.generator import generate_study_suite
-from scripts.transcription import transcribe_audio
+from generator import generate_study_suite
+from transcription import transcribe_audio
+from validator import validate_stage_context
 import uuid
+import requests
 from werkzeug.utils import secure_filename
 
 load_dotenv()
@@ -130,6 +132,49 @@ def handle_transcription():
         
     except Exception as e:
         print(f"[AI Backend] Transcription Error: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/validate-stage', methods=['POST'])
+def handle_stage_validation():
+    """
+    Requirement 2 & 3: Penalty Trigger.
+    Analyzes the latest 30-second window or chunk for required legal vocabulary.
+    Sends PENALTY_REQUIRED to Node if keywords are missing.
+    """
+    try:
+        data = request.json
+        transcript = data.get('transcript', '')
+        current_stage = data.get('stage', 'Opening Statements')
+        room_id = data.get('roomId', '')
+        
+        if not transcript or not room_id:
+            return jsonify({"success": False, "error": "Missing Required Data"}), 400
+            
+        # 1. Logic: Run Stage Validator (Requirement 1)
+        is_legal_context, found = validate_stage_context(transcript, current_stage)
+        
+        # 2. Penalty Trigger: If no keywords found, notify Node
+        if not is_legal_context:
+            print(f"[AI Penalty] Stage: {current_stage} | NO KEYWORDS FOUND. Triggering Time Inflation...")
+            try:
+                # Notify Node.js for Time Inflation
+                node_url = os.environ.get("MOCKTRIAL_SERVICE_URL", "http://localhost:10004")
+                penalty_resp = requests.post(
+                    f"{node_url}/api/rooms/{room_id}/session/penalty",
+                    json={"reason": "Missing required legal vocabulary for active stage"},
+                    headers={"x-internal-service-auth": os.environ.get("INTERNAL_SERVICE_SECRET")}
+                )
+                print(f"[AI Penalty] Callback status: {penalty_resp.status_code}")
+            except Exception as e:
+                print(f"[AI Penalty] Node Callback Failed: {e}")
+                
+        return jsonify({
+            "success": True,
+            "valid": is_legal_context,
+            "found_keywords": found
+        })
+    except Exception as e:
+        print(f"[AI Penalty] Fatal Error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == '__main__':

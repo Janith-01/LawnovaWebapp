@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import roomController from '../controllers/roomController.js';
 import chatController from '../controllers/chatController.js';
+import aiController from '../controllers/aiController.js';
+import trialSessionController from '../controllers/trialSessionController.js';
 
 import { validate, roomSchemas } from '../middleware/validate.js';
 
@@ -272,16 +274,76 @@ router.patch(
     roomController.completeSession
 );
 
+// ... other imports ...
+
 /**
  * @route   POST /api/rooms/:roomId/trigger-learning
- * @desc    Trigger AI learning material generation (Owner only)
- * @access  Private (Owner)
+ * @desc    Trigger AI learning material generation and broadcast (Owner only)
+ * @access  Private (Owner/Judge)
  */
 router.post(
     '/:roomId/trigger-learning',
     validate(roomSchemas.roomIdParam, 'params'),
-    roomController.triggerLearning
+    aiController.broadcastStudySuite
+);
 
+// ============================================*
+// TRIAL SESSION & TIMER ENDPOINTS
+// ============================================
+
+/**
+ * @route   POST /api/rooms/:roomId/session/start
+ * @desc    Initialize and start a trial session timer
+ * @access  Private (Owner/Judge)
+ */
+router.post(
+    '/:roomId/session/start',
+    validate(roomSchemas.roomIdParam, 'params'),
+    trialSessionController.startSession
+);
+
+/**
+ * @route   GET /api/rooms/:roomId/session/status
+ * @desc    Get current session status/time allocations
+ * @access  Private
+ */
+router.get(
+    '/:roomId/session/status',
+    validate(roomSchemas.roomIdParam, 'params'),
+    trialSessionController.getSessionStatus
+);
+
+/**
+ * @route   PATCH /api/rooms/:roomId/session/next
+ * @desc    Move trial to next stage (Opening -> Direct -> Cross etc.)
+ * @access  Private (Owner/Judge)
+ */
+router.patch(
+    '/:roomId/session/next',
+    validate(roomSchemas.roomIdParam, 'params'),
+    trialSessionController.nextStage
+);
+
+/**
+ * @route   POST /api/rooms/:roomId/session/penalty
+ * @desc    Apply penalty from AI service for lack of legal vocabulary
+ * @access  Internal (AI Service)
+ */
+router.post(
+    '/:roomId/session/penalty',
+    validate(roomSchemas.roomIdParam, 'params'),
+    trialSessionController.applyPenalty
+);
+
+/**
+ * @route   POST /api/rooms/:roomId/session/update-requirements
+ * @desc    Update stage requirements (keywords detected)
+ * @access  Internal (AI Service)
+ */
+router.post(
+    '/:roomId/session/update-requirements',
+    validate(roomSchemas.roomIdParam, 'params'),
+    trialSessionController.updateStageRequirements
 );
 
 export default router;
