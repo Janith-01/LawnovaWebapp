@@ -577,28 +577,52 @@ export const finalizeTrial = async (req, res) => {
 
         // 2. Send the user's segments to the Python Audit Service.
         let auditReport = [];
-        try {
-            console.log(`[FINALIZE] Session ${sessionId}: Auditing ${session.history.length} items via Python Audit Service (Port 5002)...`);
-            const auditUrl = 'http://127.0.0.1:5002/api/audit-transcript';
-            const auditResponse = await axios.post(auditUrl, { history: session.history });
+        let auditServiceStatus = 'online';
 
-            // 3. Receive the 'Strong/Weak' breakdown.
-            if (auditResponse.data && auditResponse.data.status === 'success') {
+        try {
+            console.log(`[FINALIZE] Session ${sessionId}: Auditing ${session.history.length} items via Python Audit Service (Port 5009)...`);
+            const auditUrl = 'http://127.0.0.1:5009/audit';
+
+            // WAIT for Python service to finish (up to 2 minutes)
+            const auditResponse = await axios.post(auditUrl, {
+                history: session.history
+            }, {
+                timeout: 120000,
+                validateStatus: (status) => status < 500 // Don't throw for 4xx
+            });
+
+            if (auditResponse.data && auditResponse.data.success) {
                 const results = auditResponse.data.results;
                 results.forEach((r) => {
                     auditReport.push({
                         originalText: r.argument,
                         score: r.score,
-                        verdict: r.status,
-                        reason: r.reason
+                        verdict: r.verdict,
+                        reason: r.auditor_comment
                     });
                 });
                 console.log(`[FINALIZE] Audit successful: ${auditReport.length} results received.`);
+            } else {
+                throw new Error(auditResponse.data?.message || 'Audit failed');
             }
         } catch (auditError) {
-            console.error(`[FINALIZE] Audit Service Error (Non-fatal): ${auditError.message}`);
-            // Fallback: an empty audit report is better than a 500 crash
+            console.error(`[FINALIZE] Audit Service Error: ${auditError.message}`);
+            // If the service is down (ECONNREFUSED) or timed out
+            if (auditError.code === 'ECONNREFUSED' || auditError.code === 'ETIMEDOUT') {
+                return res.status(503).json({
+                    success: false,
+                    message: "Legal Brain is offline"
+                });
+            }
+            // For other non-fatal errors, we might continue or return error
+            // Request says: "If Port 5009 is down, return a clean JSON error"
+            return res.status(500).json({
+                success: false,
+                message: "Legal Brain is offline",
+                details: auditError.message
+            });
         }
+
 
         // 3.5 Generate FINAL VERDICT using AI Orchestrator
         let verdict_data = null;
@@ -624,8 +648,23 @@ export const finalizeTrial = async (req, res) => {
         );
 
         // 5. Redirect the frontend to the /results/:sessionId page
+        // But first, check if we were in maintenance mode
+        if (auditServiceStatus === 'maintenance') {
+            return res.status(200).json({
+                success: true,
+                status: 'maintenance',
+                message: 'Audit report is currently unavailable (System Maintenance). Judgment was generated without deep audit.',
+                redirectUrl: `/results/${sessionId}`,
+                data: {
+                    auditReport: [],
+                    isMaintenance: true
+                }
+            });
+        }
+
         return res.status(200).json({
             success: true,
+            status: 'success',
             message: 'Trial finalized successfully',
             redirectUrl: `/results/${sessionId}`,
             data: {
@@ -633,6 +672,7 @@ export const finalizeTrial = async (req, res) => {
                 status: session.status
             }
         });
+
     } catch (error) {
         logger.error({ error: error.message, sessionId }, 'Failed to finalize trial');
         return res.status(500).json({

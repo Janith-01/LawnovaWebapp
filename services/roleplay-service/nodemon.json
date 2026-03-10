@@ -1,0 +1,10 @@
+{
+    "ignore": [
+        "*.log",
+        "*.jsonl",
+        "LAWNOVA_FINAL_BRAIN_V2/*",
+        "**/temp/**",
+        "dataset/*",
+        "**/dataset/**"
+    ]
+}

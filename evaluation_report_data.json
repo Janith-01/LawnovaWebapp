@@ -1,0 +1,95 @@
+{
+    "avg_latency_ms": 38.06992769241333,
+    "confusion_matrix": [
+        [
+            1,
+            14
+        ],
+        [
+            2,
+            3
+        ]
+    ],
+    "top_errors": [
+        {
+            "text": "Yes, I agree.",
+            "true_label": "noise",
+            "predicted": "Law",
+            "confidence": 0.9918,
+            "law_score": 0.9918,
+            "fact_score": 0.0082
+        },
+        {
+            "text": "Wait a moment.",
+            "true_label": "noise",
+            "predicted": "Law",
+            "confidence": 0.9911,
+            "law_score": 0.9911,
+            "fact_score": 0.0089
+        },
+        {
+            "text": "Good morning, my name is Inspector Ratnayake.",
+            "true_label": "noise",
+            "predicted": "Law",
+            "confidence": 0.9906,
+            "law_score": 0.9906,
+            "fact_score": 0.0094
+        },
+        {
+            "text": "Thank you, Your Lordship.",
+            "true_label": "noise",
+            "predicted": "Law",
+            "confidence": 0.9894,
+            "law_score": 0.9894,
+            "fact_score": 0.0106
+        },
+        {
+            "text": "Understood.",
+            "true_label": "noise",
+            "predicted": "Law",
+            "confidence": 0.9888,
+            "law_score": 0.9888,
+            "fact_score": 0.0112
+        },
+        {
+            "text": "The fingerprints on the glass matched the accused perfectly.",
+            "true_label": 0,
+            "predicted": "Law",
+            "confidence": 0.9878,
+            "law_score": 0.9878,
+            "fact_score": 0.0122
+        },
+        {
+            "text": "Hi there.",
+            "true_label": "noise",
+            "predicted": "Law",
+            "confidence": 0.9877,
+            "law_score": 0.9877,
+            "fact_score": 0.0123
+        },
+        {
+            "text": "No, that is not correct.",
+            "true_label": "noise",
+            "predicted": "Law",
+            "confidence": 0.9874,
+            "law_score": 0.9874,
+            "fact_score": 0.0126
+        },
+        {
+            "text": "Alright, let's proceed.",
+            "true_label": "noise",
+            "predicted": "Law",
+            "confidence": 0.9874,
+            "law_score": 0.9874,
+            "fact_score": 0.0126
+        },
+        {
+            "text": "Hello Your Honor, I am representing the defendant today.",
+            "true_label": "noise",
+            "predicted": "Law",
+            "confidence": 0.9864,
+            "law_score": 0.9864,
+            "fact_score": 0.0136
+        }
+    ]
+}

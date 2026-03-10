@@ -2,289 +2,198 @@ import sys
 import io
 import os
 
-# Fix Windows console encoding - must be at the very top
+# Fix Windows console encoding
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 from dotenv import load_dotenv
-# Load environment variables from the parent roleplay-service directory
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
+import torch.nn.functional as F
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import google.generativeai as genai
 
 app = Flask(__name__)
-# Enable CORS for frontend and cross-service communication
 CORS(app)
 
-# --- Configuration ---
-# Path to the fine-tuned BERT model
+# --- Configuration (Senior ML v2.2) ---
 MODEL_PATH = r"D:\RE\LawnovaWebapp\LAWNOVA_FINAL_BRAIN_v1\checkpoint-396"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+MAINTENANCE_MODE = False
 
-print("[AUDIT] Initializing Argument Audit Service...")
-print(f"[AUDIT] Loading model from: {MODEL_PATH}")
-print(f"[AUDIT] Using device: {DEVICE}")
+TEMPERATURE = 1.8 
+CONFIDENCE_THRESHOLD = 0.60 # Lowered to allow substantive legal speech through the gate
 
-# Setup Gemini for the reasoning engine
+# --- Semantic Density Filtering (Refined v2.2) ---
+PROCEDURAL_FILLERS = {
+    "hello", "hi", "hey", "morning", "afternoon", "evening", "honor", "honour", "horner", "honer",
+    "lord", "lordship", "justice", "much", "obliged", "thank", "you", "yes", "no", "agree",
+    "alright", "proceed", "wait", "moment", "understood", "counsel", "judge", 
+    "court", "session", "clerk", "sir", "madam", "the", "is", "in", "to", "of", "a", "my", "your",
+    "me", "we", "are", "here", "today", "address", "addressing", "representing", "name",
+    "this", "that", "at", "by", "from", "with", "would", "could", "should", "i", "am",
+    "objection", "relevance", "hearsay", "overruled", "sustained", "line", "reasoning", "object",
+    "mr", "mrs", "ms", "dr", "prof"
+}
+
+LEGAL_MARKERS = [
+    "section", "sections", "article", "contract", "breach", "liability", "evidence", 
+    "witness", "clause", "case", "statute", "penal", "ordinance", "codes",
+    "constitution", "rule", "procedure", "testify", "testified", "recovered",
+    "identification", "guilty", "defendant", "accused", "plaintiff", "victim",
+    "theft", "murder", "robbery", "assault", "negligence", "offence", "offense",
+    "beyond", "reasonable", "doubt", "proved", "guilt", "innocent"
+]
+
+def log_audit(message):
+    try:
+        print(f"[AUDIT] {message}", flush=True)
+    except:
+        pass
+
+log_audit("Initializing Senior ML Audit Engine v2.2...")
+
+# Setup Gemini for reasoning
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
-classifier = None
+model = None
+tokenizer = None
 
 def load_model():
-    global classifier
+    global model, tokenizer, MAINTENANCE_MODE
     try:
-        print(f"[AUDIT] Loading tokenizer...")
+        log_audit("Loading model components...")
         tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-
-        print(f"[AUDIT] Loading model weights...")
         model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
-
-        # Determine device
-        device_id = -1
-        if DEVICE == "cuda":
-            try:
-                model = model.to("cuda")
-                device_id = 0
-                print("[AUDIT] Using CUDA acceleration")
-            except Exception as cuda_err:
-                print(f"[AUDIT] CUDA failed, falling back to CPU: {cuda_err}")
-                model = model.to("cpu")
-        else:
-            model = model.to("cpu")
-            print("[AUDIT] Using CPU for inference")
-
-        # Initialize classification pipeline
-        classifier = pipeline(
-            "text-classification",
-            model=model,
-            tokenizer=tokenizer,
-            device=device_id,
-            top_k=None
-        )
-        print("[AUDIT] Pipeline successfully initialized! Service is ready.")
+        model = model.to(DEVICE)
+        model.eval()
+        log_audit(f"Service Ready on {DEVICE}.")
+        MAINTENANCE_MODE = False
     except Exception as e:
-        print(f"[AUDIT] CRITICAL ERROR loading model: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        log_audit(f"CRITICAL LOAD ERROR: {str(e)}")
+        MAINTENANCE_MODE = True
 
-# Load model on startup
 load_model()
 
-def calculate_verdict(score):
-    """
-    Categorize the confidence score into Strong, Moderate, or Weak levels.
-    """
-    if score >= 0.7:
-        return "Strong"
-    elif score >= 0.4:
-        return "Moderate"
-    else:
-        return "Weak"
+def get_calibrated_probs(text):
+    if not text.strip(): return []
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512).to(DEVICE)
+    with torch.no_grad():
+        outputs = model(**inputs)
+        scaled_logits = outputs.logits / TEMPERATURE
+        probs = F.softmax(scaled_logits, dim=-1).cpu().numpy()[0]
+    return [{"label": "Fact", "score": float(probs[0])}, {"label": "Law", "score": float(probs[1])}]
 
 @app.route('/health', methods=['GET'])
 def health():
-    """Service health check endpoint"""
-    return jsonify({
-        "status": "online",
-        "model_loaded": classifier is not None,
-        "device": DEVICE,
-        "model_path": MODEL_PATH
-    })
-
-@app.route('/api/audit', methods=['POST'])
-def audit():
-    """
-    Main endpoint for argument auditing.
-    Expects: { "arguments": ["string1", "string2", ...] }
-    Returns: { "results": [ { "score": 0.85, "verdict": "Strong" }, ... ] }
-    """
-    if not classifier:
-        return jsonify({"error": "Model not successfully loaded on server"}), 500
-
-    try:
-        data = request.json
-        if not data or 'arguments' not in data:
-            return jsonify({"error": "Missing 'arguments' field in request JSON"}), 400
-
-        arguments = data['arguments']
-        if not isinstance(arguments, list):
-            return jsonify({"error": "'arguments' must be a JSON array of strings"}), 400
-
-        if not arguments:
-            return jsonify({
-                "status": "success",
-                "results": [],
-                "count": 0
-            })
-
-        # Process in batches for efficiency
-        batch_size = min(len(arguments), 32)
-        raw_results = classifier(arguments, batch_size=batch_size)
-
-        processed_results = []
-        for res in raw_results:
-            # Result format: [{'label': 'LABEL_0', 'score': 0.1}, {'label': 'LABEL_1', 'score': 0.9}]
-            # Index 1 represents the 'strong argument' probability
-            score = next((item['score'] for item in res if '1' in item['label']), res[-1]['score'])
-
-            processed_results.append({
-                "score": round(float(score), 4),
-                "verdict": calculate_verdict(score)
-            })
-
-        return jsonify({
-            "status": "success",
-            "results": processed_results,
-            "count": len(processed_results)
-        })
-
-    except Exception as e:
-        print(f"[AUDIT] Inference Error: {str(e)}")
-        return jsonify({
-            "error": "Failed to process arguments",
-            "details": str(e)
-        }), 500
+    return jsonify({"status": "online" if not MAINTENANCE_MODE else "maintenance", "device": DEVICE})
 
 @app.route('/api/audit-transcript', methods=['POST'])
 def audit_transcript():
-    """
-    Expects full trial JSON context. Extracts user messages, gets logic score from InLegalBERT,
-    and uses Gemini to generate a reasoning for why it's Strong/Weak based on Sri Lankan law.
-    """
-    if not classifier:
-        return jsonify({"error": "Model not successfully loaded on server"}), 500
+    if MAINTENANCE_MODE or not model:
+        return jsonify({"status": "maintenance"}), 503
 
     try:
         data = request.json
-        if not data:
-            return jsonify({"error": "Missing request JSON"}), 400
+        messages = data.get('history', [])
+        if not isinstance(messages, list): messages = [data]
+        
+        user_messages = [msg.get('content') for msg in messages if msg.get('role') == 'user' and msg.get('content')]
+        if not user_messages: return jsonify({"status": "success", "results": []})
 
-        # Accept either history key or assume it is the history itself
-        history = data.get('history', data)
-        if hasattr(history, 'get') and 'history' in history:
-            history = history['history']
+        results = []
+        for text in user_messages:
+            # Inference
+            raw_scores = get_calibrated_probs(text)
+            score_law = raw_scores[1]['score']
+            score_fact = raw_scores[0]['score']
             
-        if not isinstance(history, list):
-            history = [data] # Fallback inside an array
+            dominant_score = max(score_law, score_fact)
+            dominant_label = "Law" if score_law > score_fact else "Fact"
+            
+            # Semantic Analysis
+            clean_text = text.lower().strip()
+            raw_tokens = [w.strip(".,!?;:\"") for w in clean_text.split() if w]
+            words = [w for w in raw_tokens if w.isalnum()]
+            
+            has_marker = any(m in clean_text for m in LEGAL_MARKERS)
+            fillers = [w for w in words if w in PROCEDURAL_FILLERS or len(w) <= 2]
+            filler_ratio = len(fillers) / len(words) if words else 0
+            
+            is_very_short = len(words) < 8
+            is_long = len(words) > 25
+            
+            demote = False
+            status = "Strong"
+            reason = "Reasoning pending..."
+            
+            # --- Logic v2.2 Decision Tree ---
+            
+            # Rule 1: Extreme Noise Gate (Very short messages without markers)
+            if len(words) < 6 and not has_marker:
+                demote = True
+                reason = "Procedural courtesy or social greeting; lacks substantive legal or factual weight."
+                dominant_score = min(dominant_score, 0.40)
+            
+            # Rule 2: Filler Gate (Heavily social messages)
+            elif filler_ratio > 0.70 and len(words) < 15 and not has_marker:
+                demote = True
+                reason = "Procedural statement; insufficient legal density for a valid trial argument."
+                dominant_score = min(dominant_score, 0.45)
+            
+            # Rule 3: Substantial Substance Persistence (If it's long and has markers, it's likely Strong)
+            elif is_long and has_marker and dominant_score >= 0.50:
+                status = "Strong"
+            
+            # Rule 4: Model Threshold
+            elif dominant_score < CONFIDENCE_THRESHOLD:
+                demote = True
+                reason = "Statement lacks sufficient legal or factual specificity to be classified as a strong argument."
+                dominant_score = min(dominant_score, 0.60)
 
-        # Filter user messages
-        user_messages = [msg.get('content') for msg in history if msg.get('role') == 'user' and msg.get('content')]
-
-        if not user_messages:
-            return jsonify({
-                "status": "success",
-                "results": [],
-                "count": 0
+            if demote:
+                status = "Weak"
+            
+            results.append({
+                "argument": text,
+                "score": round(float(dominant_score), 4),
+                "status": status,
+                "reason": reason,
+                "label": dominant_label
             })
 
-        # Process through the InLegalBERT classification pipeline
-        try:
-            batch_size = min(len(user_messages), 32)
-            raw_results = classifier(user_messages, batch_size=batch_size)
-        except Exception as model_err:
-            print(f"[AUDIT] InLegalBERT Model Inference Error (D:\\RE\\LawnovaWebapp\\LAWNOVA_FINAL_BRAIN_v1): {str(model_err)}")
-            return jsonify({
-                "error": "InLegalBERT Model Inference Failed",
-                "details": str(model_err)
-            }), 500
+        # Reasoning Generation (Gemini)
+        items_to_reason = [r for r in results if r["reason"] == "Reasoning pending..."]
+        if GEMINI_API_KEY and items_to_reason:
+            try:
+                gen_model = genai.GenerativeModel('gemini-2.5-flash-lite')
+                for r in items_to_reason:
+                    prompt = f"As a legal auditor, explain in one punchy sentence the merit of this {r['label']} argument in a Sri Lankan court trial: '{r['argument']}'"
+                    response = gen_model.generate_content(prompt)
+                    r['reason'] = response.text.strip()
+            except Exception as e:
+                log_audit(f"Gemini Error: {e}")
 
-        processed_results = []
-        for idx, res in enumerate(raw_results):
-            score = next((item['score'] for item in res if '1' in item['label']), res[-1]['score'])
-            verdict = calculate_verdict(score)
-            argument_text = user_messages[idx]
-            
-            # Use Gemini reasoning engine
-            reason = "No reasoning provided."
-            if GEMINI_API_KEY:
-                try:
-                    model = genai.GenerativeModel('gemini-2.5-flash')
-                    prompt = f"""
-You are a Sri Lankan legal evaluator.
-The following argument was scored as {verdict} (Logic Score: {score:.2f}) by our primary logic model.
-Briefly explain WHY this argument is considered {verdict} under Sri Lankan law logic (such as Penal Code or Contract Law) in one or two sentences.
-
-Argument: "{argument_text}"
-"""
-                    response = model.generate_content(prompt)
-                    reason = response.text.strip()
-                except Exception as llm_e:
-                    print(f"[AUDIT] LLM Reasoning Error: {str(llm_e)}")
-                    reason = f"Error generating reason: {str(llm_e)}"
-            
-            processed_results.append({
-                "argument": argument_text,
-                "score": round(float(score), 4),
-                "status": verdict,
-                "reason": reason
-            })
-
-        return jsonify({
-            "status": "success",
-            "results": processed_results,
-            "count": len(processed_results)
-        })
+        return jsonify({"status": "success", "results": results})
 
     except Exception as e:
-        print(f"[AUDIT] Audit Transcript Error: {str(e)}")
-        return jsonify({
-            "error": "Failed to process transcript",
-            "details": str(e)
-        }), 500
+        log_audit(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    """
-    Win probability endpoint for the Legal Merit bar.
-    Called by aiJudge.js with { "text": "user argument" }
-    Returns { "status": "success", "win_probability": 0-100 }
-    """
-    if not classifier:
-        return jsonify({"status": "error", "win_probability": 50.0}), 500
-
     try:
-        data = request.json
-        if not data or 'text' not in data:
-            return jsonify({"status": "error", "win_probability": 50.0}), 400
-
-        text = data['text']
-        if not text or not text.strip():
-            return jsonify({"status": "success", "win_probability": 50.0})
-
-        # Run inference on the single argument
-        result = classifier(text[:512])  # Truncate to model max length
-
-        # Extract the "strong argument" probability (LABEL_1)
-        score = 0.5
-        if result and len(result) > 0:
-            labels = result[0] if isinstance(result[0], list) else result
-            for item in labels:
-                if '1' in item.get('label', ''):
-                    score = item['score']
-                    break
-
-        # Convert 0-1 score to 0-100 percentage
-        win_probability = round(float(score) * 100, 1)
-
-        # Clamp to reasonable range (20-95) so it feels dynamic
-        win_probability = max(20.0, min(95.0, win_probability))
-
-        print(f"[PREDICT] Score: {win_probability}% for: {text[:60]}...")
-        return jsonify({
-            "status": "success",
-            "win_probability": win_probability
-        })
-
-    except Exception as e:
-        print(f"[PREDICT] Error: {str(e)}")
-        return jsonify({"status": "error", "win_probability": 50.0}), 500
+        text = request.json.get('text', '')
+        raw = get_calibrated_probs(text)
+        win_prob = round(float(raw[1]['score']) * 100, 1)
+        return jsonify({"status": "success", "win_probability": win_prob})
+    except:
+        return jsonify({"status": "success", "win_probability": 50.0})
 
 if __name__ == '__main__':
-    print("[AUDIT] Microservice listening on port 5002")
-    app.run(host='0.0.0.0', port=5002, debug=False)
+    app.run(host='0.0.0.0', port=5002)

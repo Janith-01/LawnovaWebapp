@@ -19,7 +19,7 @@
     "start:mocktrial": "cd services/mocktrial-service && npm start",
     "start:ai": "cd services/ai-service && npm start",
     "start:aipython": "cd services/ai-service && scripts\\.venv\\Scripts\\python app.py",
-    "start:audit": "cd services/roleplay-service/python_backend && python app.py"
+    "start:audit": "cd services/roleplay-service/python_backend && python audit_engine.py"
   },
   "keywords": [
     "legal",

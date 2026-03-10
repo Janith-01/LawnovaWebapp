@@ -44,8 +44,8 @@ export const consultLaw = async (req, res) => {
 
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash"
-        });
+            model: "gemini-2.5-flash-lite"
+        }, { apiVersion: "v1" });
 
         const prompt = `
         You are a Sri Lankan Legal Assistant.
@@ -224,8 +224,45 @@ export const createSession = async (req, res) => {
 
 export const generateCase = async (req, res) => {
     try {
-        const { difficulty, topic, userRole, userId } = req.body;
-        const caseDetails = await generateCaseScenario(difficulty, topic, userRole);
+        let { difficulty, topic, userRole, userId } = req.body;
+
+        // Normalize input for Mongoose enum validation
+        const normalizedDifficulty = {
+            'Easy': 'Easy',
+            'Intermediate': 'Medium',
+            'Medium': 'Medium',
+            'Hard': 'Hard'
+        }[difficulty] || 'Medium';
+
+        const normalizedRole = {
+            'Prosecutor': 'Prosecution',
+            'Prosecution': 'Prosecution',
+            'Defense': 'Defense',
+            'Defense Attorney': 'Defense'
+        }[userRole] || 'Defense';
+
+        const caseDetails = await generateCaseScenario(normalizedDifficulty, topic, normalizedRole);
+
+        // Post-generation normalization to satisfy Mongoose enums
+        caseDetails.difficulty = {
+            'Easy': 'Easy',
+            'Intermediate': 'Medium',
+            'Medium': 'Medium',
+            'Hard': 'Hard'
+        }[caseDetails.difficulty] || normalizedDifficulty;
+
+        caseDetails.userRole = {
+            'Prosecutor': 'Prosecution',
+            'Prosecution': 'Prosecution',
+            'Defense': 'Defense',
+            'Defense Attorney': 'Defense'
+        }[caseDetails.userRole] || normalizedRole;
+
+        console.log("Final Normalized Case Details:", {
+            title: caseDetails.title,
+            difficulty: caseDetails.difficulty,
+            userRole: caseDetails.userRole
+        });
         const newSessionId = RoleplaySession.generateSessionId();
         const session = new RoleplaySession({
             sessionId: newSessionId,
@@ -326,24 +363,39 @@ export const completeSession = async (req, res) => {
         const auditReport = [];
         try {
             if (session.history.length > 0) {
-                const auditUrl = 'http://127.0.0.1:5002/api/audit-transcript';
-                const auditResponse = await axios.post(auditUrl, { history: session.history });
+                console.log("[COMPLETE] Auditing User Arguments via Port 5009...");
+                const auditUrl = 'http://127.0.0.1:5009/audit';
+                const auditResponse = await axios.post(auditUrl, { history: session.history }, { timeout: 120000 });
 
-                if (auditResponse.data?.status === 'success') {
+                if (auditResponse.data?.success) {
                     const results = auditResponse.data.results;
                     results.forEach((r) => {
                         auditReport.push({
                             originalText: r.argument,
                             score: r.score,
-                            verdict: r.status,
-                            reason: r.reason
+                            verdict: r.verdict,
+                            reason: r.auditor_comment
                         });
                     });
-                    console.log(`[COMPLETE] Audit completed: ${results.length} arguments analyzed with reasoning.`);
+                    console.log(`[COMPLETE] Dual-Model Audit completed: ${results.length} segments analyzed.`);
+                } else {
+                    throw new Error(auditResponse.data?.message || 'Audit failed');
                 }
             }
         } catch (auditError) {
-            console.error("[COMPLETE] Audit Service Error (Non-fatal):", auditError.message);
+            console.error("[COMPLETE] Audit Service Error:", auditError.message);
+            if (auditError.code === 'ECONNREFUSED' || auditError.code === 'ETIMEDOUT') {
+                return res.status(503).json({
+                    success: false,
+                    message: "Legal Brain is offline"
+                });
+            }
+            // For other errors, return the same standard message as per requirement
+            return res.status(500).json({
+                success: false,
+                message: "Legal Brain is offline",
+                details: auditError.message
+            });
         }
         session.auditReport = auditReport;
 
