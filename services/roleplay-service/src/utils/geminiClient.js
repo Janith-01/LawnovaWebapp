@@ -31,7 +31,7 @@ function parseGeminiJSON(responseText) {
 function createModel(systemPrompt) {
     return genAI.getGenerativeModel(
         {
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.5-flash-lite',
             systemInstruction: { parts: [{ text: systemPrompt }] }
         },
         { apiVersion: 'v1' }
@@ -254,7 +254,7 @@ ${winProbability < 40
 Respond ONLY with your dialogue as the Judge. No JSON, no explanations.`;
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' }, { apiVersion: 'v1' });
         const formattedHistory = buildHistoryContext(history, userRole);
 
         const prompt = `${systemInstruction}
@@ -382,7 +382,7 @@ Object if the opposing counsel:
 Respond ONLY with your dialogue. No JSON, no explanations.`;
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' }, { apiVersion: 'v1' });
         const formattedHistory = buildHistoryContext(history, userRole);
 
         const prompt = `${systemInstruction}
@@ -502,7 +502,7 @@ ${winProbability < 40
 Respond ONLY with your testimony. No JSON, no explanations.`;
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' }, { apiVersion: 'v1' });
         const formattedHistory = buildHistoryContext(history, userRole);
 
         const prompt = `${systemInstruction}
@@ -884,7 +884,7 @@ Return ONLY valid JSON (no markdown):
     "openingHint": "Strategic advice for ${finalUserRole}"
 }`;
 
-        const caseModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const caseModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' }, { apiVersion: 'v1' });
 
         const result = await caseModel.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],

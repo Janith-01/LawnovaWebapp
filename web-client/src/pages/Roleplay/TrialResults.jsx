@@ -8,7 +8,9 @@ import {
     Scale,
     ChevronLeft,
     ScrollText,
-    Activity
+    Activity,
+    Star,
+    CheckCircle2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -73,9 +75,12 @@ const TrialResults = () => {
     const finalOutcome = verdict?.outcome?.toUpperCase() || 'UNDETERMINED';
     const finalSummary = verdict?.summary || 'The court has not provided a final written judgment.';
 
-    // Process Audits
-    const strongArguments = auditReport.filter(a => a.score >= 0.5 || a.verdict === 'Strong' || a.verdict === 'Moderate');
-    const weakArguments = auditReport.filter(a => a.score < 0.5 || a.verdict === 'Weak');
+    // Process Audits - Reclassified for Legal Victories vs Risks
+    // Victories now include both Strong and Moderate arguments
+    const strongArguments = auditReport.filter(a => a.verdict === 'Strong' || a.verdict === 'Moderate' || a.score >= 0.55);
+
+    // Risks are now strictly for Weak arguments
+    const weakArguments = auditReport.filter(a => a.verdict === 'Weak' || (a.verdict !== 'Strong' && a.verdict !== 'Moderate' && a.score < 0.55));
 
     const handlePrint = () => {
         window.print();
@@ -131,8 +136,8 @@ const TrialResults = () => {
 
                         <div className="relative z-10">
                             <span className={`inline-block px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest mb-4 ${finalOutcome === 'WIN' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                                    finalOutcome === 'LOSE' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' :
-                                        'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+                                finalOutcome === 'LOSE' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' :
+                                    'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
                                 }`}>
                                 Official Judgment
                             </span>
@@ -170,7 +175,7 @@ const TrialResults = () => {
 
                         {strongArguments.length === 0 ? (
                             <div className="p-8 text-center bg-slate-900/30 border border-slate-800/50 rounded-2xl italic text-slate-500 print:hidden">
-                                No strong legal arguments were detected on record.
+                                No significant legal victories were recorded during this trial.
                             </div>
                         ) : (
                             strongArguments.map((arg, idx) => (
@@ -225,14 +230,21 @@ const TrialResults = () => {
 
 // Reusable Argument Card Component
 const ArgumentCard = ({ arg, type, index }) => {
-    const isStrong = type === 'strong';
+    // Determine the effective verdict for styling
+    const effectiveVerdict = arg.verdict || (arg.score >= 0.8 ? 'Strong' : arg.score >= 0.55 ? 'Moderate' : 'Weak');
+
+    const isStrong = effectiveVerdict === 'Strong';
+    const isModerate = effectiveVerdict === 'Moderate';
+    const isWeak = effectiveVerdict === 'Weak';
     const scorePct = Math.round(arg.score * 100);
 
     // Dynamic styling based on argument strength
-    const borderColor = isStrong ? 'border-emerald-500/30' : 'border-rose-500/30';
-    const headerBgColor = isStrong ? 'bg-emerald-500/5' : 'bg-rose-500/5';
-    const scoreColor = isStrong ? 'text-emerald-400' : 'text-rose-400';
-    const badgeColor = isStrong ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400';
+    const borderColor = isStrong ? 'border-emerald-500/30' : isModerate ? 'border-amber-500/30' : 'border-rose-500/30';
+    const headerBgColor = isStrong ? 'bg-emerald-500/10' : isModerate ? 'bg-amber-500/10' : 'bg-rose-500/10';
+    const scoreColor = isStrong ? 'text-emerald-400' : isModerate ? 'text-amber-400' : 'text-rose-400';
+    const badgeColor = isStrong ? 'bg-emerald-500/20 text-emerald-400' : isModerate ? 'bg-amber-500/20 text-amber-400' : 'bg-rose-500/20 text-rose-400';
+
+    const statusLabel = effectiveVerdict + " Argument";
 
     return (
         <motion.div
@@ -244,9 +256,14 @@ const ArgumentCard = ({ arg, type, index }) => {
             {/* Header / Original Argument */}
             <div className={`p-5 ${headerBgColor} border-b border-slate-800/50 print:bg-gray-50 print:border-gray-200`}>
                 <div className="flex justify-between items-start mb-3 gap-4">
-                    <span className={`px-2 py-1 text-[10px] uppercase tracking-widest font-black rounded ${badgeColor} `}>
-                        {isStrong ? 'Strong Argument' : 'Weak Argument'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 text-[10px] uppercase tracking-widest font-black rounded ${badgeColor} flex items-center gap-1.5`}>
+                            {isStrong && <CheckCircle2 size={10} />}
+                            {isModerate && <Star size={10} />}
+                            {isWeak && <AlertTriangle size={10} />}
+                            {statusLabel}
+                        </span>
+                    </div>
                     <div className={`flex items-center gap-1.5 font-bold ${scoreColor}`}>
                         <span className="text-xl leading-none">{scorePct}%</span>
                         <span className="text-[10px] uppercase font-bold tracking-widest opacity-80 mt-1">Logic Score</span>

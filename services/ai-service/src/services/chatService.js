@@ -59,9 +59,10 @@ const addToHistory = (trialId, role, content) => {
 export const generateChatResponse = async (question, trialId, userId) => {
     try {
         const model = genAI.getGenerativeModel({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.5-flash-lite',
             systemInstruction: SYSTEM_PROMPT
-        });
+        }, { apiVersion: 'v1' });
+
 
         const history = getHistory(trialId);
 
@@ -100,9 +101,10 @@ export const generateChatResponse = async (question, trialId, userId) => {
 export const generateStreamingResponse = async (question, trialId, userId, onChunk) => {
     try {
         const model = genAI.getGenerativeModel({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.5-flash-lite',
             systemInstruction: SYSTEM_PROMPT
-        });
+        }, { apiVersion: 'v1' });
+
 
         const history = getHistory(trialId);
 

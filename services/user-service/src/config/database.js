@@ -1,4 +1,4 @@
-﻿import mongoose from 'mongoose';
+import mongoose from 'mongoose';
 import dns from 'dns';
 import dnscache from 'dnscache';
 import config from './index.js';
@@ -60,7 +60,7 @@ export const connectDatabase = async () => {
     const conn = await mongoose.connect(config.mongodb.uri, connectionOptions);
     
     isConnected = true;
-    logger.info(`MongoDB: ✓ Connected successfully to ${conn.connection.host}`);
+    logger.info(`MongoDB: ? Connected successfully to ${conn.connection.host}`);
     logger.info(`MongoDB: Database: ${conn.connection.name}`);
 
     mongoose.connection.on('error', (err) => {
@@ -88,11 +88,11 @@ export const connectDatabase = async () => {
     
     // Provide helpful error messages
     if (isIPWhitelistError(error)) {
-      console.error('\n🚨 ============================================');
-      console.error('🚨 MONGODB ATLAS IP WHITELIST ERROR');
-      console.error('🚨 ============================================');
-      console.error('\n📍 Your IP address is NOT allowed to access this cluster.\n');
-      console.error('✅ FIX THIS IN MONGODB ATLAS:');
+      console.error('\n?? ============================================');
+      console.error('?? MONGODB ATLAS IP WHITELIST ERROR');
+      console.error('?? ============================================');
+      console.error('\n?? Your IP address is NOT allowed to access this cluster.\n');
+      console.error('? FIX THIS IN MONGODB ATLAS:');
       console.error('   1. Go to: https://cloud.mongodb.com');
       console.error('   2. Select your project: "Mocktrails"');
       console.error('   3. Click "Network Access" (left sidebar)');
@@ -100,14 +100,14 @@ export const connectDatabase = async () => {
       console.error('   5. Choose one:');
       console.error('      - "Add Current IP Address" (recommended)');
       console.error('      - OR add 0.0.0.0/0 to allow all IPs (dev only)');
-      console.error('\n📡 Current connection attempt: ' + host);
-      console.error('🔗 MongoDB URI host: ' + host);
+      console.error('\n?? Current connection attempt: ' + host);
+      console.error('?? MongoDB URI host: ' + host);
       console.error('\n============================================\n');
     } else if (error.name === 'MongoParseError') {
-      console.error('\n🚨 Invalid MongoDB URI format');
+      console.error('\n?? Invalid MongoDB URI format');
       console.error('Check your MONGODB_URI in .env file\n');
     } else {
-      console.error('\n🚨 MongoDB connection error:', error.message);
+      console.error('\n?? MongoDB connection error:', error.message);
     }
     
     throw error;
