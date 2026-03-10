@@ -103,7 +103,7 @@ def generate_study_suite(transcript: str, legal_context: str) -> dict:
         # 4. Technical Configuration: response_mime_type and schema enforcement
         # Using Gemini 2.5 Flash for high performance and strict schema adherence.
         response = client.models.generate_content(
-            model='gemini-2.5-flash', # Or the specific version deployed in your environment
+            model='gemini-2.5-flash-lite', # Fast and cheaper model
             contents=prompt,
             config={
                 "system_instruction": system_instruction,

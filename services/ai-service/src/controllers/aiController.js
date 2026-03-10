@@ -15,10 +15,11 @@ console.log('[AI Service] Gemini API Key:', apiKey ? `Loaded (${apiKey.substring
 // Initialize LangChain Model
 const model = new ChatGoogleGenerativeAI({
     apiKey,
-    model: "gemini-2.5-flash",
+    model: "gemini-2.5-flash-lite",
     streaming: true,
     maxOutputTokens: 2048,
     convertSystemInstructionToMember: true,
+    apiVersion: "v1"
 });
 
 // System instruction for the Legal Agent
@@ -48,7 +49,7 @@ export const testConnection = async (req, res) => {
         res.json({
             success: true,
             message: text,
-            model: 'gemini-2.5-flash (via LangChain)'
+            model: 'gemini-2.0-flash-lite-latest (via LangChain)'
         });
     } catch (error) {
         console.error('[AI Service] Test failed:', error.message);

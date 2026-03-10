@@ -6,7 +6,7 @@ const genAI = process.env.GEMINI_API_KEY
     ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
     : null;
 
-const GEMINI_MODEL = 'gemini-2.5-flash'; // Cheapest capable model
+const GEMINI_MODEL = 'gemini-2.5-flash-lite'; // Fast and cheaper model
 
 const HEARTBEAT_INTERVAL_MS = 30000; // *   - Every 30 seconds of user silence → Director picks next speaker → Actor generates dialogue
 
@@ -28,7 +28,8 @@ LANGUAGE:
 - Use "Sustained", "Overruled", "Proceed", "Order in the court"
 - Address lawyers as "Counsel" or "Mr./Ms. [Name]"
 - Never use casual language
-- Keep rulings between 200 and 800 words
+- Rulings should be concise - match the complexity of the argument
+- Rulings on simple matters should be under 50 words; complex rulings can be up to 500 words.
 
 FORBIDDEN:
 - Never say "The court acknowledges that" (too passive)
@@ -316,8 +317,7 @@ OUTPUT: Return ONLY valid JSON (no explanation):
 
         const model = genAI.getGenerativeModel({
             model: GEMINI_MODEL,
-            generationConfig: { temperature: 0.2 }
-        });
+        }, { apiVersion: 'v1' });
 
         const result = await model.generateContent(DIRECTOR_PROMPT + `\n\nRECENT HISTORY:\n${historyText}`);
         const direction = parseStrictJSON(result.response.text());
@@ -475,8 +475,9 @@ ${legalContext ? `\n--- 📚 ADDITIONAL LEGAL REFERENCE ---\n${legalContext.subs
 ${roleInstructions}
 
 --- ⚡ RESPONSE REQUIREMENTS ---
-1. **BE DETAILED:** Generate a substantive response between 100 and 500 words
-2. **CITE SPECIFICS:** Reference case facts, dates, amounts, or witness names
+1. **BE PROPORTIONAL:** If the user's message is a short greeting or simple phrase (< 10 words), keep your response brief (under 50 words). 
+2. **BE SUBSTANTIVE:** If the user makes a complex legal point (> 10 words), generate a substantive response between 100 and 500 words.
+3. **CITE SPECIFICS:** Reference case facts, dates, amounts, or witness names when making complex points.
 3. **USE LEGAL LANGUAGE:** Cite law sections when relevant
 4. **STAY IN CHARACTER:** Maintain ${finalName}'s personality throughout
 5. **ADVANCE THE PLOT:** Your response should move the trial forward
@@ -488,11 +489,7 @@ NOW RESPOND AS ${finalName}:`;
     try {
         const model = genAI.getGenerativeModel({
             model: GEMINI_MODEL,
-            generationConfig: {
-                temperature: 0.75, // Slightly higher for creative legal arguments
-                maxOutputTokens: 1500 // Enough for 100-500 word responses
-            }
-        });
+        }, { apiVersion: 'v1' });
 
         const result = await model.generateContent(ACTOR_PROMPT);
         const dialogue = result.response.text().trim();
@@ -685,11 +682,7 @@ Analyze the ENTIRE trial transcript (all 3 days of dialogue) and deliver a forma
 
         const model = genAI.getGenerativeModel({
             model: GEMINI_MODEL,
-            generationConfig: {
-                temperature: 0.3, // Low temp for consistent legal reasoning
-                maxOutputTokens: 1000 // Increased for full formal judgment
-            }
-        });
+        }, { apiVersion: 'v1' });
 
         const result = await model.generateContent(FORMAL_JUDGMENT_PROMPT);
         const responseText = result.response.text().trim();
@@ -778,8 +771,7 @@ OUTPUT FORMAT (strict JSON):
 
     const model = genAI.getGenerativeModel({
         model: GEMINI_MODEL,
-        generationConfig: { temperature: 0.8 }
-    });
+    }, { apiVersion: 'v1' });
 
     try {
         const result = await model.generateContent(prompt);
