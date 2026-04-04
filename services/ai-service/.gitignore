@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# Build
+dist/
+build/
+
+# ML Models & Large Files
+*.pkl
+*.bin
+*.pt
+*.pth
+*.safetensors
+*.h5
+*.onnx
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

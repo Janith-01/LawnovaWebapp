@@ -1,12 +1,17 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getRelevantLaw, EVIDENCE_RULES } from '../data/sriLankaLaws.js';
+import {
+    bestOfNSelection,
+    shouldUseRewardLoop,
+    generatePromptAdjustment
+} from './rewardEngine.js';
 
 
 const genAI = process.env.GEMINI_API_KEY
     ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
     : null;
 
-const GEMINI_MODEL = 'gemini-2.5-flash-lite'; // Fast and cheaper model
+const GEMINI_MODEL = 'gemini-flash-latest'; // Fast and cheaper model
 
 const HEARTBEAT_INTERVAL_MS = 30000; // *   - Every 30 seconds of user silence → Director picks next speaker → Actor generates dialogue
 
@@ -317,7 +322,7 @@ OUTPUT: Return ONLY valid JSON (no explanation):
 
         const model = genAI.getGenerativeModel({
             model: GEMINI_MODEL,
-        }, { apiVersion: 'v1' });
+        }, { apiVersion: 'v1beta' });
 
         const result = await model.generateContent(DIRECTOR_PROMPT + `\n\nRECENT HISTORY:\n${historyText}`);
         const direction = parseStrictJSON(result.response.text());
@@ -356,7 +361,7 @@ OUTPUT: Return ONLY valid JSON (no explanation):
 // Temperature: 0.7 (High - for creativity)
 // ============================================================
 
-export async function generateActorDialogue(speakerRole, speakerName, caseDetails, userMessage, legalContext, history, instruction = '') {
+export async function generateActorDialogue(speakerRole, speakerName, caseDetails, userMessage, legalContext, history, instruction = '', promptAdjustment = '') {
     // Safety defaults - ALWAYS ensure we have valid role and name
     const safeRole = speakerRole || 'Judge';
     const safeName = speakerName || ROLE_PROMPTS[safeRole]?.name || 'Judge Dissanayake';
@@ -478,6 +483,7 @@ ${roleInstructions}
 1. **BE PROPORTIONAL:** If the user's message is a short greeting or simple phrase (< 10 words), keep your response brief (under 50 words). 
 2. **BE SUBSTANTIVE:** If the user makes a complex legal point (> 10 words), generate a substantive response between 100 and 500 words.
 3. **CITE SPECIFICS:** Reference case facts, dates, amounts, or witness names when making complex points.
+${promptAdjustment ? `\n${promptAdjustment}\n` : ''}
 3. **USE LEGAL LANGUAGE:** Cite law sections when relevant
 4. **STAY IN CHARACTER:** Maintain ${finalName}'s personality throughout
 5. **ADVANCE THE PLOT:** Your response should move the trial forward
@@ -489,7 +495,7 @@ NOW RESPOND AS ${finalName}:`;
     try {
         const model = genAI.getGenerativeModel({
             model: GEMINI_MODEL,
-        }, { apiVersion: 'v1' });
+        }, { apiVersion: 'v1beta' });
 
         const result = await model.generateContent(ACTOR_PROMPT);
         const dialogue = result.response.text().trim();
@@ -522,6 +528,76 @@ NOW RESPOND AS ${finalName}:`;
         console.error(`❌ Actor Error (${safeRole}):`, error.message);
         return getFallbackResponse(safeRole, finalName);
     }
+}
+
+// ============================================================
+// REWARD-MODEL GUIDED ACTOR (Best-of-N with Audit Scoring)
+// ============================================================
+
+/**
+ * Generate Actor dialogue with Reinforcement Learning reward loop.
+ * For RL-eligible roles (Prosecutor, DefenseAttorney), generates N=3
+ * candidates, scores them via the Dual-Model Audit Engine (Port 5009),
+ * and selects the response with the highest Substantive Density Score.
+ * 
+ * For non-eligible roles (Judge, Witness, Clerk), falls through to
+ * the standard single-generation path.
+ * 
+ * @param {string} speakerRole
+ * @param {string} speakerName
+ * @param {Object} caseDetails
+ * @param {string} userMessage
+ * @param {string} legalContext
+ * @param {Array} history
+ * @param {string} instruction
+ * @param {string} sessionId - Required for reward logging
+ * @param {number} turnNumber - Current turn number for logging
+ * @returns {Promise<{response: Object, rewardEntry: Object|null}>}
+ */
+export async function generateActorDialogueWithRL(
+    speakerRole, speakerName, caseDetails, userMessage,
+    legalContext, history, instruction, sessionId, turnNumber
+) {
+    // Non-RL path: Judge, Witness, Clerk → single generation (no reward loop)
+    if (!shouldUseRewardLoop(speakerRole)) {
+        const response = await generateActorDialogue(
+            speakerRole, speakerName, caseDetails, userMessage,
+            legalContext, history, instruction
+        );
+        return { response, rewardEntry: null };
+    }
+
+    console.log(`\n🧠 [RL ACTOR] Activating Reward-Model Guided Generation for ${speakerRole}`);
+
+    // Get dynamic prompt adjustment from recent reward feedback
+    const promptAdjustment = generatePromptAdjustment(sessionId, speakerRole);
+    if (promptAdjustment) {
+        console.log(`[RL ACTOR] Injecting performance feedback into prompt`);
+    }
+
+    // Define the generation function (called N times by bestOfNSelection)
+    const generateFn = () => generateActorDialogue(
+        speakerRole, speakerName, caseDetails, userMessage,
+        legalContext, history, instruction, promptAdjustment
+    );
+
+    // Run Best-of-N selection
+    const result = await bestOfNSelection(generateFn, sessionId, speakerRole, turnNumber);
+
+    if (!result) {
+        // All candidates failed — fall back to standard single generation
+        console.warn('[RL ACTOR] Best-of-N failed, falling back to standard generation');
+        const fallback = await generateActorDialogue(
+            speakerRole, speakerName, caseDetails, userMessage,
+            legalContext, history, instruction
+        );
+        return { response: fallback, rewardEntry: null };
+    }
+
+    return {
+        response: result.selected,
+        rewardEntry: result.rewardEntry
+    };
 }
 
 // ============================================================
@@ -682,7 +758,7 @@ Analyze the ENTIRE trial transcript (all 3 days of dialogue) and deliver a forma
 
         const model = genAI.getGenerativeModel({
             model: GEMINI_MODEL,
-        }, { apiVersion: 'v1' });
+        }, { apiVersion: 'v1beta' });
 
         const result = await model.generateContent(FORMAL_JUDGMENT_PROMPT);
         const responseText = result.response.text().trim();
@@ -771,7 +847,7 @@ OUTPUT FORMAT (strict JSON):
 
     const model = genAI.getGenerativeModel({
         model: GEMINI_MODEL,
-    }, { apiVersion: 'v1' });
+    }, { apiVersion: 'v1beta' });
 
     try {
         const result = await model.generateContent(prompt);

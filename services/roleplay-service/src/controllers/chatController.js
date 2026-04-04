@@ -4,8 +4,10 @@ import {
     generateVerdict,
     generateCaseScenario,
     directCourtroomScene,
-    generateActorDialogue
+    generateActorDialogue,
+    generateActorDialogueWithRL
 } from '../utils/aiOrchestrator.js';
+import { getRewardStats } from '../utils/rewardEngine.js';
 import { retrieveRelevantLaws } from '../utils/vectorSearch.js';
 import RoleplaySession from '../models/RoleplaySession.js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -44,8 +46,8 @@ export const consultLaw = async (req, res) => {
 
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash-lite"
-        }, { apiVersion: "v1" });
+            model: "gemini-flash-latest"
+        }, { apiVersion: "v1beta" });
 
         const prompt = `
         You are a Sri Lankan Legal Assistant.
@@ -118,16 +120,24 @@ export const processUserMessage = async (req, res) => {
         const speakerName = nextSpeaker?.speakerName || 'Judge Dissanayake';
         console.log("Director selected:", speakerRole, `(${speakerName})`);
 
-        // 6. ACTOR CALL
-        const actorResponse = await generateActorDialogue(
+        // 6. ACTOR CALL (RL-Enhanced: Best-of-N for Prosecutor/Defense)
+        const turnNumber = session.history.filter(h => h.role === 'user').length + 1;
+        const { response: actorResponse, rewardEntry } = await generateActorDialogueWithRL(
             speakerRole,
             speakerName,
             session.caseDetails,
             message,
             legalContext,
             session.history,
-            nextSpeaker?.instruction || ''
+            nextSpeaker?.instruction || '',
+            sessionId,
+            turnNumber
         );
+
+        // Log RL reward data
+        if (rewardEntry) {
+            console.log(`🎰 [RL] Turn ${turnNumber}: Reward=${rewardEntry.reward > 0 ? '+1' : rewardEntry.reward < 0 ? '-1' : '0'} Score=${rewardEntry.selectedScore?.toFixed(4)} (${rewardEntry.candidateCount} candidates evaluated)`);
+        }
 
         // SAFETY CHECK: Ensure actorResponse has valid text before saving
         const safeResponse = {
@@ -144,6 +154,13 @@ export const processUserMessage = async (req, res) => {
         session.addUserMessage(message);
         session.addAIResponse(safeResponse, winProb, legalContext);
         session.lastUserInteraction = new Date(); // Update interaction time
+
+        // 7.1 SAVE REWARD LOG to session (for persistence across restarts)
+        if (rewardEntry) {
+            if (!session.rewardLog) session.rewardLog = [];
+            session.rewardLog.push(rewardEntry);
+            session.markModified('rewardLog');
+        }
         await session.save();
 
         // 7.5. RESUME HEARTBEAT
@@ -154,7 +171,8 @@ export const processUserMessage = async (req, res) => {
             } catch (e) { /* silent */ }
         }
 
-        // 8. RESPONSE
+        // 8. RESPONSE (with RL metadata)
+        const rewardStats = getRewardStats(sessionId);
         res.status(200).json({
             success: true,
             data: {
@@ -166,7 +184,18 @@ export const processUserMessage = async (req, res) => {
                 action: safeResponse.action,
                 win_probability: winProb,
                 relevant_laws: legalContext,
-                currentDay: session.currentDay
+                currentDay: session.currentDay,
+                // RL Reward Metadata
+                rl_reward: rewardEntry ? {
+                    reward: rewardEntry.reward,
+                    score: rewardEntry.selectedScore,
+                    label: rewardEntry.selectedLabel,
+                    reason: rewardEntry.selectedReason,
+                    rawScores: rewardEntry.selectedRaw || null,
+                    candidatesEvaluated: rewardEntry.candidateCount,
+                    scoreDelta: rewardEntry.scoreDelta || 0
+                } : null,
+                rl_stats: rewardStats.totalTurns > 0 ? rewardStats : null
             }
         });
 

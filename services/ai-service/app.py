@@ -25,6 +25,9 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
+# Per-room penalty cooldown tracker (room_id -> last penalty epoch)
+_penalty_cooldowns = {}
+
 # --- Audit Engine Configuration (Dual Model Audit Engine v2.1) ---
 MODEL_A_PATH = r"D:\RE\LawnovaWebapp\ML MODELS\LAWNOVA_MODEL_A"
 MODEL_B_PATH = r"D:\RE\LawnovaWebapp\ML MODELS\LAWNOVA_MODEL_B_35K"
@@ -131,7 +134,7 @@ def handle_generate_study_materials():
 
         # 3. Augment with meta info
         study_materials['metadata'] = {
-            "source": "Gemini 2.5 Flash",
+            "source": "Gemini 2.5 Flash Lite",
             "rag_context_retrieved": "No specific context" not in legal_context
         }
 
@@ -186,9 +189,8 @@ def handle_transcription():
         if audio_file.filename == '':
             return jsonify({"success": False, "error": "Empty audio filename"}), 400
             
-        # Create temporary storage directory: /tmp/chunks/
-        # Using abstract path combined with __file__ directory to ensure it is created within the microservice root
-        tmp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tmp', 'chunks')
+        # Create temporary storage directory: /temp/chunks/ to match nodemon ignore rules
+        tmp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp', 'chunks')
         os.makedirs(tmp_dir, exist_ok=True)
         
         # Create a unique filename to avoid concurrency collisions
@@ -224,6 +226,7 @@ def handle_stage_validation():
     Requirement 2 & 3: Penalty Trigger.
     Analyzes the latest 30-second window or chunk for required legal vocabulary.
     Sends PENALTY_REQUIRED to Node if keywords are missing.
+    Cooldown: skips penalty callback if last penalty for this room was < 60s ago.
     """
     try:
         data = request.json
@@ -237,20 +240,28 @@ def handle_stage_validation():
         # 1. Logic: Run Stage Validator (Requirement 1)
         is_legal_context, found = validate_stage_context(transcript, current_stage)
         
-        # 2. Penalty Trigger: If no keywords found, notify Node
+        # 2. Penalty Trigger: If no keywords found, notify Node (with cooldown)
         if not is_legal_context:
-            print(f"[AI Penalty] Stage: {current_stage} | NO KEYWORDS FOUND. Triggering Time Inflation...")
-            try:
-                # Notify Node.js for Time Inflation
-                node_url = os.environ.get("MOCKTRIAL_SERVICE_URL", "http://localhost:10004")
-                penalty_resp = requests.post(
-                    f"{node_url}/api/rooms/{room_id}/session/penalty",
-                    json={"reason": "Missing required legal vocabulary for active stage"},
-                    headers={"x-internal-service-auth": os.environ.get("INTERNAL_SERVICE_SECRET")}
-                )
-                print(f"[AI Penalty] Callback status: {penalty_resp.status_code}")
-            except Exception as e:
-                print(f"[AI Penalty] Node Callback Failed: {e}")
+            import time
+            now = time.time()
+            last_penalty = _penalty_cooldowns.get(room_id, 0)
+            if now - last_penalty >= 60:
+                _penalty_cooldowns[room_id] = now
+                print(f"[AI Penalty] Stage: {current_stage} | NO KEYWORDS FOUND. Triggering Time Inflation...")
+                try:
+                    # Notify Node.js for Time Inflation
+                    node_url = os.environ.get("MOCKTRIAL_SERVICE_URL", "http://127.0.0.1:10004")
+                    penalty_resp = requests.post(
+                        f"{node_url}/api/rooms/{room_id}/session/penalty",
+                        json={"reason": "Missing required legal vocabulary for active stage"},
+                        headers={"x-internal-service-auth": os.environ.get("INTERNAL_SERVICE_SECRET")},
+                        timeout=5
+                    )
+                    print(f"[AI Penalty] Callback status: {penalty_resp.status_code}")
+                except Exception as e:
+                    print(f"[AI Penalty] Node Callback Failed: {e}")
+            else:
+                print(f"[AI Penalty] Cooldown active for room {room_id}, skipping penalty")
                 
         return jsonify({
             "success": True,
@@ -373,8 +384,8 @@ def handle_predict():
         filler_ratio = len(fillers) / len(words) if words else 0
         
         # If it's mostly filler logic or too short, decrease win probability (Penalize fluff)
-        if len(words) < 5 and filler_ratio > 0.7:
-            return jsonify({"status": "success", "win_probability": 35.0})
+        if len(words) < 6 and filler_ratio > 0.7:
+            return jsonify({"status": "success", "win_probability": 25.0})
 
         # 2. Dual Model Inference
         scores = predict_dual_scores(text)
@@ -414,4 +425,5 @@ if __name__ == '__main__':
     # Running on 5009 so it doesn't conflict with Node's 5008
     PORT = int(os.environ.get("PYTHON_AI_SERVICE_PORT", 5009))
     print(f"[AI Backend] Python Flask server starting on port {PORT}...")
-    app.run(host='0.0.0.0', port=PORT, debug=True)
+    # Disable reloader so it doesn't restart when saving temporary audio chunks to disk.
+    app.run(host='0.0.0.0', port=PORT, debug=True, use_reloader=False)

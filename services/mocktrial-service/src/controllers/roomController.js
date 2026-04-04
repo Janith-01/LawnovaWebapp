@@ -1097,9 +1097,18 @@ const roomController = {
         // If owner, role is 'Owner' (which ai-service maps to Defendant/Creator)
         const role = isOwner ? 'Owner' : (participant?.assignedRole || 'Participant');
 
+        // Resolve display name so Daily.co token shows real name, not ObjectId
+        let displayName = 'anonymous';
+        try {
+            const userProfile = await serviceClient.getUserProfile(userId);
+            if (userProfile?.fullName) displayName = userProfile.fullName;
+        } catch (err) {
+            logger.warn(`[Video] Could not resolve fullName for ${userId}: ${err.message}`);
+        }
+
         try {
             // Requesting unique token for this specific user
-            const result = await getMeetingToken(room.dailyRoomName, role, userId);
+            const result = await getMeetingToken(room.dailyRoomName, role, userId, displayName);
 
             res.json({
                 success: true,

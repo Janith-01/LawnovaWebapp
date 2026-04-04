@@ -284,7 +284,7 @@ router.patch(
 router.post(
     '/:roomId/trigger-learning',
     validate(roomSchemas.roomIdParam, 'params'),
-    aiController.broadcastStudySuite
+    roomController.triggerLearning
 );
 
 // ============================================*
@@ -333,6 +333,17 @@ router.post(
     '/:roomId/session/penalty',
     validate(roomSchemas.roomIdParam, 'params'),
     trialSessionController.applyPenalty
+);
+
+/**
+ * @route   GET /api/rooms/:roomId/session/allocations
+ * @desc    Return time allocations as JSON (no session start)
+ * @access  Private
+ */
+router.get(
+    '/:roomId/session/allocations',
+    validate(roomSchemas.roomIdParam, 'params'),
+    trialSessionController.getAllocations
 );
 
 /**

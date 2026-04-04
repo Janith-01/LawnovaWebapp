@@ -114,23 +114,81 @@ const GameInterface = () => {
         return () => clearInterval(timer);
     }, [gameStatus, timeRemaining]);
 
-    // Initialize with opening message
+    // Initialize with session data or opening message
     useEffect(() => {
-        const openingMessage = caseDetails?.summary
-            ? `Order in the court! This case involves: ${caseDetails.summary}\n\nYou are appearing as ${caseInfo.userRole} Counsel. Present your arguments with conviction.`
-            : 'Order in the court! This session is now in progress. Present your arguments with conviction, Counsel.';
+        const loadSession = async () => {
+            if (!sessionId) {
+                // Initial opening message for new sessions
+                const openingMessage = caseDetails?.summary
+                    ? `Order in the court! This case involves: ${caseDetails.summary}\n\nYou are appearing as ${caseInfo.userRole} Counsel. Present your arguments with conviction.`
+                    : 'Order in the court! This session is now in progress. Present your arguments with conviction, Counsel.';
 
-        setMessages([{
-            id: 1,
-            type: 'ai',
-            speaker: 'Judge Dissanayake',
-            speakerRole: 'Judge',
-            content: openingMessage,
-            mood: 'Neutral',
-            action: 'Instruction',
-            timestamp: new Date()
-        }]);
-    }, []);
+                setMessages([{
+                    id: 1,
+                    type: 'ai',
+                    speaker: 'Judge Dissanayake',
+                    speakerRole: 'Judge',
+                    content: openingMessage,
+                    mood: 'Neutral',
+                    action: 'Instruction',
+                    timestamp: new Date()
+                }]);
+                return;
+            }
+
+            try {
+                setIsLoading(true);
+                const response = await fetch(`${API_BASE_URL}/session/${sessionId}`);
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    const session = data.data;
+                    
+                    // Map history to UI messages
+                    const mappedMessages = session.history.map((h, index) => ({
+                        id: h._id || index,
+                        type: h.role === 'model' ? 'ai' : 'user',
+                        speaker: h.speaker,
+                        speakerRole: h.speakerRole,
+                        content: h.content,
+                        mood: h.mood,
+                        action: h.action,
+                        winProbability: h.winProbability,
+                        timestamp: h.timestamp || new Date()
+                    }));
+
+                    if (mappedMessages.length > 0) {
+                        setMessages(mappedMessages);
+                    } else {
+                        // Fallback opening if history is empty
+                        setMessages([{
+                            id: 1,
+                            type: 'ai',
+                            speaker: 'Judge Dissanayake',
+                            speakerRole: 'Judge',
+                            content: 'The court is now in session. Please state your name and role.',
+                            mood: 'Neutral',
+                            action: 'Instruction',
+                            timestamp: new Date()
+                        }]);
+                    }
+
+                    if (session.currentWinProbability !== undefined) {
+                      setWinProbability(Number(session.currentWinProbability));
+                    }
+                    if (session.turnCount !== undefined) setTurnCount(session.turnCount);
+                    if (session.currentDay !== undefined) setCurrentDay(session.currentDay);
+                }
+            } catch (err) {
+                console.error("Failed to load session:", err);
+                toast.error("Network error: Could not restore previous session.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadSession();
+    }, [sessionId]);
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -179,6 +237,11 @@ const GameInterface = () => {
             // Update UI state
             if (aiMessage.speakerRole) setCurrentSpeakerRole(aiMessage.speakerRole);
             if (aiMessage.speaker) setCurrentSpeakerName(aiMessage.speaker);
+            
+            // Update Merit Bar synchronously with autonomous dialogue
+            if (aiMessage.winProbability !== undefined) {
+                setWinProbability(Number(aiMessage.winProbability));
+            }
 
             // If it's a verdict, handle redirection
             if (aiMessage.action === 'VERDICT') {
@@ -591,7 +654,7 @@ const GameInterface = () => {
                         timestamp: new Date()
                     };
                     setMessages(prev => [...prev, aiMessage]);
-                    if (win_probability !== undefined) setWinProbability(win_probability);
+                    if (win_probability !== undefined) setWinProbability(Number(win_probability));
                     setTurnCount(newTurnCount || turnCount + 1);
                     setCurrentSpeakerRole(speakerRole || 'Judge');
                     setCurrentSpeakerName(speaker || 'Judge Dissanayake');

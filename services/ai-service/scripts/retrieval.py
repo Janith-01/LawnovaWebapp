@@ -46,7 +46,9 @@ def extract_legal_terms(transcript):
         return ["Sri Lankan general law"]
         
     except Exception as e:
-        print(f"[Intelligence Layer] NLP Extraction skip: {e}")
+        import traceback
+        traceback.print_exc()
+        print(f"[Intelligence Layer] NLP Extraction skip (Error: {str(e)})")
         return ["Legal procedure Sri Lanka"]
 
 def search_legal_documents(query_text, top_k=3):

@@ -258,9 +258,9 @@ const ArgumentCard = ({ arg, type, index }) => {
                 <div className="flex justify-between items-start mb-3 gap-4">
                     <div className="flex items-center gap-2">
                         <span className={`px-2 py-1 text-[10px] uppercase tracking-widest font-black rounded ${badgeColor} flex items-center gap-1.5`}>
-                            {isStrong && <CheckCircle2 size={10} />}
-                            {isModerate && <Star size={10} />}
-                            {isWeak && <AlertTriangle size={10} />}
+                            {isStrong && <CheckCircle2 size={14} />}
+                            {isModerate && <Star size={14} />}
+                            {isWeak && <AlertTriangle size={14} />}
                             {statusLabel}
                         </span>
                     </div>

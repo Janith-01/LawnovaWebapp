@@ -1,0 +1,23 @@
+[00:01] JUDGE: The High Court of Colombo is now in session. Case No. HC-9421/2026, The State vs. K. Seneviratne. Charge under Section 296 of the Penal Code. Prosecutor, you may proceed.
+
+[00:15] PROSECUTOR (Mr. Perera): Thank you, Your Honor. We appear for the State. We will show that on the night of January 12, the accused acted with specific intent under Section 294 of the Penal Code. Our evidence will prove that the blunt force trauma was not accidental. I call Dr. Gunawardena to the stand.
+
+[00:45] JUDGE: Dr. Gunawardena, you are reminded you are under oath.
+
+[01:00] PROSECUTOR: Doctor, what were your findings regarding the cause of death?
+
+[01:10] DR. GUNAWARDENA: The victim suffered a deep laceration to the temporal bone. This was caused by a heavy, metallic object. Under ordinary circumstances, such an injury is sufficient to cause death. This aligns with the 'bodily injury' criteria mentioned in the thirdly clause of Section 294.
+
+[01:40] DEFENSE COUNSEL (Ms. Fernando): Objection, Your Honor! The witness is providing a legal conclusion.
+
+[01:45] JUDGE: Sustained. Doctor, stick to medical findings.
+
+[02:00] DEFENSE: Doctor, isn't it true that under Section 80 of the Penal Code, an accident in the doing of a lawful act could result in such an injury if there was no criminal intention?
+
+[02:15] DR. GUNAWARDENA: While accidents happen, the depth of this wound suggests significant force, inconsistent with a simple fall.
+
+[02:30] PROSECUTOR: Your Honor, I would also like to submit the victim's final statement under Section 32 of the Evidence Ordinance. It is a clear dying declaration identifying the accused.
+
+[02:45] DEFENSE: We challenge the admissibility of that declaration. The victim was under heavy sedation; the requirements of the Evidence Act are not met here.
+
+[03:00] JUDGE: I will rule on the admissibility of the dying declaration after the lunch recess. Court is adjourned.

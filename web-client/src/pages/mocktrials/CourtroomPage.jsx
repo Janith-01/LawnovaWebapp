@@ -166,6 +166,7 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
             await daily.join({
                 url: roomInfo.dailyRoomUrl,
                 token: token,
+                userName: user?.fullName || user?.email || 'Participant',
                 startAudioOff: true,
                 startVideoOff: true,
             });
@@ -198,15 +199,13 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
             socket.emit('join:room', { roomId });
         });
 
-        // Requirement 5: Display 'Penalty Applied: +1:00' toast
-        socket.on('TIME_INFLATED', (data) => {
-            console.log('[AI Penalty] Time inflator triggered:', data);
-            toast.error(`Penalty Applied: +1:00`, {
-                description: `Legal context missing in your ${data.stageName}`,
-                duration: 6000,
-                icon: <ShieldAlert className="w-5 h-5 text-red-500" />
-            });
+        // Resilience: log socket failures so they are visible in devtools
+        socket.on('connect_error', (err) => {
+            console.warn('[Courtroom] Socket connection error — fallback polling active:', err.message);
         });
+
+        // TIME_INFLATED is handled by CourtroomTimer via Daily.co (single source of truth)
+        // to avoid duplicate toasts and ensure stageEndTime ref is updated atomically.
 
         // Listen for trial completion event (from owner completing session)
         socket.on('room:completed', async (data) => {
@@ -428,7 +427,8 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
             }
 
             // Call the new broadcastStudySuite controller
-            const response = await api.post(`/api/mock-trials/rooms/${roomId}/trigger-learning`);
+            // Extended timeout (5 mins) for heavy RAG processing
+            const response = await api.post(`/api/mock-trials/rooms/${roomId}/trigger-learning`, {}, { timeout: 300000 });
             console.log('[Courtroom] trigger-learning response:', response.data);
 
             // Validate JSON Data before broadcasting
@@ -445,9 +445,7 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
 
                 // Show locally for the Judge
                 toast.success('Sync complete. Material generated.');
-                // Trigger Local modal update via synthetic event or state (handled by the sender as well if we just let the learning modal listen, but sendAppMessage doesn't trigger for the sender)
-                // We'll emit a custom window event that LearningModal can listen to, or we can just let Daily Handle it if it echoes back? Daily doesn't echo back to the sender.
-                // Alternatively, we just open the modal directly.
+                // Trigger Local modal update
                 window.dispatchEvent(new CustomEvent('LOCAL_STUDY_MATERIAL_READY', { detail: aiData }));
             } else {
                 toast.error('AI returned invalid data structure.');
@@ -455,7 +453,13 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
 
         } catch (err) {
             console.error('[Courtroom] Failed to trigger learning:', err);
-            toast.error('Failed to generate quizzes. Ensure there is enough transcript data.');
+            if (err.code === 'ECONNABORTED') {
+                toast.error('The AI is taking a bit longer than expected to process the legal complexity. Please try again in a moment.', {
+                    duration: 6000
+                });
+            } else {
+                toast.error('Failed to generate quizzes. Ensure there is enough transcript data.');
+            }
         } finally {
             setIsTriggeringLearning(false);
         }
@@ -768,13 +772,19 @@ const ParticipantItem = ({ participantId, isLocal }) => {
     if (dispName.includes('|')) {
         const parts = dispName.split('|');
         role = parts[0];
-        dispName = parts[1]; // Use ID or Name part
+        dispName = parts[1];
     } else {
         try {
             if (userData) {
                 role = JSON.parse(userData).role || 'Participant';
             }
         } catch (e) { }
+    }
+
+    // Fallback: if dispName is still a MongoDB ObjectId (24-char hex) or empty, display a friendly label
+    const isObjectId = /^[a-f0-9]{24}$/i.test(dispName);
+    if (!dispName || dispName === 'anonymous' || isObjectId) {
+        dispName = isObjectId ? `User (${dispName.slice(-4)})` : role;
     }
 
     return (

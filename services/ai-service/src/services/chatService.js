@@ -21,11 +21,11 @@ Your role is to:
 - Be concise, professional, and educational
 
 Guidelines:
-- Always be factually accurate about Sri Lankan law
-- If you're unsure, acknowledge it and suggest consulting official sources
-- Use clear, simple language suitable for students
-- Format responses with markdown for readability
-- Keep responses focused and under 500 words unless the question requires more detail`;
+- Always be factually accurate about Sri Lankan law.
+- Use a smooth, conversational narrative style. Avoid robotic bulleted lists.
+- Avoid unnecessary markdown symbols like '###' or '***'.
+- Use plain text for readability, with minimal bolding only for key legal terms.
+- Keep responses focused and under 500 words unless detail is necessary.`;
 
 // In-memory conversation history (for demo; use Redis/DB in production)
 const conversationHistory = new Map();
@@ -59,7 +59,7 @@ const addToHistory = (trialId, role, content) => {
 export const generateChatResponse = async (question, trialId, userId) => {
     try {
         const model = genAI.getGenerativeModel({
-            model: 'gemini-2.5-flash-lite',
+            model: 'gemini-flash-latest',
             systemInstruction: SYSTEM_PROMPT
         }, { apiVersion: 'v1' });
 
@@ -101,7 +101,7 @@ export const generateChatResponse = async (question, trialId, userId) => {
 export const generateStreamingResponse = async (question, trialId, userId, onChunk) => {
     try {
         const model = genAI.getGenerativeModel({
-            model: 'gemini-2.5-flash-lite',
+            model: 'gemini-flash-latest',
             systemInstruction: SYSTEM_PROMPT
         }, { apiVersion: 'v1' });
 
