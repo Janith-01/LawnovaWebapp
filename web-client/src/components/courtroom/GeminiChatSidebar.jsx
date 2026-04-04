@@ -55,6 +55,7 @@ const GeminiChatSidebar = ({ roomId, isOpen, onClose }) => {
             // 2. Start streaming AI response directly from AI Service
             const aiMsgId = Date.now() + '-ai';
             let fullAiResponse = '';
+            let buffer = '';
 
             const response = await fetch(`${API_BASE_URL}/api/ai/chat/stream`, {
                 method: 'POST',
@@ -85,39 +86,57 @@ const GeminiChatSidebar = ({ roomId, isOpen, onClose }) => {
                 timestamp: new Date().toISOString()
             }]);
 
-            let isFirstChunk = true;
-
             while (true) {
-                const { done, value } = await reader.read();
+                const { value, done } = await reader.read();
                 if (done) break;
 
-                const chunk = decoder.decode(value);
-                const lines = chunk.split('\n');
+                const chunk = decoder.decode(value, { stream: true });
+                buffer += chunk;
+                
+                const lines = buffer.split('\n');
+                // Keep the last incomplete line in the buffer
+                buffer = lines.pop() || '';
 
                 for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        const dataStr = line.replace('data: ', '').trim();
+                    const trimmedLine = line.trim();
+                    if (!trimmedLine) continue;
+
+                    if (trimmedLine.startsWith('data: ')) {
+                        const dataStr = trimmedLine.replace('data: ', '').trim();
                         if (dataStr === '[DONE]') continue;
 
                         try {
                             const data = JSON.parse(dataStr);
+                            
+                            // Handle error field if received
+                            if (data.error) {
+                                throw new Error(data.error);
+                            }
 
-                            if (data.type === 'thought') {
+                            if (data.type === 'thought' && data.content) {
                                 setThought(data.content);
+                                setMessages(prev => {
+                                    const lastMsg = prev[prev.length - 1];
+                                    if (lastMsg && lastMsg.type === 'thought') {
+                                        return [...prev.slice(0, -1), { ...lastMsg, message: lastMsg.message + data.content }];
+                                    }
+                                    return [...prev, { 
+                                        id: `thought-${Date.now()}`,
+                                        sender: 'AI', 
+                                        userName: 'Assistant Thinking', 
+                                        message: data.content, 
+                                        type: 'thought', 
+                                        timestamp: new Date().toLocaleTimeString() 
+                                    }];
+                                });
                             } else if (data.content) {
-                                if (isFirstChunk) {
-                                    setIsLoading(false);
-                                    setThought(null);
-                                    isFirstChunk = false;
-                                }
-
                                 fullAiResponse += data.content;
                                 setMessages(prev => prev.map(m =>
                                     m.id === aiMsgId ? { ...m, message: fullAiResponse } : m
                                 ));
                             }
                         } catch (e) {
-                            // Skip non-json lines
+                            // Fragmented JSON, skip or log
                         }
                     }
                 }

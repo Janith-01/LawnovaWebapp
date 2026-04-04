@@ -19,7 +19,8 @@
 import RoleplaySession from '../models/RoleplaySession.js';
 import {
     directCourtroomScene,
-    generateActorDialogue
+    generateActorDialogue,
+    generateActorDialogueWithRL
 } from '../utils/aiOrchestrator.js';
 import { retrieveRelevantLaws } from '../utils/vectorSearch.js';
 
@@ -186,6 +187,7 @@ async function tickHeartbeat(heartbeat) {
                     mood: result.mood,
                     action: result.action,
                     relevantLaws: result.relevantLaws || null,
+                    winProbability: session.currentWinProbability,
                     isAutonomous: true,
                     timestamp: new Date()
                 });
@@ -237,20 +239,28 @@ async function generateAutonomousTurn(session) {
             // Non-fatal — continue without RAG
         }
 
-        // Generate the actual dialogue
-        const actorResponse = await generateActorDialogue(
+        // Generate the actual dialogue (RL-Enhanced: Best-of-N for Prosecutor/Defense)
+        const turnNumber = session.history.length + 1;
+        const { response: actorResponse, rewardEntry } = await generateActorDialogueWithRL(
             speakerRole,
             speakerName,
             session.caseDetails,
             autonomousContext,
             legalContext,
             session.history,
-            directorDecision.instruction || 'Continue the proceedings autonomously.'
+            directorDecision.instruction || 'Continue the proceedings autonomously.',
+            session.sessionId,
+            turnNumber
         );
 
         if (!actorResponse || !actorResponse.text) {
             console.log('[HEARTBEAT] Actor returned no dialogue');
             return null;
+        }
+
+        // Log RL reward data for autonomous turns
+        if (rewardEntry) {
+            console.log(`🎰 [HEARTBEAT-RL] Reward=${rewardEntry.reward > 0 ? '+1' : rewardEntry.reward < 0 ? '-1' : '0'} Score=${rewardEntry.selectedScore?.toFixed(4)}`);
         }
 
         // Save to MongoDB with isAutonomous flag
@@ -274,6 +284,13 @@ async function generateAutonomousTurn(session) {
             isAutonomous: true,
             timestamp: new Date()
         });
+
+        // Save reward log for autonomous turns
+        if (rewardEntry) {
+            if (!session.rewardLog) session.rewardLog = [];
+            session.rewardLog.push({ ...rewardEntry, isAutonomous: true });
+            session.markModified('rewardLog');
+        }
 
         // Update session state
         session.lastSpeaker = {

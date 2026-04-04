@@ -289,6 +289,15 @@ const mockTrialService = {
         const response = await api.patch(`/api/mock-trials/rooms/${roomId}/session/next`);
         return response.data;
     },
+
+    /**
+     * Get time allocations as JSON (without starting a session)
+     * @param {string} roomId - Room ID
+     */
+    getTrialAllocations: async (roomId) => {
+        const response = await api.get(`/api/mock-trials/rooms/${roomId}/session/allocations`);
+        return response.data;
+    },
 };
 
 export default mockTrialService;

@@ -31,7 +31,8 @@ const trialSessionSchema = new Schema({
         detectedKeywords: { type: [String], default: [] }, // Requirement 2
         isStageRequirementsMet: { type: Boolean, default: false }, // Requirement 1
         startedAt: { type: Date, default: null },
-        completedAt: { type: Date, default: null }
+        completedAt: { type: Date, default: null },
+        totalPenaltyPoints: { type: Number, default: 0 }
     }],
     currentStageIndex: {
         type: Number,
@@ -52,6 +53,10 @@ const trialSessionSchema = new Schema({
     totalPausedMs: {
         type: Number,
         default: 0
+    },
+    _lastPenaltyAt: {
+        type: Date,
+        default: null
     }
 }, {
     timestamps: true

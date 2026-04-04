@@ -158,5 +158,5 @@ def audit_transcript():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    # Running on 5002 to match existing roleplay-service expectation
-    app.run(host='0.0.0.0', port=5002)
+    # Running on 5009 — Dual-Model Audit Engine (used by RL Reward Loop + Trial Finalization)
+    app.run(host='0.0.0.0', port=5009)

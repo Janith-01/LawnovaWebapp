@@ -15,11 +15,10 @@ console.log('[AI Service] Gemini API Key:', apiKey ? `Loaded (${apiKey.substring
 // Initialize LangChain Model
 const model = new ChatGoogleGenerativeAI({
     apiKey,
-    model: "gemini-2.5-flash-lite",
+    model: "gemini-flash-latest",
     streaming: true,
     maxOutputTokens: 2048,
-    convertSystemInstructionToMember: true,
-    apiVersion: "v1"
+    apiVersion: "v1beta"
 });
 
 // System instruction for the Legal Agent
@@ -31,9 +30,11 @@ Capabilities:
 2. Trial Context: Use 'get_trial_transcript' to stay informed about what's currently happening in the courtroom.
 
 Guidelines:
+- Use a smooth, conversational narrative style. Avoid robotic list-heavy formats.
+- REMOVE unnecessary markdown symbols. Do NOT use headers (###). Use plain text or subtle bolding ONLY on critical terms.
 - If a user asks about court procedures, ALWAYS check the latest transcript to see the context of the trial.
-- When explaining laws, include section numbers and simplified summaries.
-- Be strictly professional and educational.
+- When explaining laws, include section numbers naturally within the flow of the text.
+- Be strictly professional and educational, providing guidance like a helpful mentor.
 - Do NOT provide definitive legal advice; clarify that you are an educational resource.`;
 
 
@@ -226,16 +227,18 @@ export const generateLearningMaterials = async (req, res) => {
         if (context && context.messages && context.messages.length > 0) {
             transcriptText = context.messages.map(m => `[${m.speakerRole}] ${m.speakerName}: ${m.text}`).join('\n');
         } else {
-            console.log(`[AI Service] No transcript found for session ${sessionId}.`);
-            return res.status(404).json({ success: false, error: 'No transcript found for this session to generate learning materials' });
+            // No live transcript available (mic blocked, no audio captured, etc.)
+            // Fall back to generating materials from the topic alone.
+            console.log(`[AI Service] No transcript found for session ${sessionId} — using topic-only generation.`);
+            transcriptText = `Mock trial session on the topic: ${topic || 'General Legal Practice'}. No live transcript was captured during this session.`;
         }
 
         // 2. Delegate to Python Backend for RAG and specialized generation
-        const pythonBackendUrl = process.env.PYTHON_AI_BACKEND_URL || 'http://localhost:5009/generate-study-material';
+        const generateUrl = `${pythonBackendUrl}/generate-study-material`;
 
-        console.log(`[AI Service] Delegating to Python Backend: ${pythonBackendUrl}`);
+        console.log(`[AI Service] Delegating to Python Backend: ${generateUrl}`);
 
-        const response = await axios.post(pythonBackendUrl, {
+        const response = await axios.post(generateUrl, {
             transcript: transcriptText,
             topic: topic || 'General Legal Practice'
         });

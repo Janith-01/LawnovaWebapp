@@ -292,7 +292,15 @@ const roleplaySessionSchema = new mongoose.Schema({
     autonomousTurnCount: {
         type: Number,
         default: 0
-    }
+    },
+
+    // ============ RL REWARD LOG FIELDS ============
+    // Stores the reward history from the Best-of-N RL loop.
+    // Each entry records: turn, speakerRole, candidateCount, 
+    // allScores, selectedScore, selectedLabel, reward, timestamp.
+    rewardLog: [{
+        type: mongoose.Schema.Types.Mixed
+    }]
 }, {
     timestamps: true // Adds createdAt and updatedAt
 });
