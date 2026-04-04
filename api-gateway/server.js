@@ -99,7 +99,7 @@ app.post('/auth/login', async (req, res) => {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    const userServiceUrl = 'http://localhost:5005/auth/login';
+    const userServiceUrl = 'http://127.0.0.1:5005/auth/login';
     const upstream = await fetch(userServiceUrl, {
       method: 'POST',
       headers: {
@@ -196,7 +196,7 @@ app.get('/auth/me', async (req, res) => {
     }
 
     // Fetch user profile from user-service to return a stable name
-    const meResp = await fetch('http://localhost:5005/users/me', {
+    const meResp = await fetch('http://127.0.0.1:5005/users/me', {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -300,8 +300,10 @@ const userServiceProxy = createProxyMiddleware({
 
 // Proxy configuration for mocktrial-service
 const mocktrialServiceProxy = createProxyMiddleware({
-  target: 'http://localhost:10004',
+  target: 'http://127.0.0.1:10004',
   changeOrigin: true,
+  proxyTimeout: 300000, // 5 minutes
+  timeout: 300000, // 5 minutes
   pathRewrite: (path, req) => {
     const original = req.originalUrl || path;
 
@@ -330,7 +332,11 @@ const mocktrialServiceProxy = createProxyMiddleware({
         proxyReq.setHeader('user-email', req.user.email);
       }
     } else {
-      console.warn(`[Gateway] No req.user for ${req.method} ${req.originalUrl} - auth headers NOT injected`);
+      const publicRoutes = ['/health', '/status', '/allocations'];
+      const isPublic = publicRoutes.some(route => req.originalUrl.includes(route));
+      if (!isPublic) {
+        console.warn(`[Gateway] No req.user for ${req.method} ${req.originalUrl} - auth headers NOT injected`);
+      }
     }
 
     forwardJsonBodyToProxy(proxyReq, req);
@@ -362,7 +368,7 @@ const mocktrialSocketIoProxy = createProxyMiddleware({
   logLevel: 'debug', // Increased for troubleshooting
   onProxyReqWs: (proxyReq, req, socket, options, head) => {
     // Forward Host and Origin headers to allow handshake
-    proxyReq.setHeader('Host', 'localhost:10004');
+    proxyReq.setHeader('Host', '127.0.0.1:10004');
     const origin = req.headers.origin;
     if (origin) {
       proxyReq.setHeader('Origin', origin);
@@ -383,8 +389,10 @@ app.use('/api/user', userServiceProxy);
 app.use('/api/users', userServiceProxy);
 
 const aiServiceProxy = createProxyMiddleware({
-  target: 'http://localhost:5008',
+  target: 'http://127.0.0.1:5008',
   changeOrigin: true,
+  proxyTimeout: 300000,
+  timeout: 300000,
   pathRewrite: (path, req) => {
     const original = req.originalUrl || path;
     if (original.startsWith('/api/ai')) return original.replace(/^\/api\/ai/, '/api');
@@ -398,14 +406,14 @@ const aiServiceProxy = createProxyMiddleware({
     const authHeader = req.headers.authorization;
     if (authHeader) {
       proxyReq.setHeader('Authorization', authHeader);
-      console.log(`[Gateway] Video Proxy: Forwarding Authorization header for ${req.method} ${req.originalUrl}`);
+      console.log(`[Gateway] Proxy: Forwarding Authorization header for ${req.method} ${req.originalUrl}`);
     }
 
     // 3. Also check for cookie-based auth token and forward if no header present
     const cookieToken = req.cookies?.access_token;
     if (!authHeader && cookieToken) {
       proxyReq.setHeader('Authorization', `Bearer ${cookieToken}`);
-      console.log(`[Gateway] Video Proxy: Using cookie token for ${req.method} ${req.originalUrl}`);
+      console.log(`[Gateway] Proxy: Using cookie token for ${req.method} ${req.originalUrl}`);
     }
 
     // 4. Add user identification headers (from decoded JWT in gateway middleware)
@@ -415,23 +423,23 @@ const aiServiceProxy = createProxyMiddleware({
       if (req.user.email) {
         proxyReq.setHeader('user-email', req.user.email);
       }
-      console.log(`[Gateway] Video Proxy: User identified as ${req.user.id} (${req.user.role})`);
+      console.log(`[Gateway] Proxy: User identified as ${req.user.id} (${req.user.role})`);
     } else {
-      console.warn(`[Gateway] Video Proxy: No user context for ${req.method} ${req.originalUrl} - check Authorization header`);
+      console.warn(`[Gateway] Proxy: No user context for ${req.method} ${req.originalUrl} - check Authorization header`);
     }
 
     // 5. Forward request body for POST/PUT/PATCH requests
     forwardJsonBodyToProxy(proxyReq, req);
 
     // 6. Log the proxy request
-    logProxyRequest(req, 'ai-service', 5001);
+    logProxyRequest(req, 'ai-service', 5008);
   },
   onProxyRes: (proxyRes, req, res) => {
     // Log response status for debugging
     if (proxyRes.statusCode >= 400) {
-      console.error(`[Gateway] Video Proxy: ${req.method} ${req.originalUrl} → ${proxyRes.statusCode}`);
+      console.error(`[Gateway] Proxy: ${req.method} ${req.originalUrl} → ${proxyRes.statusCode}`);
     } else {
-      console.log(`[Gateway] Video Proxy: ${req.method} ${req.originalUrl} → ${proxyRes.statusCode}`);
+      console.log(`[Gateway] Proxy: ${req.method} ${req.originalUrl} → ${proxyRes.statusCode}`);
     }
   },
   onError: (err, req, res) => {
@@ -442,13 +450,13 @@ const aiServiceProxy = createProxyMiddleware({
 
 // Socket.IO for Roleplay Service
 const roleplaySocketProxy = createProxyMiddleware({
-  target: 'http://localhost:10005',
+  target: 'http://127.0.0.1:10005',
   changeOrigin: true,
   pathRewrite: {
     '^/roleplay-socket': '/roleplay-socket'
   },
   onProxyReqWs: (proxyReq, req, socket, options, head) => {
-    proxyReq.setHeader('Host', 'localhost:10005');
+    proxyReq.setHeader('Host', '127.0.0.1:10005');
   },
   onError: (err, req, res) => {
     console.error('[Gateway] Roleplay WebSocket Proxy Error:', err.message);
@@ -457,7 +465,7 @@ const roleplaySocketProxy = createProxyMiddleware({
 
 // Proxy for HTTP requests to roleplay-service
 const roleplayServiceProxy = createProxyMiddleware({
-  target: 'http://localhost:10005',
+  target: 'http://127.0.0.1:10005',
   changeOrigin: true,
   pathRewrite: (path, req) => {
     return req.originalUrl || path;
@@ -484,11 +492,11 @@ app.use('/api/chat', aiServiceProxy);
 
 // New Audit Route for Flask Microservice
 const auditServiceProxy = createProxyMiddleware({
-  target: 'http://localhost:5002',
+  target: 'http://127.0.0.1:5009',
   changeOrigin: true,
   onProxyReq: (proxyReq, req, res) => {
     forwardJsonBodyToProxy(proxyReq, req);
-    logProxyRequest(req, 'audit-service', 5001);
+    logProxyRequest(req, 'audit-service', 5009);
   },
   onError: (err, req, res) => {
     console.error('[Gateway] Audit Service proxy error:', err.message);
@@ -511,7 +519,7 @@ app.use('/api/trials', roleplayServiceProxy);
 // Judgment Prediction Service Proxy (ML Predictions + Data Pipelines)
 // ------------------------------------------------------------------
 const judgmentServiceProxy = createProxyMiddleware({
-  target: 'http://localhost:8000',
+  target: 'http://127.0.0.1:8000',
   changeOrigin: true,
   pathRewrite: (path, req) => {
     const original = req.originalUrl || path;
@@ -604,8 +612,7 @@ const server = app.listen(PORT, () => {
   console.log(`  /api/users/*      → user-service (5005)`);
   console.log(`  /api/mock-trials/* → mocktrial-service (10004)`);
   console.log(`  /api/sessions/*   → mocktrial-service (10004)`);
-  console.log(`  /api/ai/*         → ai-service (5001)
-`);
+  console.log(`  /api/ai/*         → ai-service (5008)`);
   console.log(`  /api/roleplay/*   → roleplay-service (10005)`);
   console.log(`  /api/judgment/*   → judgment-prediction-service (8000)`);
   console.log(`\nHealth Checks:`);

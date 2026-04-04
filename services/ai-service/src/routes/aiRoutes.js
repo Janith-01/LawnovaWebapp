@@ -106,7 +106,7 @@ router.get('/transcript/:sessionId/context', (req, res) => {
     const context = transcriptIngestion.getContext(sessionId, parseInt(maxMessages) || 10);
 
     if (!context) {
-        return res.status(404).json({ success: false, error: 'Session not found or expired' });
+        return res.json({ success: true, data: { messages: [], sessionId } });
     }
 
     res.json({ success: true, data: context });

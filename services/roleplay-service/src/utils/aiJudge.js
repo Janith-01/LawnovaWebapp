@@ -18,7 +18,7 @@ async function getWinProbability(userText) {
         // timeout: 5000ms means we wait 5 seconds max before giving up
         const response = await axios.post(PYTHON_SERVICE_URL, {
             text: userText
-        }, { timeout: 5000 });
+        }, { timeout: 30000 });
 
         // 3. Check if Python said "success"
         if (response.data && response.data.status === 'success') {

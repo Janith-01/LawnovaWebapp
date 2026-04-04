@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Clock,
@@ -19,14 +19,29 @@ const CourtroomTimer = ({ roomId, isJudge }) => {
     const [session, setSession] = useState(null);
     const [timeLeft, setTimeLeft] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [keywordProgress, setKeywordProgress] = useState(null); // { count, requiredCount }
+    const autoAdvanceRef = useRef(false); // Prevent duplicate auto-advance calls
+    const clockOffsetRef = useRef(0); // Server-client clock delta (ms) for drift prevention
+    const stageEndTimeRef = useRef(0); // Absolute epoch ms when current stage ends (source of truth)
+
+    // Helper: sync refs from any server response that includes timing fields
+    const syncFromServer = useCallback((serverData) => {
+        if (serverData.serverTimestamp) {
+            clockOffsetRef.current = serverData.serverTimestamp - Date.now();
+        }
+        if (serverData.stageEndTime) {
+            stageEndTimeRef.current = serverData.stageEndTime;
+        }
+    }, []);
 
     // 1. Fetch current session status on mount
     const fetchStatus = useCallback(async () => {
         try {
             const data = await mockTrialService.getTrialSessionStatus(roomId);
             if (data.success) {
+                syncFromServer(data.data);
                 setSession(data.data);
-                calculateTimeLeft(data.data);
+                calculateTimeLeft();
             }
         } catch (err) {
             console.error('[Timer] Status fetch failed:', err);
@@ -39,40 +54,72 @@ const CourtroomTimer = ({ roomId, isJudge }) => {
         fetchStatus();
     }, [fetchStatus]);
 
-    // 2. Timer Logic: Independent of video stream but synced via startedAt
-    const calculateTimeLeft = useCallback((sessionData) => {
-        if (!sessionData || !sessionData.isActive || !sessionData.startedAt) {
+    // 2. Timer Logic: Uses stageEndTimeRef (absolute epoch ms) as the single source of truth.
+    //    No recalculation from session allocatedMinutes — immune to State Overwrite race.
+    const calculateTimeLeft = useCallback(() => {
+        if (!stageEndTimeRef.current) {
             setTimeLeft(0);
             return;
         }
-
-        const startedAt = new Date(sessionData.startedAt).getTime();
-        const now = Date.now();
-        const elapsedMs = now - startedAt - (sessionData.totalPausedMs || 0);
-
-        // Find current stage end time
-        let cumulativeMinutes = 0;
-        const currentStage = sessionData.stages[sessionData.currentStageIndex];
-
-        for (let i = 0; i <= sessionData.currentStageIndex; i++) {
-            cumulativeMinutes += sessionData.stages[i].allocatedMinutes;
-        }
-
-        const stageEndMs = startedAt + (cumulativeMinutes * 60 * 1000) + (sessionData.totalPausedMs || 0);
-        const remaining = Math.max(0, Math.floor((stageEndMs - now) / 1000));
+        const now = Date.now() + clockOffsetRef.current;
+        const remaining = Math.max(0, Math.floor((stageEndTimeRef.current - now) / 1000));
         setTimeLeft(remaining);
     }, []);
 
-    // Tick every second
+    // Tick every second — reads stageEndTimeRef directly, no session dependency
     useEffect(() => {
         if (!session?.isActive) return;
 
         const interval = setInterval(() => {
-            calculateTimeLeft(session);
+            calculateTimeLeft();
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [session, calculateTimeLeft]);
+    }, [session?.isActive, calculateTimeLeft]);
+
+    // Fallback polling: if Socket.IO or Daily.co are down, poll the server periodically
+    // so the timer never gets permanently stuck. Acts as the client-side Circuit Breaker.
+    useEffect(() => {
+        if (!session?.isActive) return;
+
+        const POLL_INTERVAL_MS = 15000; // 15 seconds
+        const pollInterval = setInterval(() => {
+            fetchStatus();
+        }, POLL_INTERVAL_MS);
+
+        return () => clearInterval(pollInterval);
+    }, [session?.isActive, fetchStatus]);
+
+    // Requirement 4: Auto-advance when timer hits 0 AND requirements are met
+    useEffect(() => {
+        if (!session?.isActive || timeLeft > 0) {
+            autoAdvanceRef.current = false;
+            return;
+        }
+        const stage = session.stages[session.currentStageIndex];
+        if (!stage?.isStageRequirementsMet) return;
+        if (session.currentStageIndex >= session.stages.length - 1) return;
+        if (autoAdvanceRef.current) return; // Already fired
+
+        autoAdvanceRef.current = true;
+        // Judge triggers the transition; non-judges wait for the broadcast
+        if (isJudge) {
+            mockTrialService.nextTrialStage(roomId).then(data => {
+                if (data.success) {
+                    syncFromServer(data.data);
+                    setSession(data.data);
+                    setKeywordProgress(null);
+                    toast.info(`Auto-advancing to ${data.data.stages[data.data.currentStageIndex].name}`);
+                }
+            }).catch(() => {
+                // Backend may have already advanced — just refresh
+                fetchStatus();
+            });
+        } else {
+            // Non-judge: poll status once to pick up server-side auto-advance
+            fetchStatus();
+        }
+    }, [timeLeft, session, isJudge, roomId, fetchStatus]);
 
     // 3. LISTEN TO DAILY.CO APP MESSAGES FOR SYNC
     useAppMessage({
@@ -80,16 +127,72 @@ const CourtroomTimer = ({ roomId, isJudge }) => {
             const data = typeof ev.data === 'string' ? JSON.parse(ev.data) : ev.data;
             const type = data.type;
 
-            if (type === 'TIMER_START' || type === 'TIMER_STAGE_CHANGE' || type === 'STAGE_COMPLETE' || type === 'TIMER_LOCK_UPDATE') {
-                console.log(`[Timer Sync] Received ${type}`, data);
+            if (type === 'TIMER_START' || type === 'TIMER_STAGE_CHANGE' || type === 'STAGE_COMPLETE') {
+                const payload = data.data || data;
+                console.log(`[Timer Sync] Received ${type}`, payload);
+                
                 if (type === 'STAGE_COMPLETE') {
+                    setKeywordProgress(null); // Clear progress bar on unlock
                     toast.success('Legal Requirements Met: Trial Progression Unlocked', {
                         icon: <Gavel className="w-5 h-5 text-green-500" />
                     });
                 }
+                if (type === 'TIMER_STAGE_CHANGE') {
+                    setKeywordProgress(null); // Reset for new stage
+                    autoAdvanceRef.current = false;
+                    // Adopt stageEndTime immediately if present (from backend scheduler)
+                    if (payload.stageEndTime) {
+                        stageEndTimeRef.current = payload.stageEndTime;
+                        if (payload.serverTimestamp) {
+                            clockOffsetRef.current = payload.serverTimestamp - Date.now();
+                        }
+                        calculateTimeLeft();
+                    }
+                    if (payload.autoAdvanced) {
+                        toast.info(`Auto-advanced to ${payload.nextStageName}`);
+                    }
+                }
                 fetchStatus(); // Refresh full state for accuracy
             }
-        }, [fetchStatus])
+
+            // Requirement 5: Incremental lock progress — keeps Petitioner/Respondent synced
+            if (type === 'TIMER_LOCK_UPDATE') {
+                const payload = data.data || data;
+                setKeywordProgress({
+                    count: payload.keywordCount,
+                    requiredCount: payload.requiredCount || 3
+                });
+                fetchStatus();
+            }
+
+            // UX Requirement: Display penalty toast & instantly extend timer
+            if (type === 'TIME_INFLATED') {
+                const payload = data.data || data;
+                console.log('[Timer Sync] TIME_INFLATED received', payload);
+
+                // Update stageEndTime instantly
+                if (payload.stageEndTime) {
+                    stageEndTimeRef.current = payload.stageEndTime;
+                    if (payload.serverTimestamp) {
+                        clockOffsetRef.current = payload.serverTimestamp - Date.now();
+                    }
+                } else {
+                    stageEndTimeRef.current += 60000;
+                }
+                
+                // Immediately recalc so the next render shows the updated time
+                calculateTimeLeft();
+
+                // Notification
+                toast.error(`Penalty Applied: +1:00 — ${payload.reason || 'Legal vocabulary missing'}`, {
+                    duration: 5000,
+                    icon: <AlertCircle className="w-5 h-5 text-red-500" />
+                });
+
+                // Refresh session state to get updated totalPenaltyPoints
+                fetchStatus();
+            }
+        }, [fetchStatus, calculateTimeLeft])
     });
 
     // 4. SAFETY RULE: Start timer when first participant joins (if I am Judge/Owner)
@@ -103,6 +206,7 @@ const CourtroomTimer = ({ roomId, isJudge }) => {
         try {
             const data = await mockTrialService.startTrialSession(roomId);
             if (data.success) {
+                syncFromServer(data.data);
                 setSession(data.data);
                 toast.success('Courtroom Session Started');
             }
@@ -121,6 +225,7 @@ const CourtroomTimer = ({ roomId, isJudge }) => {
         try {
             const data = await mockTrialService.nextTrialStage(roomId);
             if (data.success) {
+                syncFromServer(data.data);
                 setSession(data.data);
                 toast.info(`Proceeding to ${data.data.stages[data.data.currentStageIndex].name}`);
             }
@@ -137,7 +242,8 @@ const CourtroomTimer = ({ roomId, isJudge }) => {
     };
 
     const currentStage = session?.stages[session?.currentStageIndex];
-    const progress = currentStage ? (1 - timeLeft / (currentStage.allocatedMinutes * 60)) * 100 : 0;
+    const totalStageSeconds = currentStage ? currentStage.allocatedMinutes * 60 : 0;
+    const progress = totalStageSeconds > 0 ? (1 - timeLeft / totalStageSeconds) * 100 : 0;
     const isLocked = currentStage && !currentStage.isStageRequirementsMet;
 
     if (isLoading) return null;
@@ -157,7 +263,14 @@ const CourtroomTimer = ({ roomId, isJudge }) => {
                 {/* Stage Indicator */}
                 <div className="flex items-center gap-2 pr-4 border-r border-white/10">
                     {isLocked ? (
-                        <AlertCircle className="w-4 h-4 text-amber-500 animate-pulse" />
+                        <div className="relative">
+                            <AlertCircle className="w-4 h-4 text-amber-500 animate-pulse" />
+                            {keywordProgress && (
+                                <span className="absolute -top-1.5 -right-2 text-[8px] font-bold text-amber-400 bg-slate-800 rounded px-0.5">
+                                    {keywordProgress.count}/{keywordProgress.requiredCount}
+                                </span>
+                            )}
+                        </div>
                     ) : (
                         <Scale className={cn(
                             "w-4 h-4",
@@ -200,6 +313,7 @@ const CourtroomTimer = ({ roomId, isJudge }) => {
                                     stroke="currentColor"
                                     strokeWidth="2"
                                     strokeDasharray="75.4"
+                                    initial={{ strokeDashoffset: 75.4 }}
                                     animate={{ strokeDashoffset: 75.4 - (75.4 * progress) / 100 }}
                                     className={cn(
                                         timeLeft < 60 ? "text-red-500" :
@@ -215,6 +329,13 @@ const CourtroomTimer = ({ roomId, isJudge }) => {
                     )}>
                         {timeLeft > 0 ? formatTime(timeLeft) : "0:00"}
                     </span>
+                    
+                    {/* Penalty Points Indicator */}
+                    {currentStage?.totalPenaltyPoints > 0 && (
+                        <div className="flex items-center gap-1 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full">
+                            <span className="text-[10px] font-black text-red-400">-{currentStage.totalPenaltyPoints}m</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Controls (Judge Only) */}

@@ -11,6 +11,7 @@ const aiServiceClient = axios.create({
     headers: {
         'x-internal-service-auth': process.env.INTERNAL_SERVICE_SECRET,
     },
+    timeout: 300000, // 5 minutes for AI processing
 });
 
 // Retry Interceptor: Retry once on failure
@@ -49,10 +50,10 @@ export const createDailyRoom = async (trialId) => {
     }
 };
 
-export const getMeetingToken = async (roomName, role, userId) => {
+export const getMeetingToken = async (roomName, role, userId, userName) => {
     try {
         const response = await aiServiceClient.get(`/api/video/token/${roomName}`, {
-            params: { role },
+            params: { role, userName },
             headers: {
                 'user-id': userId
             }
