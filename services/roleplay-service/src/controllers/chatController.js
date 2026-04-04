@@ -287,6 +287,31 @@ export const generateCase = async (req, res) => {
             'Defense Attorney': 'Defense'
         }[caseDetails.userRole] || normalizedRole;
 
+        // Normalize witness affiliations — Gemini outputs 'Prosecution'/'Defense'
+        // but Mongoose enum only allows 'User'/'Opponent'/'Neutral'
+        if (caseDetails.witnesses && Array.isArray(caseDetails.witnesses)) {
+            const userSide = caseDetails.userRole; // 'Prosecution' or 'Defense'
+            const opponentSide = userSide === 'Prosecution' ? 'Defense' : 'Prosecution';
+
+            caseDetails.witnesses = caseDetails.witnesses.map(w => ({
+                ...w,
+                affiliation: {
+                    'User': 'User',
+                    'Opponent': 'Opponent',
+                    'Neutral': 'Neutral',
+                    [userSide]: 'User',
+                    [opponentSide]: 'Opponent',
+                    'Prosecutor': userSide === 'Prosecution' ? 'User' : 'Opponent',
+                    'Prosecution': userSide === 'Prosecution' ? 'User' : 'Opponent',
+                    'Defense': userSide === 'Defense' ? 'User' : 'Opponent',
+                    'State': userSide === 'Prosecution' ? 'User' : 'Opponent',
+                    'Plaintiff': userSide === 'Prosecution' ? 'User' : 'Opponent',
+                    'Accused': userSide === 'Defense' ? 'User' : 'Opponent',
+                    'Defendant': userSide === 'Defense' ? 'User' : 'Opponent',
+                }[w.affiliation] || 'Neutral'
+            }));
+        }
+
         console.log("Final Normalized Case Details:", {
             title: caseDetails.title,
             difficulty: caseDetails.difficulty,
