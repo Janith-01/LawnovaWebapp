@@ -1,4 +1,28 @@
+# ============================================================
+# LAWNOVA — Root .gitignore (Industry Standard)
+# ============================================================
+
+# ========================
+# ENVIRONMENT & SECRETS
+# ========================
+# NEVER commit secrets, API keys, or credentials
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# ========================
+# DEPENDENCIES
+# ========================
+# Node.js
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+package-lock.json
+
 # Python
 __pycache__/
 *.py[cod]
@@ -9,93 +33,155 @@ __pycache__/
 venv/
 ENV/
 env/
+env.bak/
 pip-log.txt
 pip-delete-this-directory.txt
+*.egg-info/
+*.egg
+.eggs/
+*.whl
+
+# ========================
+# BUILD OUTPUTS
+# ========================
+dist/
+build/
+out/
+*.exe
+*.dll
+*.pyd
+*.dylib
+
+# ========================
+# TESTING & COVERAGE
+# ========================
+coverage/
+.nyc_output/
+*.lcov
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
 .tox/
+.nox/
+
+# ========================
+# LINTING & TYPE CHECKING
+# ========================
 .mypy_cache/
 .dmypy.json
 dmypy.json
-*.pyc
-*.pyo
+.eslintcache
+*.tsbuildinfo
 
-# Large model files
+# ========================
+# ML MODELS & LARGE FILES
+# ========================
+# Binary model weights (never commit these)
 *.bin
 *.pt
 *.pth
 *.safetensors
+*.pkl
+*.model
+*.weights
+*.h5
+*.onnx
+*.pb
+*.tflite
+
+# LAWNOVA model directories
 LAWNOVA_FINAL_BRAIN_v1/
 LAWNOVA_FINAL_BRAIN_v1.bak/
 checkpoint-*/
+ML MODELS/
 
-# Node
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-lerna-debug.log*
-
-# Environment files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-!.env.example
-
-# Build outputs
-dist/
-build/
-*.exe
-*.dll
-*.pyd
-*.so
-*.dylib
-
-# Logs
+# ========================
+# LOGS
+# ========================
 logs/
 *.log
+audit.log
 
-# OS
+# ========================
+# OS GENERATED
+# ========================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 desktop.ini
+$RECYCLE.BIN/
+*.lnk
 
-# IDE
+# ========================
+# IDE & EDITORS
+# ========================
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
 
-# Backups
+# ========================
+# DOCKER
+# ========================
+# Keep Dockerfiles and compose files if you have them,
+# but ignore temp Docker data
+*.dockerignore
+
+# ========================
+# TEMP & SCRATCH
+# ========================
+tmp/
+temp/
+*.tmp
 *.bak
 **/*.bak/
-**/*.bak
+scratch/
 
-# Docker
-.dockerignore
-Dockerfile
-docker-compose*.yml
+# ========================
+# SERVICE-SPECIFIC
+# ========================
 
-# Git submodules (these .bak folders)
+# Roleplay service dataset backups
 services/roleplay-service/dataset/lk_acts.bak/
 services/roleplay-service/dataset/lk_appeal_court_judgements.bak/
 services/roleplay-service/dataset/lk_supreme_court_judgements.bak/
+services/roleplay-service/python_backend/audit.log
+services/roleplay-service/python_backend/audit_err.txt
 
-# Judgment Prediction Service - Raw Data
+# Judgment Prediction Service data
 services/judgment-prediction-service/data/
 services/judgment-prediction-service/models/
-services/judgment-prediction-service/.env
 services/judgment-prediction-service/server.log
 
-# ML Models
-ML MODELS/
-ML MODELS/LAWNOVA_MODEL_A/
-ML MODELS/LAWNOVA_MODEL_B_35K/
-*.pkl
-*.model
-*.weights
-*.h5
+# Root-level scratch/debug files
+calibrated_evaluation_data.json
+evaluation_report_data.json
+check_reasons.js
+check_room_auth.js
+check_session.js
+check_session.py
+re_audit.js
+refactor_dashboard.py
+verify_audit.py
+verify_roleplay.py
+verify_v22.py
+evaluate_model.py
+test_murder_transcript.txt
+
+# Gemini / Antigravity agent data
+.gemini/
+.agent/
+_agents/
+_agent/

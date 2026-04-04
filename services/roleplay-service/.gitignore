@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+python_backend/audit.log
+python_backend/audit_err.txt
+
+# Build
+dist/
+build/
+
+# ML Models & Large Files
+*.pkl
+*.bin
+*.pt
+*.pth
+*.safetensors
+*.h5
+*.onnx
+*.model
+*.weights
+
+# Dataset backups
+dataset/**/*.bak/
+
+# Argument Audit Service venv
+argument_audit_service/venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
