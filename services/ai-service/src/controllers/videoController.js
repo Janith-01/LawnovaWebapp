@@ -34,6 +34,7 @@ export const getToken = async (req, res) => {
         const { roomName } = req.params;
         const userId = req.headers['user-id'];
         const role = req.query.role || req.headers['user-role'] || 'Participant';
+        const userName = req.query.userName || null;
 
         if (!roomName) {
             return res.status(400).json({ success: false, message: 'Room name is required' });
@@ -41,7 +42,8 @@ export const getToken = async (req, res) => {
 
         const token = await videoService.generateMeetingToken(roomName, {
             userId,
-            role
+            role,
+            userName
         });
 
         res.json({

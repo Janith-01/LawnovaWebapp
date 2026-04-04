@@ -54,7 +54,7 @@ export const createDailyRoom = async (trialId) => {
  * @param {Object} user - { userId, role }
  */
 export const generateMeetingToken = async (roomName, user) => {
-    const { userId, role } = user;
+    const { userId, role, userName } = user;
 
     // logic: Set is_owner to true if the user is the Defendant (Trial Creator)
     // In this context, we'll check if role is 'Defendant' or if they were explicitly marked
@@ -66,7 +66,7 @@ export const generateMeetingToken = async (roomName, user) => {
                 room_name: roomName,
                 is_owner: isOwner,
                 // Embedding role in user_name for immediate identification
-                user_name: `${role}|${userId || 'anonymous'}`,
+                user_name: `${role}|${userName || userId || 'anonymous'}`,
                 exp: Math.floor(Date.now() / 1000) + 7200,
             },
         };
@@ -88,7 +88,6 @@ export const sendAppMessage = async (roomName, messageBody) => {
     try {
         const payload = {
             recipient: '*',
-            request_id: `msg-${Date.now()}`,
             data: JSON.stringify(messageBody)
         };
 

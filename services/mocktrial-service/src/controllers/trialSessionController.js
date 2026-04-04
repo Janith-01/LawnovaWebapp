@@ -4,6 +4,7 @@ import Room from '../models/Room.js';
 import { ApiError } from '../middleware/errorHandler.js';
 import logger from '../utils/logger.js';
 import { sendDailyAppMessage } from '../utils/aiServiceClient.js';
+import { scheduleStageEnd, clearSchedule } from '../services/stageScheduler.js';
 
 /**
  * Time Allocation Engine logic
@@ -18,12 +19,53 @@ export const calculateStageAllocations = (totalMinutes) => {
         { name: 'Deliberation', percentage: 10 }
     ];
 
-    return STAGE_PERCENTAGES.map(stage => ({
+    // Use Math.floor first, then distribute any remainder to the largest stages
+    const stages = STAGE_PERCENTAGES.map(stage => ({
         name: stage.name,
         percentage: stage.percentage,
         allocatedMinutes: Math.floor(totalMinutes * (stage.percentage / 100)),
         status: 'pending'
     }));
+
+    let allocated = stages.reduce((sum, s) => sum + s.allocatedMinutes, 0);
+    let remainder = totalMinutes - allocated;
+    // Distribute leftover minutes one-at-a-time to the largest stages (by %)
+    const byPercentDesc = [...stages].sort((a, b) => b.percentage - a.percentage);
+    let idx = 0;
+    while (remainder > 0) {
+        byPercentDesc[idx % byPercentDesc.length].allocatedMinutes += 1;
+        remainder -= 1;
+        idx += 1;
+    }
+
+    return stages;
+};
+
+/**
+ * Wraps a Mongoose session document with server-authoritative timing fields.
+ * Prevents cross-client clock drift by providing a reference serverTimestamp
+ * and a pre-computed currentRemainingSeconds for the active stage.
+ */
+const withServerTiming = (session) => {
+    const data = session.toObject();
+    const now = Date.now();
+    data.serverTimestamp = now;
+
+    if (session.isActive && session.startedAt) {
+        const startedAt = new Date(session.startedAt).getTime();
+        let cumulativeMs = 0;
+        for (let i = 0; i <= session.currentStageIndex; i++) {
+            cumulativeMs += session.stages[i].allocatedMinutes * 60 * 1000;
+        }
+        const stageEndMs = startedAt + cumulativeMs + (session.totalPausedMs || 0);
+        data.stageEndTime = stageEndMs; // Absolute epoch ms — the single source of truth
+        data.currentRemainingSeconds = Math.max(0, Math.floor((stageEndMs - now) / 1000));
+    } else {
+        data.stageEndTime = 0;
+        data.currentRemainingSeconds = 0;
+    }
+
+    return data;
 };
 
 /**
@@ -49,18 +91,32 @@ const trialSessionController = {
             let session = await TrialSession.findOne({ roomId });
 
             if (!session) {
+                // Mark the first stage as active
+                const now = new Date();
+                stages[0].status = 'active';
+                stages[0].startedAt = now;
+
                 session = await TrialSession.create({
                     roomId,
                     totalDurationMinutes: totalMinutes,
                     stages,
                     isActive: true,
-                    startedAt: new Date(),
+                    startedAt: now,
                     currentStageIndex: 0
                 });
             } else {
-                // Restart existing if needed or just start it
+                // Full reset: rebuild the session from scratch so stale/timed-out sessions are cleaned up
+                const now = new Date();
+                stages[0].status = 'active';
+                stages[0].startedAt = now;
+
+                session.totalDurationMinutes = totalMinutes;
+                session.stages = stages;
+                session.currentStageIndex = 0;
                 session.isActive = true;
-                if (!session.startedAt) session.startedAt = new Date();
+                session.startedAt = now;
+                session.totalPausedMs = 0;
+                session._lastPenaltyAt = null;
                 await session.save();
             }
 
@@ -75,9 +131,16 @@ const trialSessionController = {
                 });
             }
 
+            // Schedule the backend stage-end handler (Circuit Breaker)
+            const timed = withServerTiming(session);
+            const io = req.app.get('io');
+            if (timed.stageEndTime) {
+                scheduleStageEnd(roomId, timed.stageEndTime, io);
+            }
+
             res.json({
                 success: true,
-                data: session
+                data: timed
             });
 
         } catch (error) {
@@ -103,8 +166,22 @@ const trialSessionController = {
         const deliberationIndex = session.stages.findIndex(s => s.name === 'Deliberation');
         if (session.currentStageIndex < deliberationIndex && elapsedMins > (session.totalDurationMinutes * 1.5)) {
             console.log(`[Safety Rule] Session Timeout for ${session.roomId}. Forcing to Deliberation.`);
+
+            // Mark all stages up to Deliberation as completed
+            const nowDate = new Date();
+            for (let i = 0; i < deliberationIndex; i++) {
+                if (session.stages[i].status !== 'completed') {
+                    session.stages[i].status = 'completed';
+                    session.stages[i].completedAt = nowDate;
+                }
+            }
             session.currentStageIndex = deliberationIndex !== -1 ? deliberationIndex : 4;
+            session.stages[session.currentStageIndex].status = 'active';
+            session.stages[session.currentStageIndex].startedAt = nowDate;
             await session.save();
+
+            // Cancel existing schedule for this room (session forced to Deliberation)
+            clearSchedule(session.roomId.toString());
 
             const room = await Room.findById(session.roomId);
             if (room.dailyRoomName) {
@@ -117,6 +194,54 @@ const trialSessionController = {
             return true;
         }
         return false;
+    },
+
+    /**
+     * Requirement 4: Auto-advance to next stage when timer expires AND requirements are met.
+     * Returns true if a transition occurred.
+     */
+    autoAdvanceIfReady: async (session) => {
+        if (!session.isActive || !session.startedAt) return false;
+        if (session.currentStageIndex >= session.stages.length - 1) return false;
+
+        const currentStage = session.stages[session.currentStageIndex];
+
+        // FSM gate: only auto-advance if requirements are satisfied
+        if (!currentStage.isStageRequirementsMet) return false;
+
+        // Check if stage time has expired
+        const startedAt = new Date(session.startedAt).getTime();
+        let cumulativeMs = 0;
+        for (let i = 0; i <= session.currentStageIndex; i++) {
+            cumulativeMs += session.stages[i].allocatedMinutes * 60 * 1000;
+        }
+        const stageEndMs = startedAt + cumulativeMs + (session.totalPausedMs || 0);
+
+        if (Date.now() < stageEndMs) return false; // Stage still has time
+
+        // --- Auto-transition ---
+        const now = new Date();
+        currentStage.status = 'completed';
+        currentStage.completedAt = now;
+
+        session.currentStageIndex += 1;
+        session.stages[session.currentStageIndex].status = 'active';
+        session.stages[session.currentStageIndex].startedAt = now;
+        await session.save();
+
+        // Broadcast stage change to keep Petitioner/Respondent in sync
+        const room = await Room.findById(session.roomId);
+        if (room?.dailyRoomName) {
+            await sendDailyAppMessage(room.dailyRoomName, 'TIMER_STAGE_CHANGE', {
+                currentStageIndex: session.currentStageIndex,
+                nextStageName: session.stages[session.currentStageIndex].name,
+                isStageRequirementsMet: false,
+                autoAdvanced: true
+            });
+        }
+
+        logger.info({ roomId: session.roomId }, `[FSM] Auto-advanced to '${session.stages[session.currentStageIndex].name}'`);
+        return true;
     },
 
     /**
@@ -135,7 +260,9 @@ const trialSessionController = {
                         isActive: false,
                         totalDurationMinutes: totalMinutes,
                         stages: calculateStageAllocations(totalMinutes),
-                        currentStageIndex: 0
+                        currentStageIndex: 0,
+                        serverTimestamp: Date.now(),
+                        currentRemainingSeconds: 0
                     }
                 });
             }
@@ -143,9 +270,12 @@ const trialSessionController = {
             // Requirement 4: Check for auto-deliberation timeout
             await trialSessionController.checkSessionTimeout(session);
 
+            // Requirement 4: Auto-advance if stage time expired and requirements met
+            await trialSessionController.autoAdvanceIfReady(session);
+
             res.json({
                 success: true,
-                data: session
+                data: withServerTiming(session)
             });
         } catch (error) {
             res.status(500).json({ success: false, message: error.message });
@@ -174,7 +304,15 @@ const trialSessionController = {
             }
 
             if (session.currentStageIndex < session.stages.length - 1) {
+                // Complete current stage
+                const now = new Date();
+                currentStage.status = 'completed';
+                currentStage.completedAt = now;
+
+                // Advance and activate next stage
                 session.currentStageIndex += 1;
+                session.stages[session.currentStageIndex].status = 'active';
+                session.stages[session.currentStageIndex].startedAt = now;
                 await session.save();
 
                 // Requirement 5: Sync state with Daily.co to ensure Petitioner/Respondent are aligned
@@ -199,7 +337,14 @@ const trialSessionController = {
                     logger.debug({ roomId }, 'AI Metadata Sync skipped');
                 }
 
-                res.json({ success: true, data: session });
+                // Schedule the backend stage-end handler for the new stage
+                const nextTimed = withServerTiming(session);
+                const io = req.app.get('io');
+                if (nextTimed.stageEndTime && session.currentStageIndex < session.stages.length - 1) {
+                    scheduleStageEnd(roomId, nextTimed.stageEndTime, io);
+                }
+
+                res.json({ success: true, data: nextTimed });
             } else {
                 res.status(400).json({ success: false, message: 'Already at final stage' });
             }
@@ -228,12 +373,13 @@ const trialSessionController = {
             currentStage.detectedKeywords = Array.from(currentList);
 
             // 2. Threshold Check: Unlock only if 3+ unique keywords are found (Requirement 2)
-            if (!currentStage.isStageRequirementsMet && currentStage.detectedKeywords.length >= 3) {
+            const wasLocked = !currentStage.isStageRequirementsMet;
+            if (wasLocked && currentStage.detectedKeywords.length >= 3) {
                 currentStage.isStageRequirementsMet = true;
 
-                // UX: Broadcast STAGE_COMPLETE once met
+                // UX: Broadcast STAGE_COMPLETE once met (unlocks "Next" button)
                 const room = await Room.findById(roomId);
-                if (room.dailyRoomName) {
+                if (room?.dailyRoomName) {
                     await sendDailyAppMessage(room.dailyRoomName, 'STAGE_COMPLETE', {
                         stageName: currentStage.name,
                         unlocked: true,
@@ -241,9 +387,24 @@ const trialSessionController = {
                     });
                 }
                 logger.info({ roomId }, `[FSM] Stage '${currentStage.name}' UNLOCKED (3+ keywords found)`);
+            } else if (wasLocked) {
+                // Requirement 5: Broadcast incremental lock progress so all participants stay synced
+                const room = await Room.findById(roomId);
+                if (room?.dailyRoomName) {
+                    await sendDailyAppMessage(room.dailyRoomName, 'TIMER_LOCK_UPDATE', {
+                        stageName: currentStage.name,
+                        keywordCount: currentStage.detectedKeywords.length,
+                        requiredCount: 3,
+                        isStageRequirementsMet: false
+                    });
+                }
             }
 
             await session.save();
+
+            // Requirement 4: After updating keywords, check if auto-advance should fire
+            await trialSessionController.autoAdvanceIfReady(session);
+
             res.json({
                 success: true,
                 isStageRequirementsMet: currentStage.isStageRequirementsMet,
@@ -258,6 +419,7 @@ const trialSessionController = {
     /**
      * Requirement 3: Apply Time Inflation penalty
      * Adds 60 seconds to the current stage's timer and broadcasts to all users.
+     * Cooldown: Only one penalty per 60 seconds per session to prevent spam.
      */
     applyPenalty: async (req, res) => {
         const { roomId } = req.params;
@@ -267,6 +429,12 @@ const trialSessionController = {
             const session = await TrialSession.findOne({ roomId });
             if (!session) throw new ApiError(404, 'Trial Session states not found');
 
+            // Penalty cooldown: skip if a penalty was applied within the last 60 seconds
+            const lastPenaltyAt = session._lastPenaltyAt ? new Date(session._lastPenaltyAt).getTime() : 0;
+            if (Date.now() - lastPenaltyAt < 60000) {
+                return res.json({ success: true, message: 'Penalty cooldown active — skipped' });
+            }
+
             // Requirement 4: Safety Rule - Check for complete timeout
             const timedOut = await trialSessionController.checkSessionTimeout(session);
             if (timedOut) {
@@ -275,40 +443,112 @@ const trialSessionController = {
 
             // 1. Time Inflation: Add 1 minute to the current stage's individual allocation
             const currentStage = session.stages[session.currentStageIndex];
+                    // 1. Inflate time by 1 minute
             currentStage.allocatedMinutes += 1;
+            currentStage.totalPenaltyPoints = (currentStage.totalPenaltyPoints || 0) + 1;
+            
+            // Calculate new stageEndTime based on startedAt to avoid jump/drift
+            // Default to Date.now() if stage hasn't officially started (safety)
+            const baseTime = currentStage.startedAt ? new Date(currentStage.startedAt).getTime() : Date.now();
+            const stageEndTime = baseTime + (currentStage.allocatedMinutes * 60 * 1000);
 
+            // Save the state immediately
+            session._lastPenaltyAt = new Date();
             await session.save();
 
-            // 2. Broadcast TIME_INFLATED event via Socket.io (Requirement 3)
-            // Access IO instance from app
+            logger.info({ roomId, stage: currentStage.name }, 'Penalty applied: +1 min');
+
+            // 2. Broadcast the inflation event 
+            const penaltyPayload = {
+                roomId,
+                totalPenaltyPoints: currentStage.totalPenaltyPoints,
+                newStageMinutes: currentStage.allocatedMinutes,
+                stageEndTime, // Transmit new absolute end time (epoch ms)
+                reason: req.body.reason || 'Legal vocabulary missing',
+                serverTimestamp: Date.now()
+            };
+
+            // 2a. Broadcast via Socket.io
             const io = req.app.get('io');
             if (io) {
-                const roomChannel = `room:${roomId}`;
-                io.to(roomChannel).emit('TIME_INFLATED', {
-                    roomId,
-                    stageName: currentStage.name,
-                    addedSeconds: 60,
-                    newStageMinutes: currentStage.allocatedMinutes,
-                    reason: reason || 'Legal vocabulary missing from argument'
-                });
-                logger.info({ roomId }, `[Penalty Engine] Time Inflated by 60s for ${currentStage.name}`);
+                io.to(`room:${roomId}`).emit('TIME_INFLATED', penaltyPayload);
             }
 
-            res.json({
-                success: true,
-                message: 'Penalty Applied: +1:00',
-                data: {
-                    stage: currentStage.name,
-                    newAllocatedMinutes: currentStage.allocatedMinutes
-                }
-            });
+            // 2b. Broadcast via Daily.co app message so CourtroomTimer receives it
+            const room = await Room.findById(roomId);
+            if (room?.dailyRoomName) {
+                sendDailyAppMessage(room.dailyRoomName, 'TIME_INFLATED', penaltyPayload)
+                    .catch(err => logger.debug({ roomId }, `Daily penalty broadcast skipped: ${err.message}`));
+            }
 
+            // Reschedule the stage-end timer with the new extended time
+            if (stageEndTime) {
+                scheduleStageEnd(roomId, stageEndTime, io);
+            }
+
+            return res.json({
+                success: true,
+                message: 'Penalty applied successfully',
+                data: penaltyPayload
+            });
         } catch (error) {
-            logger.error(`[Penalty Engine] Error applying inflation to ${roomId}:`, error);
+            logger.error({ error: error.message }, 'Failed to apply penalty');
             res.status(error.statusCode || 500).json({
                 success: false,
                 message: error.message
             });
+        }
+    },
+
+    /**
+     * Requirement 5: Return allocated times as a JSON object for frontend/backend sync.
+     * Does NOT start a session — just calculates and returns the time split.
+     */
+    getAllocations: async (req, res) => {
+        const { roomId } = req.params;
+        try {
+            // If a live session exists, return its current (possibly penalised) allocations
+            const session = await TrialSession.findOne({ roomId });
+            if (session) {
+                return res.json({
+                    success: true,
+                    data: {
+                        totalDurationMinutes: session.totalDurationMinutes,
+                        stages: session.stages.map(s => ({
+                            name: s.name,
+                            percentage: s.percentage,
+                            allocatedMinutes: s.allocatedMinutes,
+                            status: s.status
+                        })),
+                        currentStageIndex: session.currentStageIndex,
+                        isActive: session.isActive
+                    }
+                });
+            }
+
+            // No session yet — calculate from room duration
+            const room = await Room.findById(roomId);
+            if (!room) throw new ApiError(404, 'Room not found');
+
+            const totalMinutes = room.duration || 60;
+            const stages = calculateStageAllocations(totalMinutes);
+
+            res.json({
+                success: true,
+                data: {
+                    totalDurationMinutes: totalMinutes,
+                    stages: stages.map(s => ({
+                        name: s.name,
+                        percentage: s.percentage,
+                        allocatedMinutes: s.allocatedMinutes,
+                        status: s.status
+                    })),
+                    currentStageIndex: 0,
+                    isActive: false
+                }
+            });
+        } catch (error) {
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     }
 };
