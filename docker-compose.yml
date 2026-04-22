@@ -61,6 +61,11 @@ services:
     environment:
       PORT: 5001
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      MODEL_A_PATH: /app/models/LAWNOVA_MODEL_A
+      MODEL_B_PATH: /app/models/LAWNOVA_MODEL_B_35K
+    volumes:
+      - /home/ubuntu/lawnova/ml-models/LAWNOVA_MODEL_A:/app/models/LAWNOVA_MODEL_A:ro
+      - /home/ubuntu/lawnova/ml-models/LAWNOVA_MODEL_B_35K:/app/models/LAWNOVA_MODEL_B_35K:ro
     restart: unless-stopped
 
   mocktrial-service:
@@ -71,6 +76,20 @@ services:
       PORT: 10004
       MONGODB_URI: ${MONGODB_URI}
       JWT_SECRET: ${JWT_SECRET}
+      GEMINI_API_KEY1: ${GEMINI_API_KEY}
+      DAILY_API_KEY: ${DAILY_API_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      EMAIL_FROM: ${EMAIL_FROM}
+      FRONTEND_URL: ${FRONTEND_URL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      USER_SERVICE_URL: http://user-service:5005
+      AI_SERVICE_URL: http://ai-service:5008
+      API_GATEWAY_URL: http://api-gateway:5000
+      INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET}
     restart: unless-stopped
 
   roleplay-service:
@@ -93,9 +112,9 @@ services:
     environment:
       PORT: 5006
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_API_KEY1: ${GEMINI_API_KEY}
     volumes:
-      - /home/ubuntu/lawnova/ml-models/MODEL_A:/app/models/MODEL_A:ro
-      - /home/ubuntu/lawnova/ml-models/MODEL_B_35K:/app/models/MODEL_B_35K:ro
+      - /home/ubuntu/lawnova/ml-models/judgment_predictor:/app/models/judgment_predictor:ro
     restart: unless-stopped
 
 networks:
