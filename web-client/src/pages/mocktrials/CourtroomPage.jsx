@@ -19,7 +19,7 @@ import CourtroomTimer from '@/components/courtroom/CourtroomTimer';
 import { useAuth } from '@/context/AuthContext';
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_API_URL || window.location.origin;
 
 // ============================================
 // COURTROOM INTERFACE COMPONENT
@@ -881,3 +881,4 @@ const CourtroomPage = () => {
 };
 
 export default CourtroomPage;
+

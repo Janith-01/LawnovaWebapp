@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/roleplay`;
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || window.location.origin}/api/roleplay`;
 
 const TrialResults = () => {
     const { sessionId } = useParams();
@@ -297,3 +297,4 @@ const SparkleIcon = () => (
 );
 
 export default TrialResults;
+

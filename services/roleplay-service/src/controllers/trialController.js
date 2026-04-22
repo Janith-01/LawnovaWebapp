@@ -590,7 +590,8 @@ export const finalizeTrial = async (req, res) => {
 
         try {
             console.log(`[FINALIZE] Session ${sessionId}: Auditing ${session.history.length} items via Python Audit Service (Port 5009)...`);
-            const auditUrl = 'http://127.0.0.1:5009/audit';
+            const auditBaseUrl = process.env.AUDIT_SERVICE_URL || 'http://argument-audit-service:5001';
+            const auditUrl = `${auditBaseUrl}/api/audit-transcript`;
 
             // WAIT for Python service to finish (up to 2 minutes)
             const auditResponse = await axios.post(auditUrl, {

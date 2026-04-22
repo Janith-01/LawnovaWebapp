@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || window.location.origin;
 
 // Create axios instance
 const api = axios.create({
@@ -156,3 +156,4 @@ api.interceptors.response.use(
 // Export token manager for use in auth context
 export { TokenManager };
 export default api;
+

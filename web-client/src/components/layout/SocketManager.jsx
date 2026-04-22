@@ -15,7 +15,7 @@ const SocketManager = () => {
     useEffect(() => {
         if (!user) return;
 
-        const socketUrl = import.meta.env.VITE_API_GATEWAY_URL || 'http://localhost:5000';
+        const socketUrl = import.meta.env.VITE_API_GATEWAY_URL || window.location.origin;
         // Get token from storage - typically in localStorage or cookies
         // We need it for the middleware we just added!
         // But SocketManager runs globally.
@@ -62,3 +62,4 @@ const SocketManager = () => {
 };
 
 export default SocketManager;
+

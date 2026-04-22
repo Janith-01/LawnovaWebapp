@@ -448,7 +448,8 @@ export const completeSession = async (req, res) => {
         try {
             if (session.history.length > 0) {
                 console.log("[COMPLETE] Auditing User Arguments via Port 5009...");
-                const auditUrl = 'http://127.0.0.1:5009/audit';
+                const auditBaseUrl = process.env.AUDIT_SERVICE_URL || 'http://argument-audit-service:5001';
+                const auditUrl = `${auditBaseUrl}/api/audit-transcript`;
                 const auditResponse = await axios.post(auditUrl, { history: session.history }, { timeout: 120000 });
 
                 if (auditResponse.data?.success) {

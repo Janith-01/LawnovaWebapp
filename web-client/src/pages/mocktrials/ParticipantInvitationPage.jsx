@@ -361,7 +361,7 @@ const ParticipantInvitationPage = () => {
     useEffect(() => {
         if (!effectiveRoomId) return;
 
-        const socketUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+        const socketUrl = import.meta.env.VITE_API_BASE_URL || window.location.origin;
         const socket = io(socketUrl, {
             transports: ['websocket', 'polling'],
             auth: { token: localStorage.getItem('accessToken') },
@@ -616,3 +616,4 @@ const ParticipantInvitationPage = () => {
 };
 
 export default ParticipantInvitationPage;
+

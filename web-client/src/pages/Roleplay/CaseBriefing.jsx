@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 // API Configuration
-const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/roleplay`;
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || window.location.origin}/api/roleplay`;
 
 /**
  * CaseBriefing - The Strategic Briefing Room
@@ -657,3 +657,4 @@ const CaseBriefing = () => {
 };
 
 export default CaseBriefing;
+

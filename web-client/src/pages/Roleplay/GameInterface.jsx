@@ -37,7 +37,7 @@ import EvidenceModal from '../../components/Roleplay/EvidenceModal';
 import io from 'socket.io-client';
 
 // API Configuration - Points to Node.js Backend
-const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/roleplay`;
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || window.location.origin}/api/roleplay`;
 
 
 const GameInterface = () => {
@@ -210,7 +210,7 @@ const GameInterface = () => {
         if (!sessionId) return;
 
         // Initialize socket connection
-        const SOCKET_URL = import.meta.env.VITE_ROLEPLAY_WS_URL || import.meta.env.VITE_API_BASE_URL?.replace('/api/roleplay', '') || 'http://localhost:5000';
+        const SOCKET_URL = import.meta.env.VITE_ROLEPLAY_WS_URL || import.meta.env.VITE_API_BASE_URL?.replace('/api/roleplay', '') || window.location.origin;
         socketRef.current = io(SOCKET_URL, {
             path: '/roleplay-socket',
             transports: ['websocket', 'polling'],
@@ -460,7 +460,7 @@ const GameInterface = () => {
     const handleEndTrial = async () => {
         setEndTrialLoading(true);
         setShowEndTrialModal(false);
-        const TRIAL_API_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/trials`;
+        const TRIAL_API_URL = `${import.meta.env.VITE_API_BASE_URL || window.location.origin}/api/trials`;
 
         // Add system message
         const endingMessage = {
@@ -1546,3 +1546,4 @@ const MessageBubble = ({ message, userRole }) => {
 };
 
 export default GameInterface;
+
