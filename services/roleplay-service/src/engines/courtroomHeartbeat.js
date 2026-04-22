@@ -24,6 +24,8 @@ import {
 } from '../utils/aiOrchestrator.js';
 import { retrieveRelevantLaws } from '../utils/vectorSearch.js';
 
+const hasJudgeRulingMarkers = (text = '') => /\b(sustained|overruled)\b/i.test(text);
+
 // Configuration
 const HEARTBEAT_INTERVAL_MS = 30000;  // 30 seconds of silence before auto-dialogue
 const MAX_CONSECUTIVE_AUTO = 25;      // Allow 25 consecutive AI turns before pausing
@@ -217,7 +219,8 @@ async function generateAutonomousTurn(session) {
         const directorDecision = await directCourtroomScene(
             session.history,
             session.caseDetails,
-            autonomousContext // Pass context instead of user message
+            autonomousContext, // Pass context instead of user message
+            { pendingObjection: session.pendingObjection }
         );
 
         if (!directorDecision) {
@@ -250,7 +253,8 @@ async function generateAutonomousTurn(session) {
             session.history,
             directorDecision.instruction || 'Continue the proceedings autonomously.',
             session.sessionId,
-            turnNumber
+            turnNumber,
+            { pendingObjection: session.pendingObjection }
         );
 
         if (!actorResponse || !actorResponse.text) {
@@ -297,6 +301,10 @@ async function generateAutonomousTurn(session) {
             name: aiResponse.speaker,
             role: aiResponse.speakerRole
         };
+        if (session.pendingObjection && aiResponse.speakerRole === 'Judge' && hasJudgeRulingMarkers(aiResponse.text)) {
+            session.pendingObjection = false;
+            console.log(`[OBJECTION_GATE] pendingObjection cleared by autonomous Judge ruling for session ${session.sessionId}`);
+        }
         session.autonomousTurnCount += 1;
         session.markModified('history');
         await session.save();
@@ -332,7 +340,7 @@ function buildAutonomousContext(lastEntries, lastSpeaker, caseDetails) {
             hint = 'The Prosecutor just finished. If they asked a question, the Witness must answer. If not, the Judge should prompt the Defense to respond or move the trial forward.';
             break;
         case 'DefenseAttorney':
-            hint = 'The Defense just finished. The Prosecutor may object, or the Judge should prompt the next step (e.g., asking the prosecution for their witness or cross-examination).';
+            hint = 'The Defense just finished. The Judge should prompt the next step (e.g., asking the prosecution for their witness or cross-examination).';
             break;
         case 'Witness':
             hint = 'The Witness just finished answering. Either the examining attorney should follow up, or the Judge should thank the witness and ask for the next stage.';
@@ -350,7 +358,7 @@ function buildAutonomousContext(lastEntries, lastSpeaker, caseDetails) {
     return `[AUTONOMOUS MODE - CONTINUOUS COURTROOM]
 The user (${caseDetails?.userRole || 'Defense'} Counsel) is observing or preparing their next move. 
 ${hint}
-CRITICAL INSTRUCTION: You must aggressively keep the trial moving forward! Do not wait for the user. Proceed to the next logical step in the trial (e.g., ask the next question, raise an objection against the opponent, make a ruling, or continue testimony).
+CRITICAL INSTRUCTION: You must keep the trial moving forward without inventing objections. Do not wait for the user. Proceed to the next logical step in the trial (e.g., ask the next question, prompt counsel, make procedural direction, or continue testimony).
 Last speaker was ${lastRole}. Recent context: "${lastContent}"`;
 }
 
@@ -370,6 +378,12 @@ export async function handleObjection(sessionId, objectionText) {
     try {
         const session = await RoleplaySession.findOne({ sessionId });
         if (!session) return null;
+        if (session.pendingObjection) {
+            console.log(`[OBJECTION_GATE] Duplicate socket objection ignored for session ${sessionId}`);
+            return null;
+        }
+        session.pendingObjection = true;
+        console.log(`[OBJECTION_GATE] pendingObjection=true (socket-trigger) for session ${sessionId}`);
 
         // Save the user's objection
         session.history.push({
@@ -388,7 +402,9 @@ export async function handleObjection(sessionId, objectionText) {
             `OBJECTION! ${objectionText}`,
             null,
             session.history,
-            'The user has raised an objection! You must immediately rule on it. Say "Sustained" if the objection has legal merit, or "Overruled" if it does not. Briefly explain your ruling.'
+            'The user has raised an objection! You must immediately rule on it. Say "Sustained" if the objection has legal merit, or "Overruled" if it does not. Briefly explain your ruling.',
+            '',
+            { pendingObjection: true }
         );
 
         if (judgeResponse && judgeResponse.text) {
@@ -405,6 +421,8 @@ export async function handleObjection(sessionId, objectionText) {
             });
 
             session.lastSpeaker = { name: 'Judge Dissanayake', role: 'Judge' };
+            session.pendingObjection = false;
+            console.log(`[OBJECTION_GATE] pendingObjection cleared after socket ruling for session ${sessionId}`);
             session.markModified('history');
             await session.save();
 
@@ -421,10 +439,20 @@ export async function handleObjection(sessionId, objectionText) {
             };
         }
 
+        // Safety: if no ruling generated, clear pending objection to avoid deadlock.
+        session.pendingObjection = false;
+        await session.save();
+        console.warn(`[OBJECTION_GATE] No Judge ruling generated; pendingObjection cleared for session ${sessionId}`);
+
         return null;
 
     } catch (error) {
         console.error('[HEARTBEAT] Objection handling error:', error.message);
+        try {
+            await RoleplaySession.updateOne({ sessionId }, { $set: { pendingObjection: false } });
+        } catch {
+            // noop
+        }
         return null;
     } finally {
         // Resume heartbeat after a short delay

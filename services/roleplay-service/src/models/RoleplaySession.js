@@ -293,6 +293,11 @@ const roleplaySessionSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    // Strict objection gate: only allow Judge rulings when this flag is true.
+    pendingObjection: {
+        type: Boolean,
+        default: false
+    },
 
     // ============ RL REWARD LOG FIELDS ============
     // Stores the reward history from the Best-of-N RL loop.

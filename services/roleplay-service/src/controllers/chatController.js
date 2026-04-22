@@ -13,6 +13,11 @@ import RoleplaySession from '../models/RoleplaySession.js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { findRelevantLaws } from '../services/lawService.js';
 
+const isExplicitObjectionText = (text = '') =>
+    /^(objection\b|objection,\s*your honou?r\b|i object\b)/i.test((text || '').trim());
+
+const hasJudgeRulingMarkers = (text = '') => /\b(sustained|overruled)\b/i.test(text);
+
 // ============================================================
 // 1. AI LEGAL CONSULTANT (The Fixed "Bulletproof" Version)
 // ============================================================
@@ -95,6 +100,14 @@ export const processUserMessage = async (req, res) => {
             return res.status(404).json({ success: false, error: "Session not found" });
         }
 
+        const explicitObjection = isExplicitObjectionText(message);
+        if (explicitObjection && session.pendingObjection) {
+            console.log(`[OBJECTION_GATE] Duplicate objection ignored for session ${sessionId}`);
+        } else if (explicitObjection) {
+            session.pendingObjection = true;
+            console.log(`[OBJECTION_GATE] pendingObjection=true (text-trigger) for session ${sessionId}`);
+        }
+
         // Update last user interaction timestamp for heartbeat engine
         session.lastUserInteraction = new Date();
 
@@ -113,12 +126,17 @@ export const processUserMessage = async (req, res) => {
         const legalContext = await retrieveRelevantLaws(message);
 
         // 5. DIRECTOR CALL
-        const nextSpeaker = await directCourtroomScene(session.history, session.caseDetails, message);
+        const nextSpeaker = await directCourtroomScene(
+            session.history,
+            session.caseDetails,
+            message,
+            { pendingObjection: session.pendingObjection }
+        );
 
         // SAFETY CHECK: Ensure we always have a valid speaker
         const speakerRole = nextSpeaker?.nextSpeakerRole || 'Judge';
         const speakerName = nextSpeaker?.speakerName || 'Judge Dissanayake';
-        console.log("Director selected:", speakerRole, `(${speakerName})`);
+        console.log(`[TURN] session=${sessionId} pendingObjection=${session.pendingObjection} speaker=${speakerRole} (${speakerName})`);
 
         // 6. ACTOR CALL (RL-Enhanced: Best-of-N for Prosecutor/Defense)
         const turnNumber = session.history.filter(h => h.role === 'user').length + 1;
@@ -131,7 +149,8 @@ export const processUserMessage = async (req, res) => {
             session.history,
             nextSpeaker?.instruction || '',
             sessionId,
-            turnNumber
+            turnNumber,
+            { pendingObjection: session.pendingObjection }
         );
 
         // Log RL reward data
@@ -161,6 +180,17 @@ export const processUserMessage = async (req, res) => {
             session.rewardLog.push(rewardEntry);
             session.markModified('rewardLog');
         }
+
+        const shouldClearObjection =
+            session.pendingObjection &&
+            safeResponse.speakerRole === 'Judge' &&
+            hasJudgeRulingMarkers(safeResponse.text);
+        if (shouldClearObjection) {
+            session.pendingObjection = false;
+            console.log(`[OBJECTION_GATE] pendingObjection cleared after Judge ruling for session ${sessionId}`);
+        }
+
+        console.log(`[TURN] session=${sessionId} pendingObjection=${session.pendingObjection} rulingAllowed=${speakerRole === 'Judge' && explicitObjection ? 'true' : 'n/a'}`);
         await session.save();
 
         // 7.5. RESUME HEARTBEAT
@@ -286,6 +316,31 @@ export const generateCase = async (req, res) => {
             'Defense': 'Defense',
             'Defense Attorney': 'Defense'
         }[caseDetails.userRole] || normalizedRole;
+
+        // Normalize witness affiliations — Gemini outputs 'Prosecution'/'Defense'
+        // but Mongoose enum only allows 'User'/'Opponent'/'Neutral'
+        if (caseDetails.witnesses && Array.isArray(caseDetails.witnesses)) {
+            const userSide = caseDetails.userRole; // 'Prosecution' or 'Defense'
+            const opponentSide = userSide === 'Prosecution' ? 'Defense' : 'Prosecution';
+
+            caseDetails.witnesses = caseDetails.witnesses.map(w => ({
+                ...w,
+                affiliation: {
+                    'User': 'User',
+                    'Opponent': 'Opponent',
+                    'Neutral': 'Neutral',
+                    [userSide]: 'User',
+                    [opponentSide]: 'Opponent',
+                    'Prosecutor': userSide === 'Prosecution' ? 'User' : 'Opponent',
+                    'Prosecution': userSide === 'Prosecution' ? 'User' : 'Opponent',
+                    'Defense': userSide === 'Defense' ? 'User' : 'Opponent',
+                    'State': userSide === 'Prosecution' ? 'User' : 'Opponent',
+                    'Plaintiff': userSide === 'Prosecution' ? 'User' : 'Opponent',
+                    'Accused': userSide === 'Defense' ? 'User' : 'Opponent',
+                    'Defendant': userSide === 'Defense' ? 'User' : 'Opponent',
+                }[w.affiliation] || 'Neutral'
+            }));
+        }
 
         console.log("Final Normalized Case Details:", {
             title: caseDetails.title,
