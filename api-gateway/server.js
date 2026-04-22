@@ -560,6 +560,7 @@ const judgmentServiceProxy = createProxyMiddleware({
 });
 
 app.use('/api/judgment', judgmentServiceProxy);
+app.use('/api/drafting', createProxyMiddleware({ target: 'http://localhost:8001', changeOrigin: true }));
 
 // Health check endpoints
 app.get('/health', (req, res) => {
