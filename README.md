@@ -91,7 +91,6 @@ LawnovaWebapp follows a **microservices architecture** pattern, ensuring scalabi
 #### 5. **External Services**
 - **VideoSDK** - Real-time video conferencing
 - **Google Gemini AI** - Advanced AI capabilities
-- **OpenAI API** - GPT models for legal scenarios
 
 ---
 
@@ -174,7 +173,6 @@ LawnovaWebapp follows a **microservices architecture** pattern, ensuring scalabi
 |---------|---------|
 | VideoSDK | Real-time video conferencing |
 | Google Gemini AI | Advanced AI text generation |
-| OpenAI (GPT-4) | Legal scenario generation |
 | Vector Store | Semantic search for legal documents |
 
 ### **Development Tools**
@@ -331,7 +329,6 @@ JWT_SECRET=your-super-secret-jwt-key-here
 
 # External APIs
 GEMINI_API_KEY=your-gemini-api-key
-OPENAI_API_KEY=your-openai-api-key
 VIDEOSDK_API_KEY=your-videosdk-api-key
 VIDEOSDK_SECRET_KEY=your-videosdk-secret-key
 
@@ -672,7 +669,6 @@ For issues, questions, or contributions:
 
 - **VideoSDK** for video conferencing capabilities
 - **Google Gemini AI** for advanced AI features
-- **OpenAI** for GPT models
 - **MongoDB** for database solutions
 - All contributors and team members
 

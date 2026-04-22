@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import TrialSession from '../models/TrialSession.js';
 import RoleplaySession from '../models/RoleplaySession.js';
 import logger from '../utils/logger.js';
@@ -6,23 +6,30 @@ import axios from 'axios';
 import { generateVerdict } from '../utils/aiOrchestrator.js';
 
 /**
- * OpenAI client instance (lazy-loaded)
+ * Gemini client instance (lazy-loaded)
  */
-let openaiClient = null;
+let geminiClient = null;
 
 /**
- * Initialize OpenAI client
+ * Initialize Gemini client
  */
-const getOpenAIClient = () => {
-    if (!openaiClient) {
-        if (!process.env.OPENAI_API_KEY) {
-            throw new Error('OPENAI_API_KEY is not configured in environment variables');
+const getGeminiClient = () => {
+    if (!geminiClient) {
+        const apiKey = process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY1;
+        if (!apiKey) {
+            throw new Error('GEMINI_API_KEY (or GEMINI_API_KEY1) is not configured in environment variables');
         }
-        openaiClient = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY
-        });
+        geminiClient = new GoogleGenerativeAI(apiKey);
     }
-    return openaiClient;
+    return geminiClient;
+};
+
+const parseGeminiJson = (responseText) => {
+    const cleaned = (responseText || '')
+        .trim()
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '');
+    return JSON.parse(cleaned);
 };
 
 /**
@@ -128,38 +135,39 @@ export const initTrial = async (req, res) => {
         // Generate system prompt
         const systemPrompt = generateSystemPrompt(role, caseStage);
 
-        // Get OpenAI client
-        const openai = getOpenAIClient();
-        const model = process.env.OPENAI_MODEL || 'gpt-4';
+        // Get Gemini model
+        const gemini = getGeminiClient();
+        const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
+        const generationModel = gemini.getGenerativeModel(
+            { model },
+            { apiVersion: 'v1' }
+        );
 
-        logger.info({ model }, 'Calling OpenAI API for scenario generation');
+        logger.info({ model }, 'Calling Gemini API for scenario generation');
 
-        // Call OpenAI API with JSON mode
-        const completion = await openai.chat.completions.create({
-            model: model,
-            messages: [
-                {
-                    role: 'system',
-                    content: systemPrompt
-                },
-                {
-                    role: 'user',
-                    content: `Generate a ${caseStage} stage case scenario for a ${role} in a Sri Lankan criminal trial. Make it challenging but educational for law students.`
-                }
-            ],
-            response_format: { type: 'json_object' },
-            temperature: 0.7,
-            max_tokens: 2000
+        // Call Gemini API with JSON output
+        const completion = await generationModel.generateContent({
+            contents: [{
+                role: 'user',
+                parts: [{
+                    text: `${systemPrompt}\n\nGenerate a ${caseStage} stage case scenario for a ${role} in a Sri Lankan criminal trial. Make it challenging but educational for law students. Return JSON only.`
+                }]
+            }],
+            generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 2000,
+                responseMimeType: 'application/json'
+            }
         });
 
         // Parse the generated scenario
-        const generatedContent = completion.choices[0].message.content;
+        const generatedContent = completion.response.text();
         let scenario;
 
         try {
-            scenario = JSON.parse(generatedContent);
+            scenario = parseGeminiJson(generatedContent);
         } catch (parseError) {
-            logger.error({ error: parseError, content: generatedContent }, 'Failed to parse OpenAI response');
+            logger.error({ error: parseError, content: generatedContent }, 'Failed to parse Gemini response');
             return res.status(500).json({
                 success: false,
                 message: 'Failed to parse AI-generated scenario',
@@ -266,19 +274,20 @@ export const initTrial = async (req, res) => {
     } catch (error) {
         logger.error({ error: error.message, stack: error.stack }, 'Failed to initialize trial');
 
-        // Handle specific OpenAI errors
-        if (error.code === 'insufficient_quota') {
+        // Handle specific Gemini errors
+        const errorText = `${error.code || ''} ${error.message || ''}`;
+        if (/RESOURCE_EXHAUSTED|quota|429/i.test(errorText)) {
             return res.status(503).json({
                 success: false,
-                message: 'OpenAI API quota exceeded. Please try again later.',
+                message: 'Gemini API quota exceeded. Please try again later.',
                 error: 'API quota exceeded'
             });
         }
 
-        if (error.code === 'invalid_api_key') {
+        if (/api key|invalid|permission/i.test(errorText)) {
             return res.status(500).json({
                 success: false,
-                message: 'OpenAI API configuration error',
+                message: 'Gemini API configuration error',
                 error: 'Invalid API key'
             });
         }

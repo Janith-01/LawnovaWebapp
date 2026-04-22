@@ -180,12 +180,21 @@ function getLastSpeaker(history) {
     return modelMessages[modelMessages.length - 1] || null;
 }
 
+function isExplicitObjectionMessage(text = '') {
+    const normalized = text.trim().toLowerCase();
+    return /^(objection\b|objection,\s*your honou?r\b|i object\b)/i.test(normalized);
+}
+
+function containsJudgeRulingMarkers(text = '') {
+    return /\b(sustained|overruled)\b/i.test(text);
+}
+
 // ============================================================
 // THE DIRECTOR (Router with Logic)
 // Temperature: 0.2 (Low - for logical decisions)
 // ============================================================
 
-export async function directCourtroomScene(history, caseDetails, userMessage) {
+export async function directCourtroomScene(history, caseDetails, userMessage, runtimeState = {}) {
     // Default fallback - always have a valid response ready
     const DEFAULT_RESPONSE = {
         nextSpeakerRole: 'Judge',
@@ -206,6 +215,7 @@ export async function directCourtroomScene(history, caseDetails, userMessage) {
         const historyText = buildHistoryContext(history, userRole, 5);
         const lastSpeaker = getLastSpeaker(history);
         const lowerMessage = userMessage?.toLowerCase() || '';
+        const pendingObjection = !!runtimeState.pendingObjection;
 
         // ========== VALIDATION: Never return user's role ==========
         const validRoles = ['Judge', 'Prosecutor', 'DefenseAttorney', 'Witness', 'Clerk'];
@@ -214,8 +224,8 @@ export async function directCourtroomScene(history, caseDetails, userMessage) {
         // ========== HARD RULES (No AI needed) ==========
 
         // Rule 1: User objects → Judge MUST rule
-        if (lowerMessage.includes('object')) {
-            console.log('📋 DIRECTOR: Objection detected → Forcing Judge');
+        if (pendingObjection || isExplicitObjectionMessage(userMessage)) {
+            console.log('[OBJECTION_GATE] DIRECTOR: Objection cycle active -> Forcing Judge ruling');
             return {
                 nextSpeakerRole: 'Judge',
                 speakerName: 'Judge Dissanayake',
@@ -361,7 +371,17 @@ OUTPUT: Return ONLY valid JSON (no explanation):
 // Temperature: 0.7 (High - for creativity)
 // ============================================================
 
-export async function generateActorDialogue(speakerRole, speakerName, caseDetails, userMessage, legalContext, history, instruction = '', promptAdjustment = '') {
+export async function generateActorDialogue(
+    speakerRole,
+    speakerName,
+    caseDetails,
+    userMessage,
+    legalContext,
+    history,
+    instruction = '',
+    promptAdjustment = '',
+    runtimeState = {}
+) {
     // Safety defaults - ALWAYS ensure we have valid role and name
     const safeRole = speakerRole || 'Judge';
     const safeName = speakerName || ROLE_PROMPTS[safeRole]?.name || 'Judge Dissanayake';
@@ -374,6 +394,7 @@ export async function generateActorDialogue(speakerRole, speakerName, caseDetail
     }
 
     const userRole = caseDetails?.userRole || 'Defense';
+    const pendingObjection = !!runtimeState.pendingObjection;
     const historyText = buildHistoryContext(history, userRole, 5);
 
     // Get role configuration
@@ -489,7 +510,7 @@ ${promptAdjustment ? `\n${promptAdjustment}\n` : ''}
 5. **ADVANCE THE PLOT:** Your response should move the trial forward
 
 DIRECTOR'S INSTRUCTION: ${instruction || 'Respond naturally to advance the proceedings.'}
-
+${safeRole === 'Judge' && !pendingObjection ? 'ADDITIONAL CONSTRAINT: No objection is pending. Do NOT issue objection rulings and do NOT use the words "Sustained" or "Overruled". Continue procedurally.' : ''}
 NOW RESPOND AS ${finalName}:`;
 
     try {
@@ -507,12 +528,44 @@ NOW RESPOND AS ${finalName}:`;
             .replace(/^"/, '')
             .replace(/"$/, '');
 
+        const hasRuling = containsJudgeRulingMarkers(cleanDialogue);
+        const rulingAllowed = safeRole === 'Judge' ? pendingObjection : true;
+
+        // Hard gate: block judge rulings when no objection is pending.
+        if (safeRole === 'Judge' && hasRuling && !pendingObjection) {
+            console.warn('[OBJECTION_GATE] Judge ruling blocked without pending objection. Triggering constrained regeneration.');
+
+            const constrainedPrompt = `${ACTOR_PROMPT}
+
+SAFETY RETRY CONSTRAINT:
+- You must not rule on objections in this turn.
+- Do not use the words "Sustained" or "Overruled".
+- Continue the hearing procedurally (e.g., invite opening, call witness, ask question).`;
+
+            const retryResult = await model.generateContent(constrainedPrompt);
+            const retryDialogue = (retryResult.response.text() || '').trim();
+            const retryClean = retryDialogue
+                .replace(/^(Judge Dissanayake:|Prosecutor:|Defense:|Witness:|Clerk:)\s*/i, '')
+                .replace(/^\[.*?\]:\s*/, '')
+                .replace(/^"/, '')
+                .replace(/"$/, '');
+
+            if (!containsJudgeRulingMarkers(retryClean) && retryClean.length >= 5) {
+                console.log('[OBJECTION_GATE] Constrained regeneration succeeded.');
+                cleanDialogue = retryClean;
+            } else {
+                console.warn('[OBJECTION_GATE] Constrained regeneration still invalid. Applying neutral fallback.');
+                cleanDialogue = 'Counsel, proceed with the next relevant submission. The court will continue with this phase.';
+            }
+        }
+
         // CRITICAL: Ensure we never return empty text
         if (!cleanDialogue || cleanDialogue.length < 5) {
             console.warn('⚠️ Actor returned empty/short response, using fallback');
             return getFallbackResponse(safeRole, finalName);
         }
 
+        console.log(`[OBJECTION_GATE] turn speaker=${safeRole} pendingObjection=${pendingObjection} rulingAllowed=${rulingAllowed} rulingDetected=${containsJudgeRulingMarkers(cleanDialogue)}`);
         console.log(`✅ ACTOR (${safeRole}): ${finalName} responded`);
 
         return {
@@ -556,13 +609,13 @@ NOW RESPOND AS ${finalName}:`;
  */
 export async function generateActorDialogueWithRL(
     speakerRole, speakerName, caseDetails, userMessage,
-    legalContext, history, instruction, sessionId, turnNumber
+    legalContext, history, instruction, sessionId, turnNumber, runtimeState = {}
 ) {
     // Non-RL path: Judge, Witness, Clerk → single generation (no reward loop)
     if (!shouldUseRewardLoop(speakerRole)) {
         const response = await generateActorDialogue(
             speakerRole, speakerName, caseDetails, userMessage,
-            legalContext, history, instruction
+            legalContext, history, instruction, '', runtimeState
         );
         return { response, rewardEntry: null };
     }
@@ -578,7 +631,7 @@ export async function generateActorDialogueWithRL(
     // Define the generation function (called N times by bestOfNSelection)
     const generateFn = () => generateActorDialogue(
         speakerRole, speakerName, caseDetails, userMessage,
-        legalContext, history, instruction, promptAdjustment
+        legalContext, history, instruction, promptAdjustment, runtimeState
     );
 
     // Run Best-of-N selection
@@ -589,7 +642,7 @@ export async function generateActorDialogueWithRL(
         console.warn('[RL ACTOR] Best-of-N failed, falling back to standard generation');
         const fallback = await generateActorDialogue(
             speakerRole, speakerName, caseDetails, userMessage,
-            legalContext, history, instruction
+            legalContext, history, instruction, '', runtimeState
         );
         return { response: fallback, rewardEntry: null };
     }

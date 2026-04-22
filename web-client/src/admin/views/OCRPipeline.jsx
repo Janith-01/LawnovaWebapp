@@ -14,7 +14,7 @@ import {
     TerminalSquare
 } from 'lucide-react';
 
-const API_BASE = '/api';
+const API_BASE = '/api/judgment';
 
 function Terminal({ logs }) {
     const bottomRef = useRef(null);
