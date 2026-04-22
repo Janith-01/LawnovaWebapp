@@ -12,7 +12,7 @@ import {
     BookOpen
 } from 'lucide-react';
 
-const API_BASE = '/api';
+const API_BASE = '/api/judgment';
 
 export default function Acts() {
     // --- State ---

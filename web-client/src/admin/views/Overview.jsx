@@ -10,7 +10,7 @@ import {
     Database, ScanText, LayoutTemplate, Server
 } from 'lucide-react';
 
-const API_BASE = '/api';
+const API_BASE = '/api/judgment';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 

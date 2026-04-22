@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import {
     LayoutDashboard,
@@ -21,7 +21,7 @@ import OCRPipeline from './views/OCRPipeline';
 import SegmentationPipeline from './views/SegmentationPipeline';
 import Overview from './views/Overview';
 
-const API_BASE = '/api';
+const API_BASE = '/api/judgment';
 
 // --- Components ---
 
@@ -165,7 +165,7 @@ const BookIcon = (props) => (
 
 // --- Layout ---
 
-export default function App() {
+export default function AdminConsole() {
     const [view, setView] = useState('overview');
 
     const NavItem = ({ id, label, icon: Icon }) => (
