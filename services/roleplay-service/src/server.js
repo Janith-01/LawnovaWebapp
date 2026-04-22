@@ -23,6 +23,7 @@ import {
 
 const app = express();
 const PORT = process.env.PORT || 10005;
+const HOST = process.env.HOST || '0.0.0.0';
 
 // Create HTTP server (shared between Express + Socket.IO)
 const httpServer = http.createServer(app);
@@ -262,11 +263,11 @@ const startServer = async () => {
             logger.info(`Using model: ${process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite'}`);
         }
 
-        httpServer.listen(PORT, '127.0.0.1', () => {
-            logger.info(`Roleplay Service running on http://127.0.0.1:${PORT}`);
-            logger.info(`Socket.IO server ready on ws://127.0.0.1:${PORT}`);
+        httpServer.listen(PORT, HOST, () => {
+            logger.info(`Roleplay Service running on http://${HOST}:${PORT}`);
+            logger.info(`Socket.IO server ready on ws://${HOST}:${PORT}`);
             logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-            logger.info(`Health check: http://127.0.0.1:${PORT}/health`);
+            logger.info(`Health check: http://${HOST}:${PORT}/health`);
             logger.info(`Autonomous Courtroom Engine: v2.0.0`);
             logger.info(`Jurisdiction: Sri Lankan Law`);
         });
