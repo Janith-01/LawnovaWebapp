@@ -20,6 +20,7 @@ import { initCronJobs } from './services/cronService.js';
 const app = express();
 const httpServer = createServer(app);
 const PORT = process.env.PORT || 3004;
+const HOST = process.env.HOST || '0.0.0.0';
 
 // Security middleware
 app.use(helmet());
@@ -291,10 +292,10 @@ const startServer = async () => {
             next();
         });
 
-        httpServer.listen(PORT, '127.0.0.1', () => {
-            logger.info(`🚀 Mock Trial Service running on http://127.0.0.1:${PORT}`);
+        httpServer.listen(PORT, HOST, () => {
+            logger.info(`🚀 Mock Trial Service running on http://${HOST}:${PORT}`);
             logger.info(`📋 Environment: ${process.env.NODE_ENV || 'development'}`);
-            logger.info(`🔗 Health check: http://127.0.0.1:${PORT}/health`);
+            logger.info(`🔗 Health check: http://${HOST}:${PORT}/health`);
             logger.info(`⚖️  Fair Role Rotation Engine: v1.0.0`);
             logger.info(`🔌 Socket.IO: Enabled`);
         });
