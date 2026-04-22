@@ -1,8 +1,12 @@
 import json
 import re
 
-import google.generativeai as genai
 from jinja2 import Template
+
+try:
+    from google import genai
+except Exception:
+    genai = None
 
 from config import GEMINI_API_KEY, GEMINI_MODEL
 
@@ -25,9 +29,12 @@ def _clean_document_text(text: str) -> str:
 
 
 def _extract_response_text(response) -> str:
-    text = getattr(response, "text", None)
-    if text:
-        return text
+    try:
+        text = getattr(response, "text", None)
+        if text:
+            return text
+    except Exception:
+        pass
 
     fragments = []
     for candidate in getattr(response, "candidates", []) or []:
@@ -220,6 +227,35 @@ def _render_locally(doc_type: str, params: dict, template: str, language: str) -
     return _clean_document_text(rendered)
 
 
+def _get_gemini_client():
+    if not GEMINI_API_KEY or genai is None:
+        return None
+
+    try:
+        return genai.Client(api_key=GEMINI_API_KEY)
+    except Exception:
+        return None
+
+
+def _generate_gemini_draft(prompt: str) -> str:
+    client = _get_gemini_client()
+    if not client:
+        return ""
+
+    try:
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+            config={
+                "temperature": 0.2,
+                "response_mime_type": "text/plain",
+            },
+        )
+        return _clean_document_text(_strip_code_fences(_extract_response_text(response)))
+    except Exception:
+        return ""
+
+
 def draft_document(doc_type: str, params: dict, template: str, language: str) -> str:
     cleaned_params = {
         key: value for key, value in params.items() if not key.startswith("_")
@@ -262,16 +298,8 @@ Instructions:
 - Do not include markdown, explanations, or preambles.
 """.strip()
 
-    if not GEMINI_API_KEY:
-        return _render_locally(doc_type, params, template, language)
-
-    try:
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel(GEMINI_MODEL)
-        response = model.generate_content(prompt)
-        drafted = _clean_document_text(_strip_code_fences(_extract_response_text(response)))
-        if not drafted:
-            return _render_locally(doc_type, params, template, language)
+    drafted = _generate_gemini_draft(prompt)
+    if drafted:
         return drafted
-    except Exception:
-        return _render_locally(doc_type, params, template, language)
+
+    return _render_locally(doc_type, params, template, language)

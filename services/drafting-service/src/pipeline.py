@@ -9,73 +9,228 @@ from src.template_loader import load_template
 from src.validator import validate_fields
 
 
-def _unknown_doc_type_payload(language: str) -> dict:
+def build_response(
+    status: str,
+    message: str,
+    *,
+    doc_type: str | None = None,
+    language: str | None = None,
+    missing_fields: list | None = None,
+    docx_path: str | None = None,
+    pdf_path: str | None = None,
+    drafted_content: str | None = None,
+    error_code: str | None = None,
+    error_details=None,
+) -> dict:
     return {
-        "status": "unknown_doc_type",
-        "message": (
-            "Could not determine document type. Please mention affidavit, contract, "
-            "or petition in your description."
+        "status": status,
+        "message": message,
+        "doc_type": doc_type,
+        "language": language,
+        "missing_fields": missing_fields or [],
+        "docx_path": docx_path,
+        "pdf_path": pdf_path,
+        "drafted_content": drafted_content,
+        "error": (
+            {
+                "code": error_code,
+                "details": error_details,
+            }
+            if error_code
+            else None
         ),
     }
 
 
+def _unknown_doc_type_message() -> str:
+    return (
+        "Could not determine document type. Please mention affidavit, contract, "
+        "or petition in your description."
+    )
+
+
+def _unknown_doc_type_payload(language: str) -> dict:
+    return build_response(
+        status="unknown_doc_type",
+        message=_unknown_doc_type_message(),
+        language=language,
+        missing_fields=["document_type"],
+    )
+
+
+def _pipeline_error_response(
+    message: str,
+    *,
+    doc_type: str | None = None,
+    language: str | None = None,
+    error_code: str = "pipeline_error",
+    error_details=None,
+) -> dict:
+    return build_response(
+        status="error",
+        message=message,
+        doc_type=doc_type,
+        language=language,
+        error_code=error_code,
+        error_details=error_details,
+    )
+
+
 def _extract_entities(user_prompt: str, doc_type: str, language: str) -> dict:
-    if language == "en":
-        return extract_entities_ner(user_prompt, doc_type)
-    return extract_entities_gemini(user_prompt, doc_type)
+    try:
+        if language == "en":
+            entities = extract_entities_ner(user_prompt, doc_type)
+        else:
+            entities = extract_entities_gemini(user_prompt, doc_type)
+        return entities if isinstance(entities, dict) else {}
+    except Exception:
+        return {}
+
+
+def _safe_detect_language(user_prompt: str) -> str:
+    try:
+        language = detect_language(user_prompt)
+        return language if language in {"en", "si"} else "en"
+    except Exception:
+        return "en"
+
+
+def _safe_classify_doc_type(user_prompt: str) -> str:
+    try:
+        doc_type = classify_doc_type(user_prompt)
+        return doc_type if doc_type in {"AFFIDAVIT", "CONTRACT", "PETITION"} else "UNKNOWN"
+    except Exception:
+        return "UNKNOWN"
+
+
+def _safe_resolve_roles(entities: dict, doc_type: str) -> dict:
+    try:
+        resolved = resolve_roles(entities, doc_type)
+        return resolved if isinstance(resolved, dict) else entities
+    except Exception:
+        return entities
 
 
 def run_validation(user_prompt: str) -> dict:
-    language = detect_language(user_prompt)
-    doc_type = classify_doc_type(user_prompt)
-
-    if doc_type == "UNKNOWN":
-        unknown = _unknown_doc_type_payload(language)
-        return {
-            "status": "incomplete",
-            "missing_fields": ["document_type"],
-            "message": unknown["message"],
-        }
-
-    entities = _extract_entities(user_prompt, doc_type, language)
-    entities = resolve_roles(entities, doc_type)
-    validation = validate_fields(doc_type, entities, language)
-    return {
-        "status": validation["status"],
-        "missing_fields": validation["missing_fields"],
-        "message": validation["message"],
-    }
-
-
-def run_pipeline(user_prompt: str) -> dict:
-    language = detect_language(user_prompt)
-    doc_type = classify_doc_type(user_prompt)
+    language = _safe_detect_language(user_prompt)
+    doc_type = _safe_classify_doc_type(user_prompt)
 
     if doc_type == "UNKNOWN":
         return _unknown_doc_type_payload(language)
 
     entities = _extract_entities(user_prompt, doc_type, language)
-    entities = resolve_roles(entities, doc_type)
-    validation = validate_fields(doc_type, entities, language)
+    entities = _safe_resolve_roles(entities, doc_type)
 
-    if validation["status"] == "incomplete":
-        return {
-            "status": "incomplete",
-            "message": validation["message"],
-            "missing_fields": validation["missing_fields"],
-        }
+    try:
+        validation = validate_fields(doc_type, entities, language)
+    except Exception as exc:
+        return _pipeline_error_response(
+            "Unable to validate the provided drafting details at this time.",
+            doc_type=doc_type,
+            language=language,
+            error_code="validation_failed",
+            error_details={"exception": str(exc)},
+        )
 
-    clean_entities = {key: value for key, value in entities.items() if not key.startswith("_")}
-    template = load_template(doc_type, language)
-    drafted = draft_document(doc_type, clean_entities, template, language)
-    docx_path = save_as_docx(drafted, doc_type, language)
-    pdf_path = save_as_pdf(drafted, doc_type, language)
+    message = validation.get("message")
+    if validation.get("status") == "complete" and not message:
+        message = (
+            "All required details are present."
+            if language == "en"
+            else "අවශ්‍ය සියලු තොරතුරු සපයා ඇත."
+        )
 
-    return {
-        "status": "complete",
-        "doc_type": doc_type,
-        "language": language,
-        "docx_path": docx_path,
-        "pdf_path": pdf_path,
-        "drafted_content": drafted,
+    return build_response(
+        status=validation.get("status", "incomplete"),
+        message=message or "Validation could not be completed.",
+        doc_type=doc_type,
+        language=language,
+        missing_fields=validation.get("missing_fields", []),
+    )
+
+
+def run_pipeline(user_prompt: str) -> dict:
+    language = _safe_detect_language(user_prompt)
+    doc_type = _safe_classify_doc_type(user_prompt)
+
+    if doc_type == "UNKNOWN":
+        return _unknown_doc_type_payload(language)
+
+    entities = _extract_entities(user_prompt, doc_type, language)
+    entities = _safe_resolve_roles(entities, doc_type)
+
+    try:
+        validation = validate_fields(doc_type, entities, language)
+    except Exception as exc:
+        return _pipeline_error_response(
+            "Unable to validate the provided drafting details at this time.",
+            doc_type=doc_type,
+            language=language,
+            error_code="validation_failed",
+            error_details={"exception": str(exc)},
+        )
+
+    if validation.get("status") == "incomplete":
+        return build_response(
+            status="incomplete",
+            message=validation.get("message") or "Additional details are required.",
+            doc_type=doc_type,
+            language=language,
+            missing_fields=validation.get("missing_fields", []),
+        )
+
+    clean_entities = {
+        key: value for key, value in entities.items() if not str(key).startswith("_")
     }
+
+    try:
+        template = load_template(doc_type, language)
+    except Exception as exc:
+        return _pipeline_error_response(
+            "Unable to load the document template at this time.",
+            doc_type=doc_type,
+            language=language,
+            error_code="template_load_failed",
+            error_details={"exception": str(exc)},
+        )
+
+    try:
+        drafted = draft_document(doc_type, clean_entities, template, language)
+    except Exception as exc:
+        return _pipeline_error_response(
+            "Unable to draft the document at this time.",
+            doc_type=doc_type,
+            language=language,
+            error_code="draft_generation_failed",
+            error_details={"exception": str(exc)},
+        )
+
+    if not drafted or not drafted.strip():
+        return _pipeline_error_response(
+            "Document drafting did not produce any content.",
+            doc_type=doc_type,
+            language=language,
+            error_code="empty_draft",
+        )
+
+    try:
+        docx_path = save_as_docx(drafted, doc_type, language)
+        pdf_path = save_as_pdf(drafted, doc_type, language)
+    except Exception as exc:
+        return _pipeline_error_response(
+            "Unable to generate the output files at this time.",
+            doc_type=doc_type,
+            language=language,
+            error_code="output_generation_failed",
+            error_details={"exception": str(exc)},
+        )
+
+    return build_response(
+        status="complete",
+        message="Draft generated successfully.",
+        doc_type=doc_type,
+        language=language,
+        docx_path=docx_path,
+        pdf_path=pdf_path,
+        drafted_content=drafted,
+    )

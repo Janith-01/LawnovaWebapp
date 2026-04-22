@@ -3,7 +3,7 @@ langdetect
 jinja2
 python-docx
 reportlab
-google-generativeai
+google-genai
 python-dotenv
 fastapi
 uvicorn

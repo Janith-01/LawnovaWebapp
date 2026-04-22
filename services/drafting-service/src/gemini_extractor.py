@@ -2,7 +2,10 @@ import json
 import re
 from typing import Any, Dict, Optional
 
-import google.generativeai as genai
+try:
+    from google import genai
+except Exception:
+    genai = None
 
 from config import FIELD_LABELS, GEMINI_API_KEY, GEMINI_MODEL, REQUIRED_FIELDS
 
@@ -14,6 +17,16 @@ def _empty_result(doc_type: str) -> dict:
     return {field: None for field in REQUIRED_FIELDS.get(doc_type, [])}
 
 
+def _get_gemini_client():
+    if not GEMINI_API_KEY or genai is None:
+        return None
+
+    try:
+        return genai.Client(api_key=GEMINI_API_KEY)
+    except Exception:
+        return None
+
+
 def _strip_code_fences(raw_text: str) -> str:
     cleaned = raw_text.strip()
     cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
@@ -22,9 +35,12 @@ def _strip_code_fences(raw_text: str) -> str:
 
 
 def _extract_response_text(response) -> str:
-    text = getattr(response, "text", None)
-    if text:
-        return text
+    try:
+        text = getattr(response, "text", None)
+        if text:
+            return text
+    except Exception:
+        pass
 
     fragments = []
     for candidate in getattr(response, "candidates", []) or []:
@@ -107,10 +123,58 @@ def _field_instructions(doc_type: str) -> str:
     return "\n".join(lines)
 
 
+def _response_schema(required_fields: list) -> dict:
+    return {
+        "type": "object",
+        "properties": {
+            field: {
+                "anyOf": [
+                    {"type": "string"},
+                    {"type": "null"},
+                ]
+            }
+            for field in required_fields
+        },
+        "required": required_fields,
+        "additionalProperties": False,
+    }
+
+
+def _request_json_payload(client, prompt: str, required_fields: list) -> Optional[Dict[str, Any]]:
+    attempts = [
+        {
+            "temperature": 0,
+            "response_mime_type": "application/json",
+            "response_schema": _response_schema(required_fields),
+        },
+        {
+            "temperature": 0,
+            "response_mime_type": "application/json",
+        },
+    ]
+
+    for config in attempts:
+        try:
+            response = client.models.generate_content(
+                model=GEMINI_MODEL,
+                contents=prompt,
+                config=config,
+            )
+            payload = _extract_first_json_object(_extract_response_text(response))
+            if payload:
+                return payload
+        except Exception:
+            continue
+
+    return None
+
+
 def extract_entities_gemini(text: str, doc_type: str) -> dict:
     fallback = _empty_result(doc_type)
     required_fields = REQUIRED_FIELDS.get(doc_type)
-    if not required_fields or not GEMINI_API_KEY:
+    client = _get_gemini_client()
+
+    if not required_fields or not client:
         return fallback
 
     prompt = f"""
@@ -146,13 +210,7 @@ Rules for the JSON output:
 """.strip()
 
     try:
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel(GEMINI_MODEL)
-        response = model.generate_content(
-            prompt,
-            generation_config={"temperature": 0},
-        )
-        payload = _extract_first_json_object(_extract_response_text(response))
+        payload = _request_json_payload(client, prompt, required_fields)
         if not payload:
             return fallback
         return _normalize_payload(payload, required_fields)
