@@ -1,0 +1,9 @@
+spacy
+langdetect
+jinja2
+python-docx
+reportlab
+google-generativeai
+python-dotenv
+fastapi
+uvicorn
