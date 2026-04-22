@@ -1,5 +1,5 @@
 services:
-
+ 
   web-client:
     image: ${DOCKERHUB_USERNAME}/lawnova-web-client:latest
     container_name: lawnova-web-client
@@ -8,7 +8,7 @@ services:
     depends_on:
       - api-gateway
     restart: unless-stopped
-
+ 
   api-gateway:
     image: ${DOCKERHUB_USERNAME}/lawnova-api-gateway:latest
     container_name: lawnova-api-gateway
@@ -30,7 +30,7 @@ services:
       - roleplay-service
       - judgment-prediction-service
     restart: unless-stopped
-
+ 
   user-service:
     image: ${DOCKERHUB_USERNAME}/lawnova-user-service:latest
     container_name: lawnova-user-service
@@ -40,7 +40,7 @@ services:
       MONGODB_URI: ${MONGODB_URI}
       JWT_SECRET: ${JWT_SECRET}
     restart: unless-stopped
-
+ 
   ai-service:
     image: ${DOCKERHUB_USERNAME}/lawnova-ai-service:latest
     container_name: lawnova-ai-service
@@ -54,20 +54,21 @@ services:
       PINECONE_INDEX: ${PINECONE_INDEX}
       JWT_SECRET: ${JWT_SECRET}
     restart: unless-stopped
-
+ 
   argument-audit-service:
     image: ${DOCKERHUB_USERNAME}/lawnova-argument-audit-service:latest
     container_name: lawnova-argument-audit-service
     environment:
       PORT: 5001
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      MODEL_PATH: /app/models/LAWNOVA_MODEL_A
       MODEL_A_PATH: /app/models/LAWNOVA_MODEL_A
       MODEL_B_PATH: /app/models/LAWNOVA_MODEL_B_35K
     volumes:
       - /home/ubuntu/lawnova/ml-models/LAWNOVA_MODEL_A:/app/models/LAWNOVA_MODEL_A:ro
       - /home/ubuntu/lawnova/ml-models/LAWNOVA_MODEL_B_35K:/app/models/LAWNOVA_MODEL_B_35K:ro
     restart: unless-stopped
-
+ 
   mocktrial-service:
     image: ${DOCKERHUB_USERNAME}/lawnova-mocktrial-service:latest
     container_name: lawnova-mocktrial-service
@@ -91,7 +92,7 @@ services:
       API_GATEWAY_URL: http://api-gateway:5000
       INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET}
     restart: unless-stopped
-
+ 
   roleplay-service:
     image: ${DOCKERHUB_USERNAME}/lawnova-roleplay-service:latest
     container_name: lawnova-roleplay-service
@@ -105,7 +106,7 @@ services:
     depends_on:
       - argument-audit-service
     restart: unless-stopped
-
+ 
   judgment-prediction-service:
     image: ${DOCKERHUB_USERNAME}/lawnova-judgment-prediction-service:latest
     container_name: lawnova-judgment-prediction-service
@@ -116,7 +117,7 @@ services:
     volumes:
       - /home/ubuntu/lawnova/ml-models/judgment_predictor:/app/models/judgment_predictor:ro
     restart: unless-stopped
-
+ 
 networks:
   default:
     name: lawnova-network
