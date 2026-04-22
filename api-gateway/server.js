@@ -487,6 +487,13 @@ const roleplayServiceProxy = createProxyMiddleware({
     forwardJsonBodyToProxy(proxyReq, req);
     logProxyRequest(req, 'roleplay-service', 10005);
   },
+  onProxyRes: (proxyRes, req, res) => {
+    if (proxyRes.statusCode >= 400) {
+      console.error(`[Gateway] Roleplay Proxy: ${req.method} ${req.originalUrl} → ${proxyRes.statusCode}`);
+    } else {
+      console.log(`[Gateway] Roleplay Proxy: ${req.method} ${req.originalUrl} → ${proxyRes.statusCode}`);
+    }
+  },
   onError: (err, req, res) => {
     console.error('[Gateway] Roleplay Service proxy error:', err.message);
     res.status(503).json({ error: 'Roleplay service unavailable' });
