@@ -56,7 +56,7 @@ def _validate_prompt(prompt: str) -> tuple[str | None, JSONResponse | None]:
         return None, _error_payload(
             "Prompt cannot be empty. Please provide a document description.",
             "empty_prompt",
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             missing_fields=["prompt"],
             details={"minimum_length": MIN_PROMPT_LENGTH},
         )
@@ -65,7 +65,7 @@ def _validate_prompt(prompt: str) -> tuple[str | None, JSONResponse | None]:
         return None, _error_payload(
             "Prompt is too short. Please provide at least 20 characters with meaningful drafting details.",
             "prompt_too_short",
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             missing_fields=["prompt"],
             details={"minimum_length": MIN_PROMPT_LENGTH, "actual_length": length},
         )
@@ -74,7 +74,7 @@ def _validate_prompt(prompt: str) -> tuple[str | None, JSONResponse | None]:
         return None, _error_payload(
             "Prompt is too long. Please limit the prompt to 3000 characters.",
             "prompt_too_long",
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             missing_fields=["prompt"],
             details={"maximum_length": MAX_PROMPT_LENGTH, "actual_length": length},
         )
@@ -93,7 +93,7 @@ async def request_validation_exception_handler(request: Request, exc: RequestVal
     return _error_payload(
         "Invalid request body. Send a JSON object with a 'prompt' string.",
         "invalid_request_body",
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         missing_fields=["prompt"],
         details=exc.errors(),
     )
