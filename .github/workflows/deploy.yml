@@ -11,9 +11,46 @@ env:
 
 jobs:
 
+  detect-changes:
+    name: Detect Changed Services
+    runs-on: ubuntu-latest
+    outputs:
+      web-client: ${{ steps.filter.outputs.web-client }}
+      api-gateway: ${{ steps.filter.outputs.api-gateway }}
+      user-service: ${{ steps.filter.outputs.user-service }}
+      ai-service: ${{ steps.filter.outputs.ai-service }}
+      argument-audit-service: ${{ steps.filter.outputs.argument-audit-service }}
+      mocktrial-service: ${{ steps.filter.outputs.mocktrial-service }}
+      roleplay-service: ${{ steps.filter.outputs.roleplay-service }}
+      judgment-prediction-service: ${{ steps.filter.outputs.judgment-prediction-service }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            web-client:
+              - 'web-client/**'
+            api-gateway:
+              - 'api-gateway/**'
+            user-service:
+              - 'services/user-service/**'
+            ai-service:
+              - 'services/ai-service/**'
+            argument-audit-service:
+              - 'services/roleplay-service/python_backend/**'
+            mocktrial-service:
+              - 'services/mocktrial-service/**'
+            roleplay-service:
+              - 'services/roleplay-service/**'
+              - '!services/roleplay-service/python_backend/**'
+            judgment-prediction-service:
+              - 'services/judgment-prediction-service/**'
+
   build-and-push:
     name: Build & Push Images
     runs-on: ubuntu-latest
+    needs: detect-changes
 
     steps:
       - name: Checkout code
@@ -29,6 +66,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build & push web-client
+        if: ${{ needs.detect-changes.outputs.web-client == 'true' || github.event_name == 'workflow_dispatch' }}
         uses: docker/build-push-action@v5
         with:
           context: ./web-client
@@ -38,6 +76,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build & push api-gateway
+        if: ${{ needs.detect-changes.outputs.api-gateway == 'true' || github.event_name == 'workflow_dispatch' }}
         uses: docker/build-push-action@v5
         with:
           context: ./api-gateway
@@ -47,6 +86,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build & push user-service
+        if: ${{ needs.detect-changes.outputs.user-service == 'true' || github.event_name == 'workflow_dispatch' }}
         uses: docker/build-push-action@v5
         with:
           context: ./services/user-service
@@ -56,6 +96,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build & push ai-service
+        if: ${{ needs.detect-changes.outputs.ai-service == 'true' || github.event_name == 'workflow_dispatch' }}
         uses: docker/build-push-action@v5
         with:
           context: ./services/ai-service
@@ -65,6 +106,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build & push argument-audit-service
+        if: ${{ needs.detect-changes.outputs.argument-audit-service == 'true' || github.event_name == 'workflow_dispatch' }}
         uses: docker/build-push-action@v5
         with:
           context: ./services/roleplay-service/python_backend
@@ -74,6 +116,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build & push mocktrial-service
+        if: ${{ needs.detect-changes.outputs.mocktrial-service == 'true' || github.event_name == 'workflow_dispatch' }}
         uses: docker/build-push-action@v5
         with:
           context: ./services/mocktrial-service
@@ -83,6 +126,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build & push roleplay-service
+        if: ${{ needs.detect-changes.outputs.roleplay-service == 'true' || github.event_name == 'workflow_dispatch' }}
         uses: docker/build-push-action@v5
         with:
           context: ./services/roleplay-service
@@ -92,6 +136,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build & push judgment-prediction-service
+        if: ${{ needs.detect-changes.outputs.judgment-prediction-service == 'true' || github.event_name == 'workflow_dispatch' }}
         uses: docker/build-push-action@v5
         with:
           context: ./services/judgment-prediction-service
