@@ -92,8 +92,7 @@ At minimum include:
 - `GEMINI_API_KEY`
 - `PINECONE_API_KEY`
 - `PINECONE_INDEX`
-- `VIDEOSDK_API_KEY`
-- `VIDEOSDK_SECRET`
+- `DAILY_API_KEY`
 
 `docker-compose.yml` uses `${DOCKERHUB_USERNAME}` in image names.
 

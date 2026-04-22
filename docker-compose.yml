@@ -49,6 +49,7 @@ services:
       PORT: 5008
       MONGODB_URI: ${MONGODB_URI}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      DAILY_API_KEY: ${DAILY_API_KEY}
       PINECONE_API_KEY: ${PINECONE_API_KEY}
       PINECONE_INDEX: ${PINECONE_INDEX}
       JWT_SECRET: ${JWT_SECRET}
@@ -69,8 +70,6 @@ services:
       NODE_ENV: production
       PORT: 10004
       MONGODB_URI: ${MONGODB_URI}
-      VIDEOSDK_API_KEY: ${VIDEOSDK_API_KEY}
-      VIDEOSDK_SECRET: ${VIDEOSDK_SECRET}
       JWT_SECRET: ${JWT_SECRET}
     restart: unless-stopped
 
