@@ -1817,21 +1817,40 @@ async def predict_with_explanation(text: str, case_number: str = None):
         raise HTTPException(status_code=500, detail=f"RAG Error: {str(e)}")
     
     # 3. Generate Explanation
+    explanation = "AI legal explanation is currently unavailable."
+    explanation_status = "unavailable"
+    explanation_message = "Explanation generation failed."
+    can_retry = False
+
     try:
         explainer = get_explainer()
-        explanation = explainer.generate_explanation(
+        explanation_payload = explainer.generate_explanation(
             facts=text,
             predicted_outcome=label,
             confidence=conf_dict,
             context_docs=search_results
         )
-    except Exception as e:
-        explanation = "Error generating explanation."
+
+        if isinstance(explanation_payload, dict):
+            explanation = explanation_payload.get("text") or explanation
+            explanation_status = explanation_payload.get("status") or explanation_status
+            explanation_message = explanation_payload.get("message") or explanation_message
+            can_retry = bool(explanation_payload.get("can_retry", False))
+        elif isinstance(explanation_payload, str) and explanation_payload.strip():
+            explanation = explanation_payload
+            explanation_status = "generated"
+            explanation_message = None
+            can_retry = False
+    except Exception:
+        logger.exception("Failed to generate explanation")
     
     return {
         "prediction": label,
         "confidence": conf_dict,
         "explanation": explanation,
+        "explanation_status": explanation_status,
+        "explanation_message": explanation_message,
+        "can_retry": can_retry,
         "citing_documents": [res['id'] for res in search_results]
     }
 
