@@ -15,7 +15,7 @@ let notificationsSocket: Socket | null = null;
 
 function getSocketBaseUrl(): string {
   const viteEnv = (import.meta as any)?.env || {};
-  return viteEnv.VITE_SOCKET_BASE_URL || 'http://localhost:5000';
+  return viteEnv.VITE_SOCKET_BASE_URL || window.location.origin;
 }
 
 export function getLobbySocket(): Socket {
@@ -163,3 +163,4 @@ export function subscribeToSessions(sessionIds: string[]): void {
 
 // Back-compat export (avoid breaking older imports)
 export { lobbySocket, notificationsSocket };
+

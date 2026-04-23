@@ -4,7 +4,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from google import genai
 from google.genai import errors as genai_errors
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception
 
 # Explicitly load .env from the service root
 env_path = Path(__file__).resolve().parents[2] / ".env"
@@ -19,6 +19,34 @@ FALLBACK_MODELS = [
     "gemini-2.5-flash-lite",
     "gemini-2.0-flash-001",
 ]
+
+FALLBACK_EXPLANATION_TEXT = (
+    "AI legal explanation is temporarily unavailable due to high model demand. "
+    "Your prediction result is still valid. Please retry in a moment."
+)
+
+RETRYABLE_ERROR_MARKERS = (
+    "503",
+    "UNAVAILABLE",
+    "RESOURCE_EXHAUSTED",
+    "429",
+    "RATE_LIMIT",
+    "DEADLINE_EXCEEDED",
+    "TIMEOUT",
+    "INTERNAL",
+)
+
+
+def _is_retryable_error_message(error: Exception) -> bool:
+    message = str(error).upper()
+    return any(marker in message for marker in RETRYABLE_ERROR_MARKERS)
+
+
+def _is_retryable_exception(error: Exception) -> bool:
+    if isinstance(error, (genai_errors.ClientError, genai_errors.ServerError)):
+        return _is_retryable_error_message(error)
+    return _is_retryable_error_message(error)
+
 
 class GeminiExplainer:
     def __init__(self, model_id: str = None):
@@ -36,13 +64,13 @@ class GeminiExplainer:
                 self.client = None
 
     @retry(
-        retry=retry_if_exception_type((genai_errors.ClientError,)),
-        wait=wait_exponential(multiplier=2, min=4, max=60),
+        retry=retry_if_exception(_is_retryable_exception),
+        wait=wait_exponential(multiplier=1, min=1, max=4),
         stop=stop_after_attempt(3),
         reraise=True,
     )
     def _call_model(self, prompt: str) -> str:
-        """Inner method — only handles the API call so @retry is scoped correctly."""
+        """Inner method - only handles the API call so @retry is scoped correctly."""
         response = self.client.models.generate_content(
             model=self.model_id,
             contents=prompt
@@ -55,16 +83,24 @@ class GeminiExplainer:
         predicted_outcome: str,
         confidence: dict,
         context_docs: list
-    ) -> str:
+    ) -> dict:
         if not self.client:
-            return "Explanation unavailable (Model not configured)."
+            return {
+                "text": "Explanation unavailable (model not configured).",
+                "status": "unavailable",
+                "message": "Explanation model is not configured on the server.",
+                "can_retry": False,
+            }
 
         formatted_context = "\n".join([
             f"[{i+1}] {doc.get('metadata', {}).get('title', 'Ref')}: {doc.get('text', '')[:400]}"
             for i, doc in enumerate(context_docs)
         ])
 
-        confidence_score = confidence.get("score", 1.0)
+        confidence_score = max(
+            confidence.get("dismissed", 0),
+            confidence.get("allowed", 0),
+        )
         caution_note = (
             "\n- CAUTION: This prediction is based on weak legal parallels."
             if isinstance(confidence_score, (int, float)) and confidence_score < 0.6
@@ -73,7 +109,7 @@ class GeminiExplainer:
 
         prompt = f"""
         ROLE: Sri Lankan Judicial Assistant (AI).
-        PREDICTION: {predicted_outcome} (Confidence: {confidence_score})
+        PREDICTION: {predicted_outcome} (Confidence: {confidence_score:.2f})
 
         CASE FACTS:
         {facts[:1500]}
@@ -87,20 +123,59 @@ class GeminiExplainer:
         - Focus on Jurisdictional or Procedural rules first.
         """
 
+        had_retryable_failure = False
+        had_non_retryable_failure = False
+
         # Try each model in the fallback chain
         for model in FALLBACK_MODELS:
             self.model_id = model
             try:
                 logger.info(f"Attempting with model: {model}")
-                return self._call_model(prompt)
+                explanation_text = self._call_model(prompt)
+                if explanation_text and explanation_text.strip():
+                    return {
+                        "text": explanation_text,
+                        "status": "generated",
+                        "message": None,
+                        "can_retry": False,
+                    }
+                raise RuntimeError("Gemini returned an empty explanation response.")
             except (genai_errors.ClientError, genai_errors.ServerError) as e:
-                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
-                    logger.warning(f"Quota exhausted for {model}, trying next model...")
+                if _is_retryable_exception(e):
+                    had_retryable_failure = True
+                    logger.warning(f"Retryable Gemini issue for {model}: {e}")
                     continue
-                logger.error(f"Gemini API error with {model}: {e}")
-                return f"Error generating explanation: {str(e)}"
+                had_non_retryable_failure = True
+                logger.error(f"Non-retryable Gemini API error with {model}: {e}")
+                break
             except Exception as e:
-                logger.error(f"Unexpected Gemini error with {model}: {e}")
-                return f"Error generating explanation: {str(e)}"
+                if _is_retryable_exception(e):
+                    had_retryable_failure = True
+                    logger.warning(f"Retryable unexpected Gemini issue for {model}: {e}")
+                    continue
+                had_non_retryable_failure = True
+                logger.error(f"Unexpected non-retryable Gemini error with {model}: {e}")
+                break
 
-        return "Explanation unavailable: All models have exceeded their quota. Please check your billing at https://ai.dev/rate-limit."
+        if had_retryable_failure:
+            return {
+                "text": FALLBACK_EXPLANATION_TEXT,
+                "status": "fallback",
+                "message": "Explanation generation is temporarily rate-limited or unavailable.",
+                "can_retry": True,
+            }
+
+        if had_non_retryable_failure:
+            return {
+                "text": "AI legal explanation is currently unavailable.",
+                "status": "unavailable",
+                "message": "Explanation generation failed due to a non-retryable provider error.",
+                "can_retry": False,
+            }
+
+        return {
+            "text": "AI legal explanation is currently unavailable.",
+            "status": "unavailable",
+            "message": "Explanation model did not return a valid response.",
+            "can_retry": False,
+        }

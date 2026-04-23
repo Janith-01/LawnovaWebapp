@@ -19,7 +19,12 @@ import CourtroomTimer from '@/components/courtroom/CourtroomTimer';
 import { useAuth } from '@/context/AuthContext';
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_API_URL || window.location.origin;
+
+const isSecureBrowserContext = () => {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return true;
+    return window.isSecureContext === true;
+};
 
 // ============================================
 // COURTROOM INTERFACE COMPONENT
@@ -161,6 +166,22 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
         if (!daily || !token) return;
 
         try {
+            if (!isSecureBrowserContext()) {
+                const msg = 'Camera/mic and WebRTC require HTTPS in production. Open this app via an HTTPS domain.';
+                console.error('[Courtroom] Insecure context detected:', window.location.origin);
+                setError(msg);
+                toast.error(msg, { duration: 7000 });
+                return;
+            }
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                const msg = 'This browser does not support media devices for WebRTC sessions.';
+                console.error('[Courtroom] mediaDevices API unavailable');
+                setError(msg);
+                toast.error(msg, { duration: 7000 });
+                return;
+            }
+
             setIsJoining(true);
             // REQUIREMENT: Muted Join to prevent NotAllowedError
             await daily.join({
@@ -189,8 +210,9 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
 
     // Socket.io listener for session completion
     useEffect(() => {
+        const socketAuthToken = localStorage.getItem('accessToken');
         const socket = io(SOCKET_URL, {
-            auth: { token: roomInfo?.token },
+            auth: { token: socketAuthToken },
             transports: ['websocket', 'polling']
         });
 
@@ -201,7 +223,10 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
 
         // Resilience: log socket failures so they are visible in devtools
         socket.on('connect_error', (err) => {
-            console.warn('[Courtroom] Socket connection error — fallback polling active:', err.message);
+            console.warn('[Courtroom] Socket connection error - fallback polling active:', err.message);
+            if (err.message?.toLowerCase().includes('authentication')) {
+                toast.warning('Realtime sync needs valid login token. Please re-login if this keeps happening.');
+            }
         });
 
         // TIME_INFLATED is handled by CourtroomTimer via Daily.co (single source of truth)
@@ -248,7 +273,7 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
             socket.emit('leave:room', { roomId });
             socket.disconnect();
         };
-    }, [roomId, daily, navigate, roomInfo?.token]);
+    }, [roomId, daily, navigate]);
 
     // Track fullscreen state changes
     useEffect(() => {
@@ -267,6 +292,20 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
 
     // REQUIREMENT: User Activation with Permission Fallback
     const enterCourtroom = async () => {
+        if (!isSecureBrowserContext()) {
+            toast.error('Camera/mic access requires HTTPS on mobile browsers. Please use an HTTPS URL for this site.', {
+                duration: 7000,
+            });
+            setIsActive(true); // continue in observer mode
+            return;
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            toast.error('This browser cannot access camera/microphone APIs. Joined as observer mode.');
+            setIsActive(true);
+            return;
+        }
+
         // First, check if browser permissions are available at all
         let hasMediaPerms = false;
 
@@ -881,3 +920,5 @@ const CourtroomPage = () => {
 };
 
 export default CourtroomPage;
+
+

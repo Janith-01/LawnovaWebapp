@@ -94,8 +94,22 @@ export const deactivateAccountController = async (req, res, next) => {
  */
 export const searchUsers = async (req, res, next) => {
   try {
-    const { q = '', type = 'all', limit = 20 } = req.query;
+    const { q = '', type = 'all', limit = 20, excludeEmails = '' } = req.query;
     const currentUserId = req.headers['user-id'] || req.user?.id;
+    const normalizedQuery = String(q).trim();
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 50);
+
+    // Avoid returning broad user lists when no meaningful search term is provided.
+    if (normalizedQuery.length < 2) {
+      return res.status(200).json(successResponse({ users: [] }));
+    }
+
+    const excludedEmailList = Array.isArray(excludeEmails)
+      ? excludeEmails
+      : String(excludeEmails)
+        .split(',')
+        .map((value) => value.trim().toLowerCase())
+        .filter(Boolean);
 
     // Build search query
     const searchQuery = {
@@ -108,13 +122,11 @@ export const searchUsers = async (req, res, next) => {
     }
 
     // Add text search
-    if (q && q.length >= 2) {
-      searchQuery.$or = [
-        { fullName: { $regex: q, $options: 'i' } },
-        { email: { $regex: q, $options: 'i' } },
-        { 'profile.department': { $regex: q, $options: 'i' } },
-      ];
-    }
+    searchQuery.$or = [
+      { fullName: { $regex: normalizedQuery, $options: 'i' } },
+      { email: { $regex: normalizedQuery, $options: 'i' } },
+      { 'profile.department': { $regex: normalizedQuery, $options: 'i' } },
+    ];
 
     // Filter by role type
     if (type === 'student') {
@@ -123,9 +135,13 @@ export const searchUsers = async (req, res, next) => {
       searchQuery.role = { $in: ['admin', 'faculty'] };
     }
 
+    if (excludedEmailList.length > 0) {
+      searchQuery.email = { $nin: excludedEmailList };
+    }
+
     const users = await User.find(searchQuery)
       .select('email fullName profile role mockTrialProfile')
-      .limit(parseInt(limit))
+      .limit(parsedLimit)
       .sort({ fullName: 1 })
       .lean();
 

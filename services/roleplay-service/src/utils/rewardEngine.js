@@ -21,7 +21,8 @@
 import axios from 'axios';
 
 // --- Configuration ---
-const AUDIT_ENGINE_URL = 'http://127.0.0.1:5009/api/audit-transcript';
+const AUDIT_BASE_URL = process.env.AUDIT_SERVICE_URL || 'http://argument-audit-service:5001';
+const AUDIT_ENGINE_URL = `${AUDIT_BASE_URL}/api/audit-transcript`;
 const NUM_CANDIDATES = 3;
 const REWARD_HISTORY_WINDOW = 5;  // Track last N reward scores for prompt adjustment
 

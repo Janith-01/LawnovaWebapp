@@ -20,7 +20,7 @@ app = Flask(__name__)
 CORS(app)
 
 # --- Configuration (Senior ML v2.2) ---
-MODEL_PATH = r"D:\RE\LawnovaWebapp\LAWNOVA_FINAL_BRAIN_v1\checkpoint-396"
+MODEL_PATH = os.environ.get("MODEL_PATH", "/app/model/checkpoint-396")
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 MAINTENANCE_MODE = False
 
@@ -196,4 +196,4 @@ def predict():
         return jsonify({"status": "success", "win_probability": 50.0})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5002)
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", "5001")))

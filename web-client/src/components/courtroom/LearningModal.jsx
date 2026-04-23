@@ -11,7 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import { toast } from 'sonner';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_API_URL || window.location.origin;
 
 const LearningModal = ({ roomId, isOpen, onClose }) => {
     const { token, user } = useAuth();
@@ -466,3 +466,4 @@ const QuizView = ({ question, index, total, selectedAnswer, showResult, quizComp
 };
 
 export default LearningModal;
+

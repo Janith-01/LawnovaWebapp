@@ -10,7 +10,7 @@ import { io } from 'socket.io-client';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_API_URL || window.location.origin;
 
 // ============================================
 // MOCK LEARNING DATA (Until RAG is connected)
@@ -712,3 +712,4 @@ const QuizPanel = ({
 };
 
 export default LearningPopup;
+

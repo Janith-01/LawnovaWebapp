@@ -135,9 +135,9 @@ $RECYCLE.BIN/
 # ========================
 # DOCKER
 # ========================
-# Keep Dockerfiles and compose files if you have them,
-# but ignore temp Docker data
-*.dockerignore
+# Keep Docker metadata tracked
+!.dockerignore
+!**/.dockerignore
 
 # ========================
 # TEMP & SCRATCH

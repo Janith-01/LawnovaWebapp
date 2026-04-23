@@ -16,8 +16,8 @@ app = Flask(__name__)
 CORS(app)
 
 # --- Configuration (Dual Model Audit Engine v3.0) ---
-MODEL_A_PATH = r"D:\RE\LawnovaWebapp\ML MODELS\LAWNOVA_MODEL_A"
-MODEL_B_PATH = r"D:\RE\LawnovaWebapp\ML MODELS\LAWNOVA_MODEL_B_35K"
+MODEL_A_PATH = os.environ.get("MODEL_A_PATH", "/app/models/LAWNOVA_MODEL_A")
+MODEL_B_PATH = os.environ.get("MODEL_B_PATH", "/app/models/LAWNOVA_MODEL_B_35K")
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 print(f"[AUDIT] Initializing Dual-Model Engine on {DEVICE}...")
