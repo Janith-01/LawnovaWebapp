@@ -42,6 +42,18 @@ const TokenManager = {
 let isRefreshing = false;
 let failedQueue = [];
 
+const isPublicAuthEndpoint = (url = '') => {
+  const publicAuthPaths = [
+    '/auth/login',
+    '/auth/register',
+    '/auth/refresh',
+    '/auth/forgot-password',
+    '/auth/reset-password',
+  ];
+
+  return publicAuthPaths.some((path) => url.includes(path));
+};
+
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
@@ -56,14 +68,19 @@ const processQueue = (error, token = null) => {
 // Request interceptor - Add auth header
 api.interceptors.request.use(
   (config) => {
+    const isPublicAuthRequest = isPublicAuthEndpoint(config.url);
     const token = TokenManager.getAccessToken();
-    console.log(`[API Interceptor] Token for ${config.url}:`, token ? 'Found' : 'NOT FOUND');
-    if (token) {
+
+    if (token && !isPublicAuthRequest) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-
     if (import.meta.env.DEV) {
+      if (isPublicAuthRequest) {
+        console.log(`[API] ${config.method?.toUpperCase()} ${config.url} (public auth request)`);
+      } else {
+        console.log(`[API Interceptor] Token for ${config.url}:`, token ? 'Found' : 'NOT FOUND');
+      }
       console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
     }
 
@@ -94,9 +111,7 @@ api.interceptors.response.use(
     // If error is 401 and we haven't tried to refresh yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Don't refresh for auth endpoints
-      if (originalRequest.url?.includes('/auth/login') ||
-        originalRequest.url?.includes('/auth/register') ||
-        originalRequest.url?.includes('/auth/refresh')) {
+      if (isPublicAuthEndpoint(originalRequest.url)) {
         return Promise.reject(error);
       }
 

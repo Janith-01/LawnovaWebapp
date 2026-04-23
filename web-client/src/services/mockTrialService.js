@@ -201,9 +201,14 @@ const mockTrialService = {
      * @param {string} type - Filter type (all, student, faculty)
      * @param {number} limit - Max results
      */
-    searchUsers: async (query = '', type = 'all', limit = 20) => {
+    searchUsers: async (query = '', type = 'all', limit = 20, excludeEmails = []) => {
+        const params = { q: query, type, limit };
+        if (excludeEmails.length > 0) {
+            params.excludeEmails = excludeEmails.join(',');
+        }
+
         const response = await api.get('/api/users/search', {
-            params: { q: query, type, limit }
+            params,
         });
         return response.data;
     },
