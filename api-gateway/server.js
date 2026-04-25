@@ -576,7 +576,47 @@ const judgmentServiceProxy = createProxyMiddleware({
 });
 
 app.use('/api/judgment', judgmentServiceProxy);
-app.use('/api/drafting', createProxyMiddleware({ target: 'http://localhost:8001', changeOrigin: true }));
+const draftingServiceProxy = createProxyMiddleware({
+  target: 'http://localhost:8001',
+  changeOrigin: true,
+  pathRewrite: (path, req) => {
+    const original = req.originalUrl || path;
+    if (original.startsWith('/api/drafting')) return original.replace(/^\/api\/drafting/, '');
+    return path;
+  },
+  onProxyReq: (proxyReq, req, res) => {
+    // Forward auth token from cookie if present
+    const cookieToken = req.cookies?.access_token;
+    if (!req.headers.authorization && cookieToken) {
+      proxyReq.setHeader('Authorization', `Bearer ${cookieToken}`);
+    }
+
+    // Inject auth headers from JWT
+    if (req.user) {
+      proxyReq.setHeader('user-id', req.user.id);
+      proxyReq.setHeader('user-role', req.user.role);
+      if (req.user.email) {
+        proxyReq.setHeader('user-email', req.user.email);
+      }
+    }
+
+    forwardJsonBodyToProxy(proxyReq, req);
+    logProxyRequest(req, 'drafting-service', 8001);
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    if (proxyRes.statusCode >= 400) {
+      console.error(`[Gateway] Drafting Proxy: ${req.method} ${req.originalUrl} â†’ ${proxyRes.statusCode}`);
+    } else {
+      console.log(`[Gateway] Drafting Proxy: ${req.method} ${req.originalUrl} â†’ ${proxyRes.statusCode}`);
+    }
+  },
+  onError: (err, req, res) => {
+    console.error('[Gateway] Drafting Service proxy error:', err.message);
+    res.status(503).json({ error: 'Drafting service unavailable', details: err.message });
+  },
+});
+
+app.use('/api/drafting', draftingServiceProxy);
 
 // Health check endpoints
 app.get('/health', (req, res) => {

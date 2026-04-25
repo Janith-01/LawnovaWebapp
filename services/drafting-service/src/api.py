@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -88,6 +88,20 @@ def _status_code_for_payload(payload: dict) -> int:
     return status.HTTP_200_OK
 
 
+def require_authenticated_user_id(user_id: str | None = Header(default=None, alias="user-id")) -> str:
+    normalized_user_id = (user_id or "").strip()
+    if not normalized_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "message": "Authentication required. Missing gateway user context.",
+                "error_code": "authentication_required",
+                "details": {"missing_header": "user-id"},
+            },
+        )
+    return normalized_user_id
+
+
 @app.exception_handler(RequestValidationError)
 async def request_validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     return _error_payload(
@@ -101,12 +115,20 @@ async def request_validation_exception_handler(request: Request, exc: RequestVal
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
-    message = exc.detail if isinstance(exc.detail, str) else "The request could not be processed."
+    detail = exc.detail
+    if isinstance(detail, dict):
+        message = detail.get("message") or "The request could not be processed."
+        error_code = detail.get("error_code", "http_error")
+        details = detail.get("details", detail)
+    else:
+        message = detail if isinstance(detail, str) else "The request could not be processed."
+        error_code = "http_error"
+        details = detail
     return _error_payload(
         message,
-        "http_error",
+        error_code,
         status_code=exc.status_code,
-        details=exc.detail,
+        details=details,
     )
 
 
@@ -121,20 +143,22 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 
 
 @app.post("/draft")
-def draft(payload: PromptRequest):
+def draft(payload: PromptRequest, authenticated_user_id: str = Depends(require_authenticated_user_id)):
     prompt, error_response = _validate_prompt(payload.prompt)
     if error_response:
         return error_response
 
     result = run_pipeline(prompt)
+    result["user_id"] = authenticated_user_id
     return _json_payload_response(result, status_code=_status_code_for_payload(result))
 
 
 @app.post("/validate")
-def validate(payload: PromptRequest):
+def validate(payload: PromptRequest, authenticated_user_id: str = Depends(require_authenticated_user_id)):
     prompt, error_response = _validate_prompt(payload.prompt)
     if error_response:
         return error_response
 
     result = run_validation(prompt)
+    result["user_id"] = authenticated_user_id
     return _json_payload_response(result, status_code=_status_code_for_payload(result))
