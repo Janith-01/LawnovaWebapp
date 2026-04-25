@@ -1,0 +1,337 @@
+[
+    {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Sunshine Garments Ltd",
+      "party_b": "Roshan Perera",
+      "contract_purpose": "Tailoring services for garment production",
+      "obligations_a": "Provide raw materials to the contractor",
+      "obligations_b": "Deliver 500 completed garments monthly",
+      "payment_terms": "Rs. 150,000 per month",
+      "start_date": "2024-02-01",
+      "end_date": "2025-01-31",
+      "jurisdiction": "Colombo"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Nimal Fernando",
+      "party_b": "Saman Builders Pvt Ltd",
+      "contract_purpose": "Construction of a residential house at Nugegoda",
+      "obligations_a": "Provide approved building plans and clear the site",
+      "obligations_b": "Complete construction to agreed specifications",
+      "payment_terms": null,
+      "start_date": "2024-03-01",
+      "end_date": "2025-03-01",
+      "jurisdiction": "Colombo"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["payment_terms"]
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Kamala Wijesinghe",
+      "party_b": "Pradeep Jayasuriya",
+      "contract_purpose": "Rental of property at 45 Galle Road, Colombo 03",
+      "obligations_a": "Maintain the property in habitable condition",
+      "obligations_b": "Pay rent on time and not sublet",
+      "payment_terms": "Rs. 65,000 per month",
+      "start_date": "2024-03-01",
+      "end_date": "2025-02-28",
+      "jurisdiction": "Colombo"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Lanka Web Solutions",
+      "party_b": null,
+      "contract_purpose": "Website design and maintenance services",
+      "obligations_a": "Design and maintain the website",
+      "obligations_b": "Provide branding materials and timely feedback",
+      "payment_terms": "Rs. 120,000 upfront and Rs. 20,000 monthly",
+      "start_date": "2024-04-15",
+      "end_date": "2025-04-14",
+      "jurisdiction": "Colombo"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["party_b"]
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Dilmah Exports Ltd",
+      "party_b": "Thilini Rathnayake",
+      "contract_purpose": "Employment as export documentation officer",
+      "obligations_a": "Provide salary, EPF, ETF and leave entitlements",
+      "obligations_b": "Perform assigned duties and maintain confidentiality",
+      "payment_terms": "Rs. 85,000 per month",
+      "start_date": "2024-05-01",
+      "end_date": "2026-04-30",
+      "jurisdiction": "Gampaha"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Ajith Kumara",
+      "party_b": "Nalika de Silva",
+      "contract_purpose": "Sale of Toyota Prius bearing registration WP KA 2345",
+      "obligations_a": null,
+      "obligations_b": "Accept the vehicle as inspected",
+      "payment_terms": "Rs. 6,200,000 payable in full on delivery",
+      "start_date": "2024-01-20",
+      "end_date": null,
+      "jurisdiction": "Kandy"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["obligations_a", "end_date"]
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Chathura Bandara",
+      "party_b": "Pixel Studio Pvt Ltd",
+      "contract_purpose": "Freelance logo design services",
+      "obligations_a": "Design 10 logo concepts and deliver final files within 14 days of approval",
+      "obligations_b": "Provide the brand brief and approve designs",
+      "payment_terms": "Rs. 75,000 upon final delivery",
+      "start_date": "2024-02-10",
+      "end_date": "2024-03-10",
+      "jurisdiction": "Colombo"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Mahaweli Farms Ltd",
+      "party_b": "Fresh Produce Distributors",
+      "contract_purpose": "Weekly supply of fresh vegetables",
+      "obligations_a": "Supply 2000 kg of fresh vegetables weekly meeting food safety standards",
+      "obligations_b": null,
+      "payment_terms": "Rs. 180,000 per week",
+      "start_date": "2024-06-01",
+      "end_date": "2025-05-31",
+      "jurisdiction": null
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["obligations_b", "jurisdiction"]
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Samantha Perera",
+      "party_b": "Ruwan Jayawardena",
+      "contract_purpose": "Lease of shop at No. 12 Main Street, Negombo",
+      "obligations_a": "Keep the premises structurally sound",
+      "obligations_b": "Use the shop only for retail trade and pay rent promptly",
+      "payment_terms": "Rs. 45,000 per month",
+      "start_date": "2024-04-01",
+      "end_date": "2027-03-31",
+      "jurisdiction": "Gampaha"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Hemas Hospital Pvt Ltd",
+      "party_b": "Guardian Security Services",
+      "contract_purpose": "Security services for hospital premises",
+      "obligations_a": "Provide access and workspace for security personnel",
+      "obligations_b": "Deploy 12 trained guards on 24-hour rotation",
+      "payment_terms": null,
+      "start_date": null,
+      "end_date": "2025-06-30",
+      "jurisdiction": "Colombo"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["payment_terms", "start_date"]
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Lakshman de Mel",
+      "party_b": "Kithsiri Silva",
+      "contract_purpose": "Renovation of house in Galle",
+      "obligations_a": "Pay according to milestones and provide access to the property",
+      "obligations_b": "Complete renovation in 6 months without subcontracting",
+      "payment_terms": "Rs. 3,200,000 in 4 equal parts",
+      "start_date": "2024-03-15",
+      "end_date": "2024-09-14",
+      "jurisdiction": "Galle"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "TechMinds Lanka",
+      "party_b": "National Savings Bank",
+      "contract_purpose": "Core banking software upgrade and staff training",
+      "obligations_a": null,
+      "obligations_b": "Provide server access and appoint a project liaison",
+      "payment_terms": "Rs. 4,500,000 payable in three tranches",
+      "start_date": "2024-05-01",
+      "end_date": "2024-11-30",
+      "jurisdiction": "Colombo"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["obligations_a"]
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Spice Garden Catering",
+      "party_b": "Colombo Cricket Club",
+      "contract_purpose": "Catering services for all home cricket matches",
+      "obligations_a": "Provide food and beverages including setup and cleanup",
+      "obligations_b": "Confirm match schedules 14 days in advance",
+      "payment_terms": "Rs. 95,000 per match day",
+      "start_date": "2024-01-01",
+      "end_date": "2024-12-31",
+      "jurisdiction": "Colombo"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Podina Dissanayake",
+      "party_b": "Agro Lanka Pvt Ltd",
+      "contract_purpose": "Lease of 3 acres of paddy land in Polonnaruwa",
+      "obligations_a": "Grant cultivation rights for the land",
+      "obligations_b": "Maintain the land and share 20% of annual harvest",
+      "payment_terms": "Rs. 120,000 per year",
+      "start_date": "2024-04-15",
+      "end_date": "2029-04-14",
+      "jurisdiction": null
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["jurisdiction"]
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Colombo Port Authority",
+      "party_b": "Nippon Shipping Agents",
+      "contract_purpose": "Port services and cargo coordination for shipping agents",
+      "obligations_a": "Provide berthing facilities and port services",
+      "obligations_b": "Handle customs documentation and cargo coordination",
+      "payment_terms": "USD 2,500 per vessel call",
+      "start_date": "2024-06-01",
+      "end_date": "2025-05-31",
+      "jurisdiction": "Colombo"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Thilak Garment Factory",
+      "party_b": "Manel Kumari",
+      "contract_purpose": "Employment as sewing machine operator",
+      "obligations_a": "Pay salary, EPF and ETF and provide a safe workplace",
+      "obligations_b": "Operate sewing machines and meet daily production targets",
+      "payment_terms": "Rs. 42,000 per month",
+      "start_date": null,
+      "end_date": "2026-03-31",
+      "jurisdiction": "Colombo"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["start_date"]
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "ByteWave Solutions",
+      "party_b": "Seylan Bank Ltd",
+      "contract_purpose": "Mobile banking application development",
+      "obligations_a": "Develop mobile banking app and deliver within agreed milestones",
+      "obligations_b": "Provide API documentation and testing environment",
+      "payment_terms": "Rs. 12,000,000 in milestone-based installments",
+      "start_date": "2024-07-01",
+      "end_date": "2025-06-30",
+      "jurisdiction": "Colombo"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Nirosha Amarasinghe",
+      "party_b": null,
+      "contract_purpose": "Urban planning consultancy services",
+      "obligations_a": "Provide consultancy and submit monthly progress reports",
+      "obligations_b": null,
+      "payment_terms": "Rs. 150,000 per month",
+      "start_date": "2024-05-01",
+      "end_date": "2024-10-31",
+      "jurisdiction": "Colombo"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["party_b", "obligations_b"]
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Tropical Beverages Lanka",
+      "party_b": "Kandy Supermart Ltd",
+      "contract_purpose": "Distribution agreement for fruit juice products",
+      "obligations_a": "Supply fruit juices at agreed wholesale prices and maintain stock levels",
+      "obligations_b": "Display products prominently and settle invoices within 30 days",
+      "payment_terms": "Rs. 500,000 maximum outstanding credit",
+      "start_date": "2024-01-01",
+      "end_date": "2024-12-31",
+      "jurisdiction": "Kandy"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "CONTRACT",
+    "extracted_params": {
+      "party_a": "Nipuna Storage Solutions",
+      "party_b": "Lanka Exports Pvt Ltd",
+      "contract_purpose": "Warehouse lease for storage of export goods",
+      "obligations_a": "Provide 5000 sq ft temperature-controlled warehouse with loading dock",
+      "obligations_b": "Use space only for storage of export goods",
+      "payment_terms": null,
+      "start_date": "2024-04-01",
+      "end_date": "2027-03-31",
+      "jurisdiction": "Gampaha"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["payment_terms"]
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Kamal Perera",
+      "petitioner_nic": "197834512345",
+      "petitioner_address": "12 Flower Road, Colombo 07",
+      "respondent_name": "Officer in Charge, Kollupitiya Police Station",
+      "court_name": "Supreme Court of Sri Lanka",
+      "subject_matter": "Unlawful detention for 48 hours without producing before a magistrate",
+      "relief_sought": "Declaration of rights violation under Article 13 and compensation of Rs. 500,000",
+      "date": "2024-02-15"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  }
+]
