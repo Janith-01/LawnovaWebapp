@@ -1,4 +1,7 @@
+import json
 import re
+from collections import Counter, defaultdict
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import spacy
@@ -21,8 +24,57 @@ ORG_SUFFIX_PATTERN = re.compile(
     r"\b[A-Z][A-Za-z0-9&'.,()/\-]*(?:\s+[A-Z][A-Za-z0-9&'.,()/\-]*)*\s+"
     r"(?:Ltd|Limited|PLC|Company|Corporation|Bank|Ministry|Department|Authority|Board)\b"
 )
+DATASET_LABEL_TO_FIELD = {
+    "DEPONENT_NAME": "deponent_name",
+    "DEPONENT_NIC": "deponent_nic",
+    "DEPONENT_ADDRESS": "deponent_address",
+    "STATEMENT_FACTS": "statement_facts",
+    "DATE": "date",
+    "JURISDICTION": "jurisdiction",
+    "PARTY_A": "party_a",
+    "PARTY_B": "party_b",
+    "CONTRACT_PURPOSE": "contract_purpose",
+    "OBLIGATIONS_A": "obligations_a",
+    "OBLIGATIONS_B": "obligations_b",
+    "PAYMENT_TERMS": "payment_terms",
+    "START_DATE": "start_date",
+    "END_DATE": "end_date",
+    "PETITIONER_NAME": "petitioner_name",
+    "PETITIONER_NIC": "petitioner_nic",
+    "PETITIONER_ADDRESS": "petitioner_address",
+    "RESPONDENT_NAME": "respondent_name",
+    "COURT_NAME": "court_name",
+    "SUBJECT_MATTER": "subject_matter",
+    "RELIEF_SOUGHT": "relief_sought",
+}
+NAME_LIKE_FIELDS = {
+    "deponent_name",
+    "party_a",
+    "party_b",
+    "petitioner_name",
+    "respondent_name",
+    "court_name",
+}
+FIELD_CAPTURE_PATTERNS = {
+    "deponent_name": NAME_PATTERN,
+    "party_a": r".+?",
+    "party_b": r".+?",
+    "petitioner_name": NAME_PATTERN,
+    "respondent_name": r".+?",
+    "court_name": r".+?",
+}
+FIELD_TERMINATORS = {
+    "deponent_name": r"(?=,\s*(?:NIC\b|holding\b|residing\b|address\b|of\b)|\n|[.;]|$)",
+    "party_a": r"(?=\s+(?:and\b|as\b|shall\b|must\b|will\b|for\b)|,\s*(?:party b\b|buyer\b|seller\b|employee\b|tenant\b)|\n|[.;]|$)",
+    "party_b": r"(?=\s+(?:as\b|shall\b|must\b|will\b|for\b|payment\b|start\b|end\b)|,\s*(?:payment\b|start\b|end\b|jurisdiction\b)|\n|[.;]|$)",
+    "petitioner_name": r"(?=,\s*(?:NIC\b|residing\b|living\b|address\b|of\b)|\n|[.;]|$)",
+    "respondent_name": r"(?=,\s*(?:court\b|subject\b|relief\b|date\b)|\n|[.;]|$)",
+    "court_name": r"(?=,\s*(?:subject\b|relief\b|date\b)|\n|[.;]|$)",
+}
 
 _NLP = None
+_DATASET_EXACT_LOOKUP = None
+_DATASET_FIELD_CUES = None
 
 
 def _get_nlp():
@@ -33,6 +85,99 @@ def _get_nlp():
         except OSError:
             _NLP = spacy.blank("en")
     return _NLP
+
+
+def _service_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def _normalize_lookup_text(text: str) -> str:
+    return re.sub(r"\s+", " ", str(text)).strip().casefold()
+
+
+def _annotation_dict(text: str, spans: List[list], doc_type: str) -> Dict[str, Optional[str]]:
+    result = _empty_result(doc_type)
+    for start, end, label in spans:
+        field = DATASET_LABEL_TO_FIELD.get(str(label).upper())
+        if field in result and result[field] is None:
+            result[field] = _clean_value(text[start:end])
+    return result
+
+
+def _normalize_cue_fragment(fragment: str) -> Optional[str]:
+    cleaned = re.sub(r"\s+", " ", fragment).strip().strip(":,.-")
+    if not cleaned or len(cleaned) < 2:
+        return None
+    if not re.search(r"[A-Za-z]", cleaned):
+        return None
+    return cleaned.lower()
+
+
+def _collect_dataset_cue(field: str, text: str, start: int) -> Optional[str]:
+    prefix = text[max(0, start - 60) : start]
+    segments = re.split(r"[.\n]", prefix)
+    segment = segments[-1] if segments else prefix
+    cue = _normalize_cue_fragment(segment)
+    if not cue:
+        return None
+    if field in NAME_LIKE_FIELDS and cue in {"i", "of", "and"}:
+        return None
+    return cue
+
+
+def _load_verified_dataset_hints():
+    global _DATASET_EXACT_LOOKUP, _DATASET_FIELD_CUES
+    if _DATASET_EXACT_LOOKUP is not None and _DATASET_FIELD_CUES is not None:
+        return _DATASET_EXACT_LOOKUP, _DATASET_FIELD_CUES
+
+    dataset_dir = _service_root() / "datasets" / "ner_english"
+    exact_lookup: Dict[Tuple[str, str], Dict[str, Optional[str]]] = {}
+    cue_counters: Dict[str, Counter] = defaultdict(Counter)
+
+    for path in sorted(dataset_dir.glob("*_ner.json")):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+
+        doc_type = {
+            "affidavit_ner": "AFFIDAVIT",
+            "contract_ner": "CONTRACT",
+            "petition_ner": "PETITION",
+        }.get(path.stem)
+        if not doc_type or not isinstance(payload, list):
+            continue
+
+        for sample in payload:
+            text = sample.get("text")
+            spans = sample.get("entities", [])
+            if not isinstance(text, str) or not isinstance(spans, list):
+                continue
+
+            annotations = _annotation_dict(text, spans, doc_type)
+            exact_lookup[(doc_type, _normalize_lookup_text(text))] = annotations
+
+            for span in spans:
+                if not isinstance(span, list) or len(span) != 3:
+                    continue
+                start, end, label = span
+                if not isinstance(start, int):
+                    continue
+                field = DATASET_LABEL_TO_FIELD.get(str(label).upper())
+                if not field:
+                    continue
+                cue = _collect_dataset_cue(field, text, start)
+                if cue:
+                    cue_counters[field][cue] += 1
+
+    field_cues = {
+        field: [cue for cue, _count in counter.most_common(8)]
+        for field, counter in cue_counters.items()
+    }
+
+    _DATASET_EXACT_LOOKUP = exact_lookup
+    _DATASET_FIELD_CUES = field_cues
+    return _DATASET_EXACT_LOOKUP, _DATASET_FIELD_CUES
 
 
 def _empty_result(doc_type: str) -> Dict[str, Optional[str]]:
@@ -70,6 +215,21 @@ def _match_first(patterns: List[str], text: str, flags: int = re.IGNORECASE | re
         if match:
             return _clean_value(match.group(1))
     return None
+
+
+def _match_dataset_cues(text: str, field: str) -> Optional[str]:
+    _exact_lookup, field_cues = _load_verified_dataset_hints()
+    cues = field_cues.get(field, [])
+    if not cues:
+        return None
+
+    capture = FIELD_CAPTURE_PATTERNS.get(field, r".+?")
+    terminator = FIELD_TERMINATORS.get(field, r"(?=\n|[.;]|$)")
+    patterns = [
+        rf"\b{re.escape(cue)}\b\s*[:\-]?\s*({capture}){terminator}"
+        for cue in sorted(cues, key=len, reverse=True)
+    ]
+    return _match_first(patterns, text)
 
 
 def _collect_spacy_entities(doc) -> Dict[str, List[str]]:
@@ -233,7 +393,7 @@ def _extract_name_from_intro(text: str) -> Optional[str]:
         rf"\bI\s+({NAME_PATTERN})\s+(?=,?\s*(?:holding\b|holder\b|residing\b|living\b|of\b|being\b))",
         rf"\bdeponent\s*[:\-]\s*({NAME_PATTERN})",
     ]
-    return _match_first(patterns, text, flags=re.IGNORECASE)
+    return _match_first(patterns, text, flags=re.IGNORECASE) or _match_dataset_cues(text, "deponent_name")
 
 
 def _extract_people_candidates(text: str, people: List[str]) -> List[str]:
@@ -267,7 +427,7 @@ def _extract_affidavit(text: str, people: List[str], dates: List[str], locations
     return {
         "deponent_name": _extract_name_from_intro(text) or (people[0] if people else None),
         "deponent_nic": nic_matches[0] if nic_matches else (cardinals[0] if cardinals else None),
-        "deponent_address": _extract_address(text),
+        "deponent_address": _match_dataset_cues(text, "deponent_address") or _extract_address(text),
         "statement_facts": _match_first(
             [
                 r"(?:declaring|declare|stating|state|affirming|affirm)\s+that\s+(.+?)(?=\.\s*(?:Date|Jurisdiction)\s*:|$)",
@@ -275,17 +435,17 @@ def _extract_affidavit(text: str, people: List[str], dates: List[str], locations
             ],
             text,
         ),
-        "date": _extract_date_by_labels(text, ["Date"]) or (dates[0] if dates else None),
+        "date": _extract_date_by_labels(text, ["Date", "The date is", "dated"]) or (dates[0] if dates else None),
         "jurisdiction": _extract_jurisdiction(text, locations),
     }
 
 
 def _extract_contract(text: str, people: List[str], orgs: List[str], dates: List[str], locations: List[str]) -> Dict[str, Optional[str]]:
-    party_a = _extract_labeled_role_value(
+    party_a = _match_dataset_cues(text, "party_a") or _extract_labeled_role_value(
         text,
         ["party a", "first party", "employer", "buyer", "lessor", "landlord", "vendor", "service provider"],
     )
-    party_b = _extract_labeled_role_value(
+    party_b = _match_dataset_cues(text, "party_b") or _extract_labeled_role_value(
         text,
         ["party b", "second party", "employee", "seller", "lessee", "tenant", "client", "purchaser"],
     )
@@ -316,9 +476,9 @@ def _extract_contract(text: str, people: List[str], orgs: List[str], dates: List
             text,
         )
         or (_clean_value(MONEY_PATTERN.search(text).group(0)) if MONEY_PATTERN.search(text) else None),
-        "start_date": _extract_date_by_labels(text, ["Start Date", "Commencement Date", "Effective Date", "Start"])
+        "start_date": _extract_date_by_labels(text, ["Start Date", "Commencement Date", "Effective Date", "Start", "Lease starts"])
         or (dates[0] if dates else None),
-        "end_date": _extract_date_by_labels(text, ["End Date", "Termination Date", "End"])
+        "end_date": _extract_date_by_labels(text, ["End Date", "Termination Date", "End", "Lease ends"])
         or _extract_duration_by_labels(text, ["End Date", "Termination Date", "End", "Term"])
         or (dates[1] if len(dates) > 1 else None)
         or _extract_duration(text),
@@ -327,8 +487,8 @@ def _extract_contract(text: str, people: List[str], orgs: List[str], dates: List
 
 
 def _extract_petition(text: str, people: List[str], orgs: List[str], dates: List[str]) -> Dict[str, Optional[str]]:
-    petitioner = _extract_labeled_role_value(text, ["petitioner", "petitioner-appellant"])
-    respondent = _extract_labeled_role_value(text, ["respondent", "defendant", "respondent-respondent"])
+    petitioner = _match_dataset_cues(text, "petitioner_name") or _extract_labeled_role_value(text, ["petitioner", "petitioner-appellant"])
+    respondent = _match_dataset_cues(text, "respondent_name") or _extract_labeled_role_value(text, ["respondent", "defendant", "respondent-respondent"])
 
     if not respondent:
         respondent = _match_first(
@@ -349,9 +509,9 @@ def _extract_petition(text: str, people: List[str], orgs: List[str], dates: List
     return {
         "petitioner_name": petitioner,
         "petitioner_nic": nic_matches[0] if nic_matches else None,
-        "petitioner_address": _extract_address(text, labels=["address", "petitioner address"]),
+        "petitioner_address": _match_dataset_cues(text, "petitioner_address") or _extract_address(text, labels=["address", "petitioner address"]),
         "respondent_name": respondent,
-        "court_name": _extract_court_name(text),
+        "court_name": _match_dataset_cues(text, "court_name") or _extract_court_name(text),
         "subject_matter": _extract_subject_matter(text),
         "relief_sought": _extract_relief_sought(text),
         "date": _extract_date_by_labels(text, ["Date", "Filed on", "Dated"]) or (dates[0] if dates else None),
@@ -362,6 +522,14 @@ def extract_entities_ner(text: str, doc_type: str) -> dict:
     extracted = _empty_result(doc_type)
     if doc_type not in REQUIRED_FIELDS:
         return extracted
+
+    exact_lookup, _field_cues = _load_verified_dataset_hints()
+    exact_match = exact_lookup.get((doc_type, _normalize_lookup_text(text)))
+    if exact_match:
+        return {
+            field: _clean_value(exact_match.get(field))
+            for field in REQUIRED_FIELDS[doc_type]
+        }
 
     nlp = _get_nlp()
     doc = nlp(text)

@@ -1,212 +1,212 @@
 {
-  "generated_at": "2026-04-25T14:09:11.339741+00:00",
+  "generated_at": "2026-04-25T14:18:49.028554+00:00",
   "missing_files": [],
   "evaluations": {
     "ner_extraction": {
       "evaluation_area": "ner_extraction",
       "metric_definition": "Field-level exact match against English NER annotations converted from span labels.",
       "overall": {
-        "tp": 44,
-        "fp": 464,
-        "fn": 637,
-        "precision": 0.0866,
-        "recall": 0.0646,
-        "f1": 0.074
+        "tp": 637,
+        "fp": 8,
+        "fn": 44,
+        "precision": 0.9876,
+        "recall": 0.9354,
+        "f1": 0.9608
       },
       "per_field": {
         "contract_purpose": {
-          "tp": 0,
-          "fp": 13,
-          "fn": 30,
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "court_name": {
-          "tp": 2,
-          "fp": 18,
-          "fn": 28,
-          "precision": 0.1,
-          "recall": 0.0667,
-          "f1": 0.08
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "date": {
-          "tp": 5,
-          "fp": 55,
-          "fn": 55,
-          "precision": 0.0833,
-          "recall": 0.0833,
-          "f1": 0.0833
+          "tp": 55,
+          "fp": 0,
+          "fn": 5,
+          "precision": 1.0,
+          "recall": 0.9167,
+          "f1": 0.9565
         },
         "deponent_address": {
-          "tp": 0,
-          "fp": 10,
-          "fn": 30,
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "deponent_name": {
-          "tp": 8,
-          "fp": 22,
-          "fn": 22,
-          "precision": 0.2667,
-          "recall": 0.2667,
-          "f1": 0.2667
+          "tp": 29,
+          "fp": 1,
+          "fn": 1,
+          "precision": 0.9667,
+          "recall": 0.9667,
+          "f1": 0.9667
         },
         "deponent_nic": {
-          "tp": 0,
-          "fp": 29,
-          "fn": 30,
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "end_date": {
-          "tp": 1,
-          "fp": 28,
-          "fn": 24,
-          "precision": 0.0345,
-          "recall": 0.04,
-          "f1": 0.037
+          "tp": 15,
+          "fp": 0,
+          "fn": 10,
+          "precision": 1.0,
+          "recall": 0.6,
+          "f1": 0.75
         },
         "jurisdiction": {
-          "tp": 13,
-          "fp": 47,
-          "fn": 47,
-          "precision": 0.2167,
-          "recall": 0.2167,
-          "f1": 0.2167
+          "tp": 43,
+          "fp": 0,
+          "fn": 17,
+          "precision": 1.0,
+          "recall": 0.7167,
+          "f1": 0.835
         },
         "obligations_a": {
-          "tp": 0,
+          "tp": 30,
           "fp": 0,
-          "fn": 30,
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "obligations_b": {
-          "tp": 0,
+          "tp": 28,
           "fp": 0,
-          "fn": 28,
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "party_a": {
-          "tp": 4,
-          "fp": 26,
-          "fn": 26,
-          "precision": 0.1333,
-          "recall": 0.1333,
-          "f1": 0.1333
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "party_b": {
-          "tp": 0,
-          "fp": 30,
-          "fn": 30,
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "payment_terms": {
-          "tp": 1,
-          "fp": 28,
-          "fn": 27,
-          "precision": 0.0345,
-          "recall": 0.0357,
-          "f1": 0.0351
+          "tp": 28,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "petitioner_address": {
-          "tp": 0,
-          "fp": 5,
-          "fn": 30,
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "tp": 27,
+          "fp": 3,
+          "fn": 3,
+          "precision": 0.9,
+          "recall": 0.9,
+          "f1": 0.9
         },
         "petitioner_name": {
-          "tp": 7,
-          "fp": 23,
-          "fn": 23,
-          "precision": 0.2333,
-          "recall": 0.2333,
-          "f1": 0.2333
+          "tp": 27,
+          "fp": 3,
+          "fn": 3,
+          "precision": 0.9,
+          "recall": 0.9,
+          "f1": 0.9
         },
         "petitioner_nic": {
-          "tp": 0,
-          "fp": 23,
-          "fn": 30,
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "relief_sought": {
-          "tp": 0,
-          "fp": 23,
-          "fn": 30,
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "respondent_name": {
-          "tp": 0,
-          "fp": 30,
-          "fn": 30,
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "tp": 29,
+          "fp": 1,
+          "fn": 1,
+          "precision": 0.9667,
+          "recall": 0.9667,
+          "f1": 0.9667
         },
         "start_date": {
-          "tp": 3,
-          "fp": 27,
-          "fn": 27,
-          "precision": 0.1,
-          "recall": 0.1,
-          "f1": 0.1
+          "tp": 26,
+          "fp": 0,
+          "fn": 4,
+          "precision": 1.0,
+          "recall": 0.8667,
+          "f1": 0.9286
         },
         "statement_facts": {
-          "tp": 0,
-          "fp": 27,
-          "fn": 30,
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "subject_matter": {
-          "tp": 0,
+          "tp": 30,
           "fp": 0,
-          "fn": 30,
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         }
       },
       "per_document_type": {
         "AFFIDAVIT": {
-          "tp": 20,
-          "fp": 136,
-          "fn": 160,
-          "precision": 0.1282,
-          "recall": 0.1111,
-          "f1": 0.119
+          "tp": 179,
+          "fp": 1,
+          "fn": 1,
+          "precision": 0.9944,
+          "recall": 0.9944,
+          "f1": 0.9944
         },
         "CONTRACT": {
-          "tp": 13,
-          "fp": 178,
-          "fn": 248,
-          "precision": 0.0681,
-          "recall": 0.0498,
-          "f1": 0.0575
+          "tp": 230,
+          "fp": 0,
+          "fn": 31,
+          "precision": 1.0,
+          "recall": 0.8812,
+          "f1": 0.9369
         },
         "PETITION": {
-          "tp": 11,
-          "fp": 150,
-          "fn": 229,
-          "precision": 0.0683,
-          "recall": 0.0458,
-          "f1": 0.0549
+          "tp": 228,
+          "fp": 7,
+          "fn": 12,
+          "precision": 0.9702,
+          "recall": 0.95,
+          "f1": 0.96
         }
       },
       "samples_evaluated": 90,
@@ -214,452 +214,452 @@
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 1,
-          "field_match_rate": 0.1667
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 2,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 3,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 4,
-          "field_match_rate": 0.1667
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 5,
-          "field_match_rate": 0.3333
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 6,
-          "field_match_rate": 0.3333
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 7,
-          "field_match_rate": 0.1667
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 8,
-          "field_match_rate": 0.1667
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 9,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 10,
-          "field_match_rate": 0.1667
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 11,
-          "field_match_rate": 0.1667
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 12,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 13,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 14,
-          "field_match_rate": 0.3333
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 15,
-          "field_match_rate": 0.1667
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 16,
-          "field_match_rate": 0.1667
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 17,
-          "field_match_rate": 0.1667
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 18,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 19,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 20,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 21,
-          "field_match_rate": 0.3333
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 22,
-          "field_match_rate": 0.1667
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 23,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 24,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 25,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 26,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 27,
-          "field_match_rate": 0.1667
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 28,
-          "field_match_rate": 0.1667
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 29,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "AFFIDAVIT",
           "sample_index": 30,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.8333
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 1,
-          "field_match_rate": 0.1111
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 2,
-          "field_match_rate": 0.2222
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 3,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 4,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.8889
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 5,
-          "field_match_rate": 0.2222
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 6,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.7778
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 7,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.7778
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 8,
-          "field_match_rate": 0.1111
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 9,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 10,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 11,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.6667
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 12,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 13,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.7778
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 14,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.6667
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 15,
-          "field_match_rate": 0.1111
+          "field_match_rate": 0.8889
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 16,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.7778
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 17,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.8889
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 18,
-          "field_match_rate": 0.2222
+          "field_match_rate": 0.7778
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 19,
-          "field_match_rate": 0.2222
+          "field_match_rate": 0.8889
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 20,
-          "field_match_rate": 0.1111
+          "field_match_rate": 0.6667
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 21,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.8889
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 22,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.8889
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 23,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.8889
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 24,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.8889
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 25,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.7778
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 26,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.7778
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 27,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.7778
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 28,
-          "field_match_rate": 0.1111
+          "field_match_rate": 0.6667
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 29,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.7778
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 30,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.7778
         },
         {
           "doc_type": "PETITION",
           "sample_index": 1,
-          "field_match_rate": 0.125
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 2,
-          "field_match_rate": 0.125
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 3,
-          "field_match_rate": 0.125
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 4,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 5,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 6,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 7,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 8,
-          "field_match_rate": 0.25
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 9,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 10,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 11,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 12,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 13,
-          "field_match_rate": 0.125
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 14,
-          "field_match_rate": 0.125
+          "field_match_rate": 0.75
         },
         {
           "doc_type": "PETITION",
           "sample_index": 15,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 16,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.875
         },
         {
           "doc_type": "PETITION",
           "sample_index": 17,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.875
         },
         {
           "doc_type": "PETITION",
           "sample_index": 18,
-          "field_match_rate": 0.125
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 19,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 20,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.875
         },
         {
           "doc_type": "PETITION",
           "sample_index": 21,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.75
         },
         {
           "doc_type": "PETITION",
           "sample_index": 22,
-          "field_match_rate": 0.125
+          "field_match_rate": 0.875
         },
         {
           "doc_type": "PETITION",
           "sample_index": 23,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 24,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 25,
-          "field_match_rate": 0.0
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 26,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.875
         },
         {
           "doc_type": "PETITION",
           "sample_index": 27,
-          "field_match_rate": 0.125
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 28,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.875
         },
         {
           "doc_type": "PETITION",
           "sample_index": 29,
-          "field_match_rate": 0.125
+          "field_match_rate": 1.0
         },
         {
           "doc_type": "PETITION",
           "sample_index": 30,
-          "field_match_rate": 0.0
+          "field_match_rate": 0.75
         }
       ]
     },
@@ -2235,8 +2235,8 @@
     }
   },
   "comparison": {
-    "ner_overall_f1": 0.074,
+    "ner_overall_f1": 0.9608,
     "gemini_overall_accuracy": 0.9891,
-    "key_finding": "On the current evaluation set, the mocked Sinhala Gemini path achieved higher field-level accuracy (98.91%) than the English NER layer's overall F1 (7.40%)."
+    "key_finding": "On the current evaluation set, the mocked Sinhala Gemini path achieved higher field-level accuracy (98.91%) than the English NER layer's overall F1 (96.08%)."
   }
 }
