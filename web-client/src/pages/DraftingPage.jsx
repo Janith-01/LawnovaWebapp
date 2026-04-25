@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   AlertCircle,
   CheckCircle2,
@@ -41,24 +41,23 @@ const EXAMPLE_PROMPTS = [
   },
 ];
 
-
-const toFileHref = (filePath) => {
-  if (!filePath) return '#';
-
-  const normalized = String(filePath).replace(/\\/g, '/');
-  if (/^[A-Za-z]:\//.test(normalized)) {
-    return encodeURI(`file:///${normalized}`);
-  }
-
-  return encodeURI(normalized);
-};
-
-
 const statusToneClasses = (isDarkMode, tone) => {
   if (tone === 'success') {
     return isDarkMode
       ? 'border-emerald-800/60 bg-emerald-900/20 text-emerald-200'
       : 'border-emerald-200 bg-emerald-50 text-emerald-800';
+  }
+
+  if (tone === 'error') {
+    return isDarkMode
+      ? 'border-rose-800/60 bg-rose-900/20 text-rose-100'
+      : 'border-rose-200 bg-rose-50 text-rose-800';
+  }
+
+  if (tone === 'info') {
+    return isDarkMode
+      ? 'border-blue-800/60 bg-blue-900/20 text-blue-100'
+      : 'border-blue-200 bg-blue-50 text-blue-800';
   }
 
   return isDarkMode
@@ -67,21 +66,51 @@ const statusToneClasses = (isDarkMode, tone) => {
 };
 
 
+const getFeedbackConfig = (status) => {
+  if (status === 'error') {
+    return {
+      title: 'Service error',
+      tone: 'error',
+    };
+  }
+
+  if (status === 'unknown_doc_type') {
+    return {
+      title: 'Document type not recognized',
+      tone: 'info',
+    };
+  }
+
+  return {
+    title: 'Additional details required',
+    tone: 'warning',
+  };
+};
+
+
 const DraftingPage = () => {
   const { isDarkMode } = useTheme();
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedExampleKey, setSelectedExampleKey] = useState(null);
+  const [downloadTarget, setDownloadTarget] = useState(null);
   const [validationResult, setValidationResult] = useState(null);
   const [draftResult, setDraftResult] = useState(null);
+  const textareaRef = useRef(null);
 
   const resetResults = () => {
     setValidationResult(null);
     setDraftResult(null);
   };
 
-  const handleExampleClick = (examplePrompt) => {
-    setPrompt(examplePrompt);
+  const handleExampleClick = (example) => {
+    setPrompt(example.prompt);
+    setSelectedExampleKey(example.key);
     resetResults();
+    window.requestAnimationFrame(() => {
+      textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      textareaRef.current?.focus();
+    });
   };
 
   const handleGenerate = async () => {
@@ -123,8 +152,24 @@ const DraftingPage = () => {
     setIsGenerating(false);
   };
 
+  const handleDownload = async (filename, type) => {
+    if (!filename || downloadTarget) {
+      return;
+    }
+
+    setDownloadTarget(type);
+    const result = await draftingService.downloadDocument(filename, type);
+    if (result.status === 'complete') {
+      toast.success(result.message || `${type} download started.`);
+    } else {
+      toast.error(result.message || `Failed to download the ${type}.`);
+    }
+    setDownloadTarget(null);
+  };
+
   const activeFeedback = draftResult && draftResult.status !== 'complete' ? draftResult : validationResult;
   const completedResult = draftResult?.status === 'complete' ? draftResult : null;
+  const feedbackConfig = activeFeedback ? getFeedbackConfig(activeFeedback.status) : null;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -176,6 +221,25 @@ const DraftingPage = () => {
         </button>
       </div>
 
+      {isGenerating && (
+        <section
+          className={cn(
+            'rounded-3xl border p-5 sm:p-6',
+            statusToneClasses(isDarkMode, 'info')
+          )}
+        >
+          <div className="flex items-start gap-3">
+            <Loader2 className="mt-0.5 h-5 w-5 shrink-0 animate-spin" />
+            <div>
+              <h2 className="text-base font-semibold">Generating your document, please wait...</h2>
+              <p className="mt-1 text-sm leading-6">
+                Lawnova is validating the prompt, drafting the document text, and preparing the DOCX and PDF outputs.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
       <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <section
           className={cn(
@@ -192,15 +256,29 @@ const DraftingPage = () => {
                 Include names, NIC numbers, addresses, dates, jurisdiction, and the core legal facts.
               </p>
             </div>
-            <span className={cn('text-xs font-medium', isDarkMode ? 'text-slate-500' : 'text-gray-400')}>
-              {prompt.trim().length}/3000
-            </span>
+            <div className="flex items-center gap-3">
+              {selectedExampleKey && (
+                <span
+                  className={cn(
+                    'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]',
+                    isDarkMode ? 'bg-blue-900/50 text-blue-200' : 'bg-blue-100 text-blue-700'
+                  )}
+                >
+                  Selected: {selectedExampleKey}
+                </span>
+              )}
+              <span className={cn('text-xs font-medium', isDarkMode ? 'text-slate-500' : 'text-gray-400')}>
+                {prompt.trim().length}/3000
+              </span>
+            </div>
           </div>
 
           <textarea
+            ref={textareaRef}
             value={prompt}
             onChange={(event) => {
               setPrompt(event.target.value);
+              setSelectedExampleKey(null);
               if (validationResult || draftResult) {
                 resetResults();
               }
@@ -236,10 +314,14 @@ const DraftingPage = () => {
                 <button
                   key={example.key}
                   type="button"
-                  onClick={() => handleExampleClick(example.prompt)}
+                  onClick={() => handleExampleClick(example)}
                   className={cn(
                     'w-full rounded-2xl border p-4 text-left transition-all',
-                    isDarkMode
+                    selectedExampleKey === example.key
+                      ? isDarkMode
+                        ? 'border-blue-500 bg-slate-900 ring-2 ring-blue-500/40'
+                        : 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                      : isDarkMode
                       ? 'border-slate-700 bg-slate-900 hover:border-slate-500 hover:bg-slate-900/70'
                       : 'border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-white'
                   )}
@@ -264,11 +346,11 @@ const DraftingPage = () => {
           </div>
 
           {activeFeedback && activeFeedback.status !== 'complete' && (
-            <div className={cn('rounded-3xl border p-5 sm:p-6', statusToneClasses(isDarkMode, activeFeedback.status === 'error' ? 'warning' : 'warning'))}>
+            <div className={cn('rounded-3xl border p-5 sm:p-6', statusToneClasses(isDarkMode, feedbackConfig?.tone || 'warning'))}>
               <div className="mb-3 flex items-start gap-3">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                 <div>
-                  <h3 className="text-base font-semibold">Validation feedback</h3>
+                  <h3 className="text-base font-semibold">{feedbackConfig?.title || 'Drafting feedback'}</h3>
                   <p className="mt-1 whitespace-pre-wrap text-sm leading-6">{activeFeedback.message}</p>
                 </div>
               </div>
@@ -317,42 +399,30 @@ const DraftingPage = () => {
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                <a
-                  href={toFileHref(completedResult.docx_path)}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  type="button"
+                  disabled={!completedResult.docx_file || !!downloadTarget}
+                  onClick={() => handleDownload(completedResult.docx_file, 'DOCX')}
                   className={cn(
-                    'inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-all',
+                    'inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60',
                     isDarkMode ? 'bg-slate-900 text-white hover:bg-slate-950' : 'bg-white text-gray-900 hover:bg-gray-100'
                   )}
                 >
-                  <Download className="h-4 w-4" />
-                  Download DOCX
-                </a>
-                <a
-                  href={toFileHref(completedResult.pdf_path)}
-                  target="_blank"
-                  rel="noreferrer"
+                  {downloadTarget === 'DOCX' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  {downloadTarget === 'DOCX' ? 'Preparing DOCX...' : 'Download DOCX'}
+                </button>
+                <button
+                  type="button"
+                  disabled={!completedResult.pdf_file || !!downloadTarget}
+                  onClick={() => handleDownload(completedResult.pdf_file, 'PDF')}
                   className={cn(
-                    'inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-all',
+                    'inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60',
                     isDarkMode ? 'bg-slate-900 text-white hover:bg-slate-950' : 'bg-white text-gray-900 hover:bg-gray-100'
                   )}
                 >
-                  <Download className="h-4 w-4" />
-                  Download PDF
-                </a>
-              </div>
-
-              <div className="space-y-2 text-xs">
-                <div className={cn('font-semibold uppercase tracking-[0.18em]', isDarkMode ? 'text-slate-300' : 'text-gray-700')}>
-                  Generated files
-                </div>
-                <div className={cn('break-all rounded-2xl bg-black/5 px-3 py-2', isDarkMode ? 'text-slate-300' : 'text-gray-700')}>
-                  DOCX: {completedResult.docx_path}
-                </div>
-                <div className={cn('break-all rounded-2xl bg-black/5 px-3 py-2', isDarkMode ? 'text-slate-300' : 'text-gray-700')}>
-                  PDF: {completedResult.pdf_path}
-                </div>
+                  {downloadTarget === 'PDF' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  {downloadTarget === 'PDF' ? 'Preparing PDF...' : 'Download PDF'}
+                </button>
               </div>
             </div>
 

@@ -1,6 +1,9 @@
-from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
+from pathlib import Path
+
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -9,6 +12,11 @@ from src.pipeline import build_response, run_pipeline, run_validation
 
 MIN_PROMPT_LENGTH = 20
 MAX_PROMPT_LENGTH = 3000
+OUTPUT_DIR = (Path(__file__).resolve().parents[1] / "output").resolve()
+CONTENT_TYPES = {
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".pdf": "application/pdf",
+}
 
 
 class PromptRequest(BaseModel):
@@ -102,6 +110,39 @@ def require_authenticated_user_id(user_id: str | None = Header(default=None, ali
     return normalized_user_id
 
 
+def _resolve_safe_download_file(filename: str) -> Path:
+    normalized_filename = (filename or "").strip()
+    candidate = Path(normalized_filename)
+
+    if (
+        not normalized_filename
+        or candidate.name != normalized_filename
+        or candidate.is_absolute()
+        or any(part in {"..", "."} for part in candidate.parts)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "message": "Unsafe file path requested.",
+                "error_code": "unsafe_download_path",
+                "details": {"file": normalized_filename},
+            },
+        )
+
+    resolved_path = (OUTPUT_DIR / normalized_filename).resolve()
+    if resolved_path.parent != OUTPUT_DIR:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "message": "Unsafe file path requested.",
+                "error_code": "unsafe_download_path",
+                "details": {"file": normalized_filename},
+            },
+        )
+
+    return resolved_path
+
+
 @app.exception_handler(RequestValidationError)
 async def request_validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     return _error_payload(
@@ -162,3 +203,29 @@ def validate(payload: PromptRequest, authenticated_user_id: str = Depends(requir
     result = run_validation(prompt)
     result["user_id"] = authenticated_user_id
     return _json_payload_response(result, status_code=_status_code_for_payload(result))
+
+
+@app.get("/download")
+def download_document(
+    file: str = Query(..., min_length=1),
+    authenticated_user_id: str = Depends(require_authenticated_user_id),
+):
+    _ = authenticated_user_id
+    safe_file_path = _resolve_safe_download_file(file)
+
+    if not safe_file_path.is_file():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "message": "Requested document was not found.",
+                "error_code": "file_not_found",
+                "details": {"file": safe_file_path.name},
+            },
+        )
+
+    media_type = CONTENT_TYPES.get(safe_file_path.suffix.lower(), "application/octet-stream")
+    return FileResponse(
+        path=safe_file_path,
+        media_type=media_type,
+        filename=safe_file_path.name,
+    )
