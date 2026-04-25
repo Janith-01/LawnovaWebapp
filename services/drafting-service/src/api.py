@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from src.history import get_document, get_user_history, init_db
 from src.pipeline import build_response, run_pipeline, run_validation
 
 
@@ -32,6 +33,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def startup() -> None:
+    init_db()
 
 
 def _json_payload_response(payload: dict, status_code: int = status.HTTP_200_OK) -> JSONResponse:
@@ -189,7 +195,7 @@ def draft(payload: PromptRequest, authenticated_user_id: str = Depends(require_a
     if error_response:
         return error_response
 
-    result = run_pipeline(prompt)
+    result = run_pipeline(prompt, authenticated_user_id)
     result["user_id"] = authenticated_user_id
     return _json_payload_response(result, status_code=_status_code_for_payload(result))
 
@@ -229,3 +235,25 @@ def download_document(
         media_type=media_type,
         filename=safe_file_path.name,
     )
+
+
+@app.get("/history")
+def history_list(authenticated_user_id: str = Depends(require_authenticated_user_id)):
+    records = get_user_history(authenticated_user_id)
+    return _json_payload_response({"status": "complete", "history": records})
+
+
+@app.get("/history/{document_id}")
+def history_detail(document_id: str, authenticated_user_id: str = Depends(require_authenticated_user_id)):
+    record = get_document(document_id, authenticated_user_id)
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "message": "Requested history record was not found.",
+                "error_code": "history_not_found",
+                "details": {"document_id": document_id},
+            },
+        )
+
+    return _json_payload_response({"status": "complete", "document": record})

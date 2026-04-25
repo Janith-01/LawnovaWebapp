@@ -33,6 +33,7 @@ import CaseBriefing from './pages/Roleplay/CaseBriefing';
 import LearningMaterials from './pages/LearningMaterials';
 import JudgmentPrediction from './pages/JudgmentPrediction';
 import DraftingPage from './pages/DraftingPage';
+import HistoryPage from './pages/HistoryPage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -143,7 +144,7 @@ function App() {
                 <Route path="/mock-trials/:roomId/transcript" element={<PlaceholderPage title="Trial Transcript" />} />
 
                 {/* AI Courtroom Entry */}
-                <Route path="/history" element={<PlaceholderPage title="Role History" />} />
+                <Route path="/history" element={<HistoryPage />} />
                 <Route path="/community" element={<PlaceholderPage title="Community" />} />
                 <Route path="/messages" element={<PlaceholderPage title="Messages" />} />
                 <Route path="/settings" element={<PlaceholderPage title="Settings" />} />

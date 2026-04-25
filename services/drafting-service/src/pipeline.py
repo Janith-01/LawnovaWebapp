@@ -1,6 +1,9 @@
+from pathlib import Path
+
 from src.doc_classifier import classify_doc_type
 from src.gemini_drafter import draft_document
 from src.gemini_extractor import extract_entities_gemini
+from src.history import save_document
 from src.language_detector import detect_language
 from src.ner_extractor import extract_entities_ner
 from src.output_generator import save_as_docx, save_as_pdf
@@ -149,7 +152,7 @@ def run_validation(user_prompt: str) -> dict:
     )
 
 
-def run_pipeline(user_prompt: str) -> dict:
+def run_pipeline(user_prompt: str, user_id: str | None = None) -> dict:
     language = _safe_detect_language(user_prompt)
     doc_type = _safe_classify_doc_type(user_prompt)
 
@@ -225,7 +228,28 @@ def run_pipeline(user_prompt: str) -> dict:
             error_details={"exception": str(exc)},
         )
 
-    return build_response(
+    document_id = None
+    if user_id:
+        try:
+            document_id = save_document(
+                user_id=user_id,
+                doc_type=doc_type,
+                language=language,
+                prompt=user_prompt,
+                drafted_content=drafted,
+                docx_filename=Path(docx_path).name if docx_path else None,
+                pdf_filename=Path(pdf_path).name if pdf_path else None,
+            )
+        except Exception as exc:
+            return _pipeline_error_response(
+                "Unable to save document history at this time.",
+                doc_type=doc_type,
+                language=language,
+                error_code="history_save_failed",
+                error_details={"exception": str(exc)},
+            )
+
+    response = build_response(
         status="complete",
         message="Draft generated successfully.",
         doc_type=doc_type,
@@ -234,3 +258,6 @@ def run_pipeline(user_prompt: str) -> dict:
         pdf_path=pdf_path,
         drafted_content=drafted,
     )
+    if document_id:
+        response["document_id"] = document_id
+    return response

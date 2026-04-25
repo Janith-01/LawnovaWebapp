@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   AlertCircle,
   CheckCircle2,
@@ -6,6 +7,7 @@ import {
   FileBadge2,
   FileCheck2,
   FileText,
+  History,
   Loader2,
   ScrollText,
   Sparkles,
@@ -219,6 +221,20 @@ const DraftingPage = () => {
           {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
           {isGenerating ? 'Generating...' : 'Generate Document'}
         </button>
+      </div>
+
+      <div className="flex justify-end">
+        <Link
+          to="/history"
+          className={cn(
+            'inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-all',
+            isDarkMode ? 'bg-slate-800 text-slate-100 hover:bg-slate-700' : 'bg-white text-gray-900 hover:bg-gray-100',
+            isDarkMode ? 'border border-slate-700' : 'border border-gray-200'
+          )}
+        >
+          <History className="h-4 w-4" />
+          View Draft History
+        </Link>
       </div>
 
       {isGenerating && (

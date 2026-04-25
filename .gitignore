@@ -189,5 +189,6 @@ _agent/
 services/drafting-service/.env
 services/drafting-service/output/*
 !services/drafting-service/output/.gitkeep
+services/drafting-service/drafting_history.db
 services/drafting-service/__pycache__/
 services/drafting-service/**/*.pyc
