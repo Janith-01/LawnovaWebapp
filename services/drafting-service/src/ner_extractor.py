@@ -267,6 +267,25 @@ def _extract_regex_dates(text: str) -> List[str]:
     return _dedupe(re.findall(DATE_VALUE_PATTERN, text, flags=re.IGNORECASE))
 
 
+def _looks_like_full_date(value: Optional[str]) -> bool:
+    if not value:
+        return False
+    return bool(re.fullmatch(DATE_VALUE_PATTERN, value.strip(), flags=re.IGNORECASE))
+
+
+def _extract_nic_by_labels(text: str, labels: List[str]) -> Optional[str]:
+    label_pattern = "|".join(re.escape(label) for label in labels)
+    patterns = [
+        rf"\b(?:{label_pattern})\b\s*(?:number|no\.?)?\s*[:\-]?\s*({NIC_PATTERN.pattern})",
+        rf"\b(?:holding|holder of)\s+(?:an?\s+)?(?:{label_pattern})\b\s*(?:number|no\.?)?\s*[:\-]?\s*({NIC_PATTERN.pattern})",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1))
+    return None
+
+
 def _extract_date_by_labels(text: str, labels: List[str]) -> Optional[str]:
     label_pattern = "|".join(re.escape(label) for label in labels)
     pattern = rf"\b(?:{label_pattern})\b\s*[:\-]\s*({DATE_VALUE_PATTERN})"
@@ -303,7 +322,7 @@ def _extract_address(text: str, labels: Optional[List[str]] = None) -> Optional[
 
 def _extract_jurisdiction(text: str, locations: List[str]) -> Optional[str]:
     patterns = [
-        r"\bJurisdiction\s*[:\-]\s*([A-Za-z ,]+(?:Sri Lanka)?)",
+        r"\bJurisdiction\s*[:\-]\s*([A-Za-z][A-Za-z0-9 ,.-]*?)(?=[.;,\n]|$)",
         r"\bwithin the jurisdiction of\s+(.+?)(?=[.;,\n]|$)",
         r"\bgoverned by the laws of\s+(.+?)(?=[.;,\n]|$)",
         r"\bsubject to the laws of\s+(.+?)(?=[.;,\n]|$)",
@@ -426,12 +445,14 @@ def _extract_affidavit(text: str, people: List[str], dates: List[str], locations
     nic_matches = NIC_PATTERN.findall(text)
     return {
         "deponent_name": _extract_name_from_intro(text) or (people[0] if people else None),
-        "deponent_nic": nic_matches[0] if nic_matches else (cardinals[0] if cardinals else None),
+        "deponent_nic": _extract_nic_by_labels(text, ["NIC", "National Identity Card"])
+        or (nic_matches[0] if nic_matches else None)
+        or (cardinals[0] if cardinals else None),
         "deponent_address": _match_dataset_cues(text, "deponent_address") or _extract_address(text),
         "statement_facts": _match_first(
             [
-                r"(?:declaring|declare|stating|state|affirming|affirm)\s+that\s+(.+?)(?=\.\s*(?:Date|Jurisdiction)\s*:|$)",
-                r"facts?\s*(?:are|is)?\s*[:\-]\s*(.+?)(?=\.\s*(?:Date|Jurisdiction)\s*:|$)",
+                r"(?:declaring|declare|stating|state|affirming|affirm)\s+that\s+(.+?)(?=\s*(?:Date|Jurisdiction)\s*:|$)",
+                r"facts?\s*(?:are|is)?\s*[:\-]\s*(.+?)(?=\s*(?:Date|Jurisdiction)\s*:|$)",
             ],
             text,
         ),
@@ -526,10 +547,10 @@ def extract_entities_ner(text: str, doc_type: str) -> dict:
     exact_lookup, _field_cues = _load_verified_dataset_hints()
     exact_match = exact_lookup.get((doc_type, _normalize_lookup_text(text)))
     if exact_match:
-        return {
+        extracted.update({
             field: _clean_value(exact_match.get(field))
             for field in REQUIRED_FIELDS[doc_type]
-        }
+        })
 
     nlp = _get_nlp()
     doc = nlp(text)
@@ -542,7 +563,28 @@ def extract_entities_ner(text: str, doc_type: str) -> dict:
     cardinals = entities["cardinals"]
 
     if doc_type == "AFFIDAVIT":
-        extracted.update(_extract_affidavit(text, people, dates, locations, cardinals))
+        affidavit_extracted = _extract_affidavit(text, people, dates, locations, cardinals)
+        for field, value in affidavit_extracted.items():
+            cleaned = _clean_value(value)
+            existing = _clean_value(extracted.get(field))
+            if field == "deponent_nic":
+                if cleaned and re.fullmatch(NIC_PATTERN.pattern, cleaned):
+                    extracted[field] = cleaned
+                elif not existing:
+                    extracted[field] = cleaned
+            elif field == "date":
+                if cleaned and _looks_like_full_date(cleaned):
+                    extracted[field] = cleaned
+                elif not existing:
+                    extracted[field] = cleaned
+            elif field == "jurisdiction":
+                if cleaned and re.search(r"[A-Za-z]", cleaned) and len(cleaned.strip(" .,:;")) >= 3:
+                    extracted[field] = cleaned.strip(" .,:;")
+                elif not existing:
+                    extracted[field] = cleaned
+            else:
+                if cleaned and (not existing or len(cleaned) > len(existing)):
+                    extracted[field] = cleaned
     elif doc_type == "CONTRACT":
         extracted.update(_extract_contract(text, people, orgs, dates, locations))
     elif doc_type == "PETITION":

@@ -11,6 +11,14 @@ from config import FIELD_LABELS, GEMINI_API_KEY, GEMINI_MODEL, REQUIRED_FIELDS
 
 
 NIC_PATTERN = re.compile(r"^(?:\d{9}[vVxX]|\d{12})$")
+NIC_VALUE_PATTERN = re.compile(r"\b(?:\d{9}[vVxX]|\d{12})\b")
+DATE_VALUE_PATTERN = re.compile(
+    r"(?:\d{4}-\d{2}-\d{2}"
+    r"|\d{1,2}[/-]\d{1,2}[/-]\d{2,4}"
+    r"|\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}"
+    r"|(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4})",
+    re.IGNORECASE,
+)
 
 
 def _empty_result(doc_type: str) -> dict:
@@ -136,11 +144,10 @@ def _response_schema(required_fields: list) -> dict:
             for field in required_fields
         },
         "required": required_fields,
-        "additionalProperties": False,
     }
 
 
-def _request_json_payload(client, prompt: str, required_fields: list) -> Optional[Dict[str, Any]]:
+def _request_json_payload(client, prompt: str, required_fields: list) -> tuple[Optional[Dict[str, Any]], Optional[str]]:
     attempts = [
         {
             "temperature": 0,
@@ -153,6 +160,7 @@ def _request_json_payload(client, prompt: str, required_fields: list) -> Optiona
         },
     ]
 
+    last_error = None
     for config in attempts:
         try:
             response = client.models.generate_content(
@@ -160,13 +168,154 @@ def _request_json_payload(client, prompt: str, required_fields: list) -> Optiona
                 contents=prompt,
                 config=config,
             )
-            payload = _extract_first_json_object(_extract_response_text(response))
+            raw_text = _extract_response_text(response)
+            payload = _extract_first_json_object(raw_text)
             if payload:
-                return payload
-        except Exception:
-            continue
+                return payload, raw_text
+            last_error = raw_text
+        except Exception as exc:
+            last_error = f"(Gemini error: {exc})"
 
+    return None, last_error
+
+
+def _split_sentences(text: str) -> list[str]:
+    return [segment.strip() for segment in re.split(r"[.\n]+", text) if segment.strip()]
+
+
+def _find_nic_sentence_index(sentences: list[str]) -> int:
+    for index, sentence in enumerate(sentences):
+        if NIC_VALUE_PATTERN.search(sentence) or "NIC" in sentence.upper():
+            return index
+    return -1
+
+
+def _find_date_sentence_index(sentences: list[str]) -> int:
+    for index, sentence in enumerate(sentences):
+        if DATE_VALUE_PATTERN.search(sentence):
+            return index
+    return -1
+
+
+def _extract_name_sinhala(text: str) -> Optional[str]:
+    sentences = _split_sentences(text)
+    nic_index = _find_nic_sentence_index(sentences)
+    candidate = None
+    if nic_index > 0:
+        candidate = sentences[nic_index - 1]
+    elif sentences:
+        candidate = sentences[0]
+    if not candidate:
+        return None
+
+    tokens = candidate.split()
+    if len(tokens) >= 2:
+        return _clean_value(" ".join(tokens[-2:]))
+    return _clean_value(candidate)
+
+
+def _extract_nic_sinhala(text: str) -> Optional[str]:
+    patterns = [
+        r"(?:\bNIC\b(?:\s+[^0-9\s]+)?)\s*[:\-]?\s*(\d{12}|\d{9}[vVxX])",
+        r"(?:\bNIC\b.*?)(\d{12}|\d{9}[vVxX])",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1))
+    match = NIC_VALUE_PATTERN.search(text)
+    return _clean_value(match.group(0)) if match else None
+
+
+def _extract_address_sinhala(text: str) -> Optional[str]:
+    sentences = _split_sentences(text)
+    nic_index = _find_nic_sentence_index(sentences)
+    date_index = _find_date_sentence_index(sentences)
+    start = nic_index + 1 if nic_index != -1 else 0
+    end = date_index if date_index != -1 else len(sentences)
+
+    for sentence in sentences[start:end]:
+        if DATE_VALUE_PATTERN.search(sentence):
+            continue
+        if re.search(r"\d", sentence) and "," in sentence:
+            digit_match = re.search(r"\d", sentence)
+            if digit_match:
+                return _clean_value(sentence[digit_match.start() :].rstrip(" ."))
     return None
+
+
+def _extract_date_sinhala(text: str) -> Optional[str]:
+    patterns = [
+        r"(?:Date)\s*[:\-]?\s*((?:\d{4}-\d{2}-\d{2})|(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}))",
+        r"([0-9]{4}-[0-9]{2}-[0-9]{2})",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1))
+    match = DATE_VALUE_PATTERN.search(text)
+    return _clean_value(match.group(0)) if match else None
+
+
+def _extract_jurisdiction_sinhala(text: str) -> Optional[str]:
+    sentences = _split_sentences(text)
+    date_index = _find_date_sentence_index(sentences)
+    if date_index != -1 and date_index + 1 < len(sentences):
+        trailing = sentences[date_index + 1].split()
+        if trailing:
+            return _clean_value(trailing[-1].rstrip(" ."))
+    if sentences:
+        trailing = sentences[-1].split()
+        if trailing:
+            return _clean_value(trailing[-1].rstrip(" ."))
+    return None
+
+
+def _extract_statement_facts_sinhala(text: str) -> Optional[str]:
+    sentences = _split_sentences(text)
+    nic_index = _find_nic_sentence_index(sentences)
+    date_index = _find_date_sentence_index(sentences)
+    start = nic_index + 2 if nic_index != -1 else 0
+    end = date_index if date_index != -1 else len(sentences)
+    fact_sentences = []
+
+    for sentence in sentences[start:end]:
+        if NIC_VALUE_PATTERN.search(sentence) or DATE_VALUE_PATTERN.search(sentence):
+            continue
+        if re.search(r"\d", sentence) or len(sentence.split()) >= 4:
+            fact_sentences.append(sentence)
+
+    if fact_sentences:
+        return _clean_value(". ".join(fact_sentences) + ".")
+    return None
+
+
+def _fallback_affidavit_extraction(text: str) -> Dict[str, Optional[str]]:
+    return {
+        "deponent_name": _extract_name_sinhala(text),
+        "deponent_nic": _extract_nic_sinhala(text),
+        "deponent_address": _extract_address_sinhala(text),
+        "statement_facts": _extract_statement_facts_sinhala(text),
+        "date": _extract_date_sinhala(text),
+        "jurisdiction": _extract_jurisdiction_sinhala(text),
+    }
+
+
+def _fallback_extraction(text: str, doc_type: str, required_fields: list) -> Dict[str, Optional[str]]:
+    fallback = _empty_result(doc_type)
+    if doc_type == "AFFIDAVIT":
+        fallback.update(_fallback_affidavit_extraction(text))
+    return {
+        field: _clean_value(fallback.get(field))
+        for field in required_fields
+    }
+
+
+def _merge_payloads(primary: Dict[str, Optional[str]], fallback: Dict[str, Optional[str]], required_fields: list) -> Dict[str, Optional[str]]:
+    merged = {}
+    for field in required_fields:
+        merged[field] = primary.get(field) if primary.get(field) is not None else fallback.get(field)
+    return merged
 
 
 def extract_entities_gemini(text: str, doc_type: str) -> dict:
@@ -174,8 +323,10 @@ def extract_entities_gemini(text: str, doc_type: str) -> dict:
     required_fields = REQUIRED_FIELDS.get(doc_type)
     client = _get_gemini_client()
 
-    if not required_fields or not client:
+    if not required_fields:
         return fallback
+    if not client:
+        return _fallback_extraction(text, doc_type, required_fields)
 
     prompt = f"""
 You are a Sri Lankan legal parameter extractor.
@@ -204,15 +355,28 @@ Return ONLY one valid JSON object with exactly these keys:
 Rules for the JSON output:
 - Use the exact field names above.
 - If a field is missing, use null.
+- For AFFIDAVIT Sinhala prompts, extract the full deponent name, the exact NIC, the full address, the full factual statement, the exact date, and the exact jurisdiction.
+- If the prompt uses Sinhala labels for name, NIC, date, or jurisdiction, treat them as direct field labels.
 - Do not include markdown.
 - Do not include code fences.
 - Do not include explanations, comments, or extra keys.
 """.strip()
 
     try:
-        payload = _request_json_payload(client, prompt, required_fields)
-        if not payload:
-            return fallback
-        return _normalize_payload(payload, required_fields)
+        print("[Gemini Extractor] Prompt sent to Gemini:")
+        print(json.dumps(prompt, ensure_ascii=True, indent=2))
+        payload, raw_response_text = _request_json_payload(client, prompt, required_fields)
+        print("[Gemini Extractor] Raw response received from Gemini:")
+        print(json.dumps(raw_response_text or "(no valid JSON payload)", ensure_ascii=True, indent=2))
+        normalized = _normalize_payload(payload or {}, required_fields)
+        merged = _merge_payloads(normalized, _fallback_extraction(text, doc_type, required_fields), required_fields)
+        print("[Gemini Extractor] Parsed result before validator:")
+        print(json.dumps(merged, ensure_ascii=True, indent=2))
+        return merged
     except Exception:
-        return fallback
+        merged = _fallback_extraction(text, doc_type, required_fields)
+        print("[Gemini Extractor] Raw response received from Gemini:")
+        print(json.dumps("(exception or no response)", ensure_ascii=True, indent=2))
+        print("[Gemini Extractor] Parsed result before validator:")
+        print(json.dumps(merged, ensure_ascii=True, indent=2))
+        return merged
