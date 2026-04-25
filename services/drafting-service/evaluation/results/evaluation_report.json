@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-25T14:18:49.028554+00:00",
+  "generated_at": "2026-04-25T16:17:12.937564+00:00",
   "missing_files": [],
   "evaluations": {
     "ner_extraction": {
@@ -1627,7 +1627,7 @@
       "evaluation_area": "drafting_quality",
       "metric_definition": "Section coverage based on whether expected structural sections appear in drafted output produced by the pipeline with patched extraction and offline drafting.",
       "overall": {
-        "average_section_coverage": 0.7003,
+        "average_section_coverage": 0.8856,
         "samples": 30
       },
       "per_document_type": {
@@ -1636,11 +1636,11 @@
           "samples": 10
         },
         "CONTRACT": {
-          "average_section_coverage": 0.601,
+          "average_section_coverage": 0.8567,
           "samples": 10
         },
         "PETITION": {
-          "average_section_coverage": 0.5,
+          "average_section_coverage": 0.8,
           "samples": 10
         }
       },
@@ -1820,55 +1820,55 @@
           "doc_type": "CONTRACT",
           "sample_index": 1,
           "pipeline_status": "complete",
-          "coverage_score": 0.6154,
+          "coverage_score": 1.0,
           "matched_sections": [
             "Title and Parties",
             "Recitals / Background",
+            "Definitions",
+            "Scope of Work",
             "Obligations of Party A",
             "Obligations of Party B",
             "Payment Terms",
+            "Completion and Acceptance",
             "Warranty",
+            "Termination",
+            "Dispute Resolution",
             "Governing Law and Jurisdiction",
             "Signatures and Date"
           ],
-          "missing_sections": [
-            "Definitions",
-            "Scope of Work",
-            "Completion and Acceptance",
-            "Termination",
-            "Dispute Resolution"
-          ]
+          "missing_sections": []
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 2,
           "pipeline_status": "complete",
-          "coverage_score": 0.6154,
+          "coverage_score": 1.0,
           "matched_sections": [
             "Title and Parties",
             "Recitals / Background",
+            "Definitions",
+            "Scope of Supply",
             "Obligations of Party A",
             "Obligations of Party B",
+            "Price and Payment Terms",
             "Quality Standards",
             "Delivery",
+            "Termination",
+            "Dispute Resolution",
             "Governing Law and Jurisdiction",
             "Signatures and Date"
           ],
-          "missing_sections": [
-            "Definitions",
-            "Scope of Supply",
-            "Price and Payment Terms",
-            "Termination",
-            "Dispute Resolution"
-          ]
+          "missing_sections": []
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 3,
           "pipeline_status": "complete",
-          "coverage_score": 0.8,
+          "coverage_score": 1.0,
           "matched_sections": [
             "Title and Parties",
+            "Appointment and Duration",
+            "Duties and Responsibilities",
             "Obligations of Employer",
             "Obligations of Employee",
             "Remuneration and Benefits",
@@ -1877,41 +1877,38 @@
             "Governing Law",
             "Signatures and Date"
           ],
-          "missing_sections": [
-            "Appointment and Duration",
-            "Duties and Responsibilities"
-          ]
+          "missing_sections": []
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 4,
           "pipeline_status": "complete",
-          "coverage_score": 0.6364,
+          "coverage_score": 1.0,
           "matched_sections": [
             "Title and Parties",
             "Recitals / Background",
+            "Scope of Services",
             "Obligations of Party A",
             "Obligations of Party B",
             "Payment Terms",
+            "Cancellation Policy",
+            "Liability",
+            "Termination",
             "Governing Law and Jurisdiction",
             "Signatures and Date"
           ],
-          "missing_sections": [
-            "Scope of Services",
-            "Cancellation Policy",
-            "Liability",
-            "Termination"
-          ]
+          "missing_sections": []
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 5,
           "pipeline_status": "complete",
-          "coverage_score": 0.4545,
+          "coverage_score": 0.5455,
           "matched_sections": [
             "Title and Parties",
             "Term of Lease",
             "Rent and Security Deposit",
+            "Termination",
             "Governing Law and Jurisdiction",
             "Signatures and Date"
           ],
@@ -1920,50 +1917,49 @@
             "Obligations of Lessor",
             "Obligations of Lessee",
             "Permitted Use",
-            "Maintenance and Repairs",
-            "Termination"
+            "Maintenance and Repairs"
           ]
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 6,
           "pipeline_status": "complete",
-          "coverage_score": 0.6667,
+          "coverage_score": 0.9167,
           "matched_sections": [
             "Title and Parties",
             "Recitals / Background",
+            "Definitions",
+            "Scope of Supply",
             "Obligations of Party A",
             "Obligations of Party B",
             "Price and Payment",
             "Delivery",
+            "Termination",
             "Governing Law and Jurisdiction",
             "Signatures and Date"
           ],
           "missing_sections": [
-            "Definitions",
-            "Scope of Supply",
-            "Quality and Compliance",
-            "Termination"
+            "Quality and Compliance"
           ]
         },
         {
           "doc_type": "CONTRACT",
           "sample_index": 7,
           "pipeline_status": "complete",
-          "coverage_score": 0.6,
+          "coverage_score": 0.9,
           "matched_sections": [
             "Title and Parties",
+            "Appointment and Duration",
+            "Duties and Responsibilities",
             "Obligations of Employer",
             "Obligations of Employee",
             "Remuneration and Benefits",
+            "Termination",
             "Governing Law",
             "Signatures and Date"
           ],
           "missing_sections": [
-            "Appointment and Duration",
-            "Duties and Responsibilities",
-            "Code of Conduct",
-            "Termination"
+            "Code of Conduct"
           ]
         },
         {
@@ -1991,41 +1987,41 @@
           "doc_type": "CONTRACT",
           "sample_index": 9,
           "pipeline_status": "complete",
-          "coverage_score": 0.5833,
+          "coverage_score": 0.8333,
           "matched_sections": [
             "Title and Parties",
             "Recitals / Background",
+            "Scope of Services",
             "Obligations of Party A",
             "Obligations of Party B",
             "Payment Terms",
+            "Confidentiality",
+            "Termination",
             "Governing Law and Jurisdiction",
             "Signatures and Date"
           ],
           "missing_sections": [
-            "Scope of Services",
             "Deliverables and Milestones",
-            "Intellectual Property",
-            "Confidentiality",
-            "Termination"
+            "Intellectual Property"
           ]
         },
         {
           "doc_type": "PETITION",
           "sample_index": 1,
           "pipeline_status": "complete",
-          "coverage_score": 0.5,
+          "coverage_score": 0.8,
           "matched_sections": [
             "Court Heading",
             "Petition Title and Case Reference",
             "Jurisdiction",
             "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
             "Petitioner / Attorney Signature"
           ],
           "missing_sections": [
             "Parties",
-            "Grounds of Petition",
-            "Relief Sought",
-            "Verification",
             "Date"
           ]
         },
@@ -2033,19 +2029,19 @@
           "doc_type": "PETITION",
           "sample_index": 2,
           "pipeline_status": "complete",
-          "coverage_score": 0.5,
+          "coverage_score": 0.8,
           "matched_sections": [
             "Court Heading",
             "Petition Title and Case Reference",
             "Jurisdiction",
             "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
             "Petitioner / Attorney Signature"
           ],
           "missing_sections": [
             "Parties",
-            "Grounds of Petition",
-            "Relief Sought",
-            "Verification",
             "Date"
           ]
         },
@@ -2053,19 +2049,19 @@
           "doc_type": "PETITION",
           "sample_index": 3,
           "pipeline_status": "complete",
-          "coverage_score": 0.5,
+          "coverage_score": 0.8,
           "matched_sections": [
             "Court Heading",
             "Petition Title and Case Reference",
             "Jurisdiction",
             "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
             "Petitioner / Attorney Signature"
           ],
           "missing_sections": [
             "Parties",
-            "Grounds of Petition",
-            "Relief Sought",
-            "Verification",
             "Date"
           ]
         },
@@ -2073,19 +2069,19 @@
           "doc_type": "PETITION",
           "sample_index": 4,
           "pipeline_status": "complete",
-          "coverage_score": 0.5,
+          "coverage_score": 0.8,
           "matched_sections": [
             "Court Heading",
             "Petition Title and Case Reference",
             "Jurisdiction",
             "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
             "Petitioner / Attorney Signature"
           ],
           "missing_sections": [
             "Parties",
-            "Grounds of Petition",
-            "Relief Sought",
-            "Verification",
             "Date"
           ]
         },
@@ -2093,19 +2089,19 @@
           "doc_type": "PETITION",
           "sample_index": 5,
           "pipeline_status": "complete",
-          "coverage_score": 0.5,
+          "coverage_score": 0.8,
           "matched_sections": [
             "Court Heading",
             "Petition Title and Case Reference",
             "Jurisdiction",
             "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
             "Petitioner / Attorney Signature"
           ],
           "missing_sections": [
             "Parties",
-            "Grounds of Petition",
-            "Relief Sought",
-            "Verification",
             "Date"
           ]
         },
@@ -2113,19 +2109,19 @@
           "doc_type": "PETITION",
           "sample_index": 6,
           "pipeline_status": "complete",
-          "coverage_score": 0.5,
+          "coverage_score": 0.8,
           "matched_sections": [
             "Court Heading",
             "Petition Title and Case Reference",
             "Jurisdiction",
             "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
             "Petitioner / Attorney Signature"
           ],
           "missing_sections": [
             "Parties",
-            "Grounds of Petition",
-            "Relief Sought",
-            "Verification",
             "Date"
           ]
         },
@@ -2133,19 +2129,19 @@
           "doc_type": "PETITION",
           "sample_index": 7,
           "pipeline_status": "complete",
-          "coverage_score": 0.5,
+          "coverage_score": 0.8,
           "matched_sections": [
             "Court Heading",
             "Petition Title and Case Reference",
             "Jurisdiction",
             "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
             "Petitioner / Attorney Signature"
           ],
           "missing_sections": [
             "Parties",
-            "Grounds of Petition",
-            "Relief Sought",
-            "Verification",
             "Date"
           ]
         },
@@ -2153,19 +2149,19 @@
           "doc_type": "PETITION",
           "sample_index": 8,
           "pipeline_status": "complete",
-          "coverage_score": 0.5,
+          "coverage_score": 0.8,
           "matched_sections": [
             "Court Heading",
             "Petition Title and Case Reference",
             "Jurisdiction",
             "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
             "Petitioner / Attorney Signature"
           ],
           "missing_sections": [
             "Parties",
-            "Grounds of Petition",
-            "Relief Sought",
-            "Verification",
             "Date"
           ]
         },
@@ -2173,19 +2169,19 @@
           "doc_type": "PETITION",
           "sample_index": 9,
           "pipeline_status": "complete",
-          "coverage_score": 0.5,
+          "coverage_score": 0.8,
           "matched_sections": [
             "Court Heading",
             "Petition Title and Case Reference",
             "Jurisdiction",
             "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
             "Petitioner / Attorney Signature"
           ],
           "missing_sections": [
             "Parties",
-            "Grounds of Petition",
-            "Relief Sought",
-            "Verification",
             "Date"
           ]
         },
@@ -2193,41 +2189,41 @@
           "doc_type": "CONTRACT",
           "sample_index": 10,
           "pipeline_status": "complete",
-          "coverage_score": 0.5833,
+          "coverage_score": 0.9167,
           "matched_sections": [
             "Title and Parties",
             "Recitals / Background",
+            "Scope of Supply",
             "Obligations of Party A",
             "Obligations of Party B",
+            "Price and Payment Terms",
             "Delivery",
+            "Warranty",
+            "Termination",
             "Governing Law and Jurisdiction",
             "Signatures and Date"
           ],
           "missing_sections": [
-            "Scope of Supply",
-            "Price and Payment Terms",
-            "Quality and Specifications",
-            "Warranty",
-            "Termination"
+            "Quality and Specifications"
           ]
         },
         {
           "doc_type": "PETITION",
           "sample_index": 11,
           "pipeline_status": "complete",
-          "coverage_score": 0.5,
+          "coverage_score": 0.8,
           "matched_sections": [
             "Court Heading",
             "Petition Title and Case Reference",
             "Jurisdiction",
             "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
             "Petitioner / Attorney Signature"
           ],
           "missing_sections": [
             "Parties",
-            "Grounds of Petition",
-            "Relief Sought",
-            "Verification",
             "Date"
           ]
         }

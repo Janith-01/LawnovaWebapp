@@ -8,7 +8,7 @@ The current system performs strongly on the available evaluation set.
 Final conclusions should still be treated as provisional until the datasets are reviewed and verified by a legal officer.
 
 ## Dataset Status
-- Generated at: `2026-04-25T14:18:49.028554+00:00`
+- Generated at: `2026-04-25T16:17:12.937564+00:00`
 - Missing dataset files: `0`
 
 ## Overall Scores
@@ -16,7 +16,7 @@ Final conclusions should still be treated as provisional until the datasets are 
 - Mocked Sinhala Gemini field accuracy: `98.91%`
 - Validation status accuracy: `95.16%`
 - Validation incomplete precision / recall: `91.18%` / `100.00%`
-- Drafting average section coverage: `70.03%`
+- Drafting average section coverage: `88.56%`
 
 ## Per-Document-Type Breakdown
 
@@ -37,8 +37,8 @@ Final conclusions should still be treated as provisional until the datasets are 
 
 ### Drafting Quality
 - AFFIDAVIT: average section coverage `100.00%`
-- CONTRACT: average section coverage `60.10%`
-- PETITION: average section coverage `50.00%`
+- CONTRACT: average section coverage `85.67%`
+- PETITION: average section coverage `80.00%`
 
 ## NER vs Gemini Comparison
 - English NER overall F1: `96.08%`
