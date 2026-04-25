@@ -301,10 +301,233 @@ def _fallback_affidavit_extraction(text: str) -> Dict[str, Optional[str]]:
     }
 
 
+def _extract_contract_parties(text: str) -> tuple[Optional[str], Optional[str]]:
+    patterns = [
+        r"\bbetween\s+(.+?)\s+\band\b\s+(.+?)(?=\s+(?:for|agreement|contract|Payment|Start|End|Jurisdiction)\b|[.,;\n]|$)",
+        r"(.+?)\s+සහ\s+(.+?)\s+අතර(?:\s+ගිවිසුම)?(?=\s|[.,;\n]|$)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1)), _clean_value(match.group(2))
+
+    sentences = _split_sentences(text)
+    candidates = []
+    for sentence in sentences:
+        match = re.search(
+            r"(.+?)\s+(?:must|shall|will|agrees? to|දෙනවා|කරනවා)(?=\s|[.,;\n]|$)",
+            sentence,
+            flags=re.IGNORECASE,
+        )
+        if match:
+            candidate = _clean_value(match.group(1))
+            if candidate and candidate not in candidates:
+                candidates.append(candidate)
+    party_a = candidates[0] if candidates else None
+    party_b = candidates[1] if len(candidates) > 1 else None
+    return party_a, party_b
+
+
+def _extract_contract_purpose_sinhala(text: str) -> Optional[str]:
+    patterns = [
+        r"අතර\s+(.+?)\s+ඕනෑ",
+        r"අතර\s+(.+?)\s+ඕන",
+        r"(?:agreement|contract)\s+(?:for|is for)\s+(.+?)(?=\.\s|,\s*(?:Payment|Start|End|Jurisdiction)\b|$)",
+        r"agreement(?:\s+\S+)?\s+(.+?)(?=\.\s|,\s*(?:Payment|Start|End|Jurisdiction)\b|$)",
+        r"ගිවිසුම(?:\s+සඳහා|\s+වෙන්නේ)?\s+(.+?)(?=\.\s|,\s*(?:Payment|Start|End|Jurisdiction)\b|$)",
+        r"(.+?ගිවිසුමක්)(?=\.\s|,\s*(?:Payment|Start|End|Jurisdiction)\b|$)",
+        r"(.+?ගිවිසුම)(?=\.\s|,\s*(?:Payment|Start|End|Jurisdiction)\b|$)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1))
+    sentence = next((s for s in _split_sentences(text) if "agreement" in s.lower() or "contract" in s.lower()), None)
+    if sentence:
+        purpose_match = re.search(r"\bfor\s+(.+)$", sentence, flags=re.IGNORECASE)
+        if purpose_match:
+            return _clean_value(purpose_match.group(1))
+    return None
+
+
+def _extract_party_obligation_sinhala(text: str, party: Optional[str]) -> Optional[str]:
+    if not party:
+        return None
+    escaped_party = re.escape(party)
+    patterns = [
+        rf"{escaped_party}\s+(?:must|shall|will|agrees? to)\s+(.+?)(?=\.\s|,\s*(?:Payment|Start|End|Jurisdiction)\b|$)",
+        rf"{escaped_party}\s+(.+?(?:දෙනවා|කරනවා).+?)(?=\.\s|,\s*(?:Payment|Start|End|Jurisdiction)\b|$)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1))
+    return None
+
+
+def _extract_payment_terms_sinhala(text: str) -> Optional[str]:
+    patterns = [
+        r"Payment\s+රු[\.\s]*([\d,]+[^\.\n]*)",
+        r"රු[\.\s]*([\d,]+\s*[^\.\n]{0,50})",
+        r"Payment[:\s]+([^\.\n]+)",
+        r"Payment(?: Terms)?\s*[:\-]?\s*(.+?)(?=\.\s|,\s*(?:Start|End|Jurisdiction)\b|$)",
+        r"ගෙවීම\s*[:\-]?\s*(.+?)(?=\.\s|,\s*(?:Start|End|Jurisdiction)\b|$)",
+        r"(රු\.\s*[\d,]+(?:\.\d{2})?[^.]*)(?=\.\s|$)",
+        r"(රු\.?\s*[\d,]+(?:\.\d{2})?.*?)(?=\.\s|,\s*(?:Start|End|Jurisdiction)\b|$)",
+        r"(Rs\.?\s*[\d,]+(?:\.\d{2})?.*?)(?=\.\s|,\s*(?:Start|End|Jurisdiction)\b|$)",
+        r"(Payment\s+රු\.?\s*[\d,]+(?:\.\d{2})?.*?)(?=\.\s|,\s*(?:Start|End|Jurisdiction)\b|$)",
+        r"(රු\.?\s*[\d,]+(?:\.\d{2})?\s*[^.]*?වාරික[^.]*?)(?=\.\s|,\s*(?:Start|End|Jurisdiction)\b|$)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1))
+    return None
+
+
+def _extract_labeled_date_value(text: str, labels: list[str]) -> Optional[str]:
+    label_pattern = "|".join(re.escape(label) for label in labels)
+    match = re.search(
+        rf"(?:{label_pattern})\s*[:\-]?\s*({DATE_VALUE_PATTERN.pattern})",
+        text,
+        flags=re.IGNORECASE,
+    )
+    if match:
+        return _clean_value(match.group(1))
+    return None
+
+
+def _extract_contract_dates_sinhala(text: str) -> tuple[Optional[str], Optional[str]]:
+    start_date = _extract_labeled_date_value(text, ["ආරම්භය", "Start", "From", "Start Date"])
+    end_date = _extract_labeled_date_value(text, ["අවසානය", "End", "To", "End Date"])
+    return start_date, end_date
+
+
+def _extract_contract_jurisdiction_sinhala(text: str) -> Optional[str]:
+    patterns = [
+        r"Jurisdiction\s*[:\-]?\s*(.+?)(?=\.\s|$)",
+        r"අධිකරණ\s*[:\-]?\s*(.+?)(?=\.\s|$)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1))
+    return _extract_jurisdiction_sinhala(text)
+
+
+def _fallback_contract_extraction(text: str) -> Dict[str, Optional[str]]:
+    party_a, party_b = _extract_contract_parties(text)
+    start_date, end_date = _extract_contract_dates_sinhala(text)
+    return {
+        "party_a": party_a,
+        "party_b": party_b,
+        "contract_purpose": _extract_contract_purpose_sinhala(text),
+        "obligations_a": _extract_party_obligation_sinhala(text, party_a),
+        "obligations_b": _extract_party_obligation_sinhala(text, party_b),
+        "payment_terms": _extract_payment_terms_sinhala(text),
+        "start_date": start_date,
+        "end_date": end_date,
+        "jurisdiction": _extract_contract_jurisdiction_sinhala(text),
+    }
+
+
+def _extract_petitioner_name_sinhala(text: str) -> Optional[str]:
+    patterns = [
+        r"Petitioner\s*[:\-]?\s*([^\n.]+?)(?=,\s*(?:NIC|Address|Date)\b|\.\s|$)",
+        r"නම\s*[:\-]?\s*([^\n.]+?)(?=,\s*(?:NIC|Address|Date)\b|\.\s|$)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1))
+    return _extract_name_sinhala(text)
+
+
+def _extract_petitioner_address_sinhala(text: str) -> Optional[str]:
+    patterns = [
+        r"Address\s*[:\-]?\s*([^\n.]+?)(?=\.\s|,\s*(?:Respondent|Court|Date|Relief)\b|$)",
+        r"ලිපිනය\s*[:\-]?\s*([^\n.]+?)(?=\.\s|,\s*(?:විත්තිකරු|Respondent|Court|Date|Relief)\b|$)",
+        r"residing at\s+([^\n.]+?)(?=\.\s|,\s*(?:Respondent|Court|Date|Relief)\b|$)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1))
+    return _extract_address_sinhala(text)
+
+
+def _extract_respondent_name_sinhala(text: str) -> Optional[str]:
+    patterns = [
+        r"Respondent\s*[:\-]?\s*([^\n.]+?)(?=\.\s|,\s*(?:Court|Date|Relief|Subject)\b|$)",
+        r"විත්තිකරු\s*[:\-]?\s*([^\n.]+?)(?=\.\s|,\s*(?:Court|Date|Relief|Subject)\b|$)",
+        r"එරෙහිව\s+([^\n.]+?)(?=\.\s|,\s*(?:Court|Date|Relief|Subject)\b|$)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1))
+    return None
+
+
+def _extract_court_name_sinhala(text: str) -> Optional[str]:
+    patterns = [
+        r"Court\s*[:\-]?\s*([^\n.]+?)(?=\.\s|,\s*(?:Date|Relief|Subject)\b|$)",
+        r"උසාවිය\s*[:\-]?\s*([^\n.]+?)(?=\.\s|,\s*(?:Date|Relief|Subject)\b|$)",
+        r"අධිකරණය\s*[:\-]?\s*([^\n.]+?)(?=\.\s|,\s*(?:Date|Relief|Subject)\b|$)",
+        r"([^\n.]*?(?:ශ්‍රේෂ්ඨාධිකරණය|අභියාචනාධිකරණය|දිසා අධිකරණය|මහාධිකරණය|මහේස්ත්‍රාත් අධිකරණය))(?=\s*(?:ඉදිරියේ|වෙත|හමුවේ|\.|,|$))",
+        r"([^\n.]+?)\s+ඉදිරියේ(?=\s|$)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1))
+    return None
+
+
+def _extract_subject_matter_sinhala(text: str) -> Optional[str]:
+    sentences = _split_sentences(text)
+    keywords = ("නීතිවිරෝධී", "unlawfully", "රඳවා", "detained", "magistrate")
+    for sentence in sentences:
+        if any(keyword.lower() in sentence.lower() for keyword in keywords):
+            return _clean_value(sentence.rstrip(" .") + ".")
+    return None
+
+
+def _extract_relief_sought_sinhala(text: str) -> Optional[str]:
+    patterns = [
+        r"ඉල්ලා සිටිමි\s+(.+?)(?=\.\s|,\s*(?:Date|දිනය)\b|$)",
+        r"\bseek\s+(.+?)(?=\.\s|,\s*(?:Date|දිනය)\b|$)",
+        r"\brelief\s*[:\-]?\s*(.+?)(?=\.\s|,\s*(?:Date|දිනය)\b|$)",
+        r"([^.]*?)\s+ඉල්ලා සිටිමි(?=\.\s|,\s*(?:Date|දිනය)\b|$)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1))
+    return None
+
+
+def _fallback_petition_extraction(text: str) -> Dict[str, Optional[str]]:
+    return {
+        "petitioner_name": _extract_petitioner_name_sinhala(text),
+        "petitioner_nic": _extract_nic_sinhala(text),
+        "petitioner_address": _extract_petitioner_address_sinhala(text),
+        "respondent_name": _extract_respondent_name_sinhala(text),
+        "court_name": _extract_court_name_sinhala(text),
+        "subject_matter": _extract_subject_matter_sinhala(text),
+        "relief_sought": _extract_relief_sought_sinhala(text),
+        "date": _extract_date_sinhala(text),
+    }
+
+
 def _fallback_extraction(text: str, doc_type: str, required_fields: list) -> Dict[str, Optional[str]]:
     fallback = _empty_result(doc_type)
     if doc_type == "AFFIDAVIT":
         fallback.update(_fallback_affidavit_extraction(text))
+    elif doc_type == "CONTRACT":
+        fallback.update(_fallback_contract_extraction(text))
+    elif doc_type == "PETITION":
+        fallback.update(_fallback_petition_extraction(text))
     return {
         field: _clean_value(fallback.get(field))
         for field in required_fields

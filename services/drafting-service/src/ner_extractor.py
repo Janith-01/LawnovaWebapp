@@ -308,6 +308,7 @@ def _extract_address(text: str, labels: Optional[List[str]] = None) -> Optional[
         r"\bresiding at\s+(.+?)(?=,\s*(?:wish to|do hereby|hereby|declare|declaring|state|stating|affirm|holding|holder|date\b|jurisdiction\b|subject matter\b|relief\b)\b|\.\s*(?:Date|Jurisdiction)\s*:|$)",
         r"\baddress(?:ed)?(?: at| as)?\s*[:\-]?\s*(.+?)(?=,\s*(?:wish to|do hereby|hereby|declare|declaring|state|stating|date\b|jurisdiction\b|relief\b)\b|\.\s*(?:Date|Jurisdiction)\s*:|$)",
         r"\bresident of\s+(.+?)(?=,\s*(?:who|holding|holder|wish to|declare|state|date\b|jurisdiction\b)\b|$)",
+        r"\bof\s+(\d+\s+[A-Za-z0-9 ,.'/-]+?)(?=,\s*(?:wish to|wishes to|intend to|petition\b|file\b|bring\b|before\b|against\b|date\b|relief\b)\b|\.\s*(?:Date|Jurisdiction)\s*:|$)",
     ]
 
     if labels:
@@ -336,7 +337,7 @@ def _extract_jurisdiction(text: str, locations: List[str]) -> Optional[str]:
 
 def _extract_court_name(text: str) -> Optional[str]:
     patterns = [
-        r"\b(?:before|in)\s+the\s+((?:Supreme|District|High|Magistrate'?s|Commercial High|Court of Appeal|Labour|Family)[A-Za-z ,'-]*Court(?:\s+of\s+[A-Za-z ,'-]+)?)",
+        r"\b(?:before|in)\s+the\s+((?:Supreme|District|High|Magistrate'?s|Commercial High|Court of Appeal|Labour|Family)\s+Court(?:\s+of\s+[A-Za-z ,'-]+)?)(?=\s+(?:against|on|under|where|for)\b|[.,;\n]|$)",
         r"\bCourt\s*[:\-]\s*(.+?Court(?:\s+of\s+[A-Za-z ,'-]+)?)(?=[.;,\n]|$)",
         r"\b(?:Honou?rable|Hon\.)\s+(.+?Court(?:\s+of\s+[A-Za-z ,'-]+)?)(?=[.;,\n]|$)",
     ]
@@ -349,8 +350,21 @@ def _extract_subject_matter(text: str) -> Optional[str]:
         r"\bconcerning\s+(.+?)(?=\.\s|,\s*(?:relief|date)\b|$)",
         r"\bregarding\s+(.+?)(?=\.\s|,\s*(?:relief|date)\b|$)",
         r"\bin the matter of\s+(.+?)(?=\.\s|,\s*(?:relief|date)\b|$)",
+        r"\bthe respondent\s+(.+?)(?=\.\s*(?:Relief|Date)\b|\.$|$)",
     ]
-    return _match_first(patterns, text)
+    subject = _match_first(patterns, text)
+    if subject:
+        return subject
+
+    sentences = [
+        _clean_value(sentence)
+        for sentence in re.split(r"(?<=[.!?])\s+", text)
+    ]
+    keywords = ("unlawfully", "detained", "violated", "without", "failed to", "illegally")
+    for sentence in sentences:
+        if sentence and any(keyword in sentence.lower() for keyword in keywords):
+            return sentence
+    return None
 
 
 def _extract_relief_sought(text: str) -> Optional[str]:
@@ -375,10 +389,70 @@ def _extract_contract_purpose(text: str) -> Optional[str]:
 def _extract_obligation(text: str, labels: List[str]) -> Optional[str]:
     label_pattern = "|".join(re.escape(label) for label in labels)
     patterns = [
+        rf"\b(?:{label_pattern})\b\s+(?:must|shall|will|agrees? to)\s+(.+?)(?=\.\s|,\s*(?:party|payment|jurisdiction|start date|end date)\b|$)",
         rf"\b(?:{label_pattern})\b\s+(?:shall|agrees? to|will)\s+(.+?)(?=\.\s|,\s*(?:party|payment|jurisdiction|start date|end date)\b|$)",
         rf"\b(?:obligations?|duties?)\s+of\s+(?:the\s+)?(?:{label_pattern})\b\s*[:\-]\s*(.+?)(?=\.\s|,\s*(?:party|payment|jurisdiction|start date|end date)\b|$)",
     ]
     return _match_first(patterns, text)
+
+
+def _extract_named_party_obligation(text: str, party_name: Optional[str]) -> Optional[str]:
+    if not party_name:
+        return None
+    escaped_name = re.escape(party_name)
+    patterns = [
+        rf"\b{escaped_name}\b\s+(?:must|shall|will|agrees? to)\s+(.+?)(?=\.\s|,\s*(?:payment|jurisdiction|start date|end date|party a|party b|first party|second party)\b|$)",
+    ]
+    return _match_first(patterns, text)
+
+
+def _extract_petition_address(text: str) -> Optional[str]:
+    patterns = [
+        r"\bNIC\s*(?:number|no\.?)?\s*\d{12}\s*,\s*of\s+(.+?)(?=,\s*(?:wish to|wishes to|intend to|file\b|bring\b|petition\b|before\b)\b|$)",
+        r"\bof\s+(\d+\s+[A-Za-z0-9 ,.'/-]+?)(?=,\s*(?:wish to|wishes to|intend to|file\b|bring\b|petition\b|before\b)\b|$)",
+        r"\bresiding at\s+(.+?)(?=,\s*(?:wish to|wishes to|intend to|file\b|bring\b|petition\b|before\b)\b|$)",
+    ]
+    return _match_first(patterns, text)
+
+
+def _extract_petition_respondent(text: str) -> Optional[str]:
+    patterns = [
+        r"\bRespondent\s*[:\-]\s*(.+?)(?=\.\s|,\s*(?:The respondent|Relief|Date)\b|$)",
+        r"\bagainst\s+(.+?)(?=\.\s*(?:The respondent|Relief|Date)\b|,\s*(?:The respondent|Relief|Date)\b|$)",
+    ]
+    respondent = _match_first(patterns, text)
+    if respondent and not any(
+        keyword in respondent.lower()
+        for keyword in ("unlawfully", "detained", "violated", "without", "failed to", "illegally")
+    ):
+        return respondent
+    return None
+
+
+def _extract_petition_court_name(text: str) -> Optional[str]:
+    patterns = [
+        r"\bbefore\s+the\s+((?:Supreme|District|High|Magistrate'?s|Commercial High|Court of Appeal|Labour|Family)\s+Court(?:\s+of\s+[A-Za-z]+(?:\s+[A-Za-z]+){0,4})?)(?=\s+against\b|[.,;\n]|$)",
+        r"\bin\s+the\s+((?:Supreme|District|High|Magistrate'?s|Commercial High|Court of Appeal|Labour|Family)\s+Court(?:\s+of\s+[A-Za-z]+(?:\s+[A-Za-z]+){0,4})?)(?=\s+against\b|[.,;\n]|$)",
+    ]
+    return _match_first(patterns, text)
+
+
+def _extract_petition_relief_sought(text: str) -> Optional[str]:
+    patterns = [
+        r"\brelief(?: sought)?\s*[:\-]\s*(.+?)(?=\.\s*(?:Date)\b|$)",
+        r"\bI\s+seek\s+(.+?)(?=\.\s*(?:Date)\b|$)",
+        r"\bseeking\s+(.+?)(?=\.\s*(?:Date)\b|$)",
+    ]
+    return _match_first(patterns, text)
+
+
+def _extract_petition_subject_matter(text: str) -> Optional[str]:
+    sentences = [_clean_value(sentence) for sentence in re.split(r"(?<=[.!?])\s+", text)]
+    keywords = ("unlawfully", "detained", "violated", "without", "failed to", "illegally")
+    for sentence in sentences:
+        if sentence and any(keyword in sentence.lower() for keyword in keywords):
+            return sentence
+    return _extract_subject_matter(text)
 
 
 def _extract_labeled_role_value(text: str, labels: List[str]) -> Optional[str]:
@@ -487,8 +561,10 @@ def _extract_contract(text: str, people: List[str], orgs: List[str], dates: List
         "party_a": party_a,
         "party_b": party_b,
         "contract_purpose": _extract_contract_purpose(text),
-        "obligations_a": _extract_obligation(text, ["party a", "first party", "employer", "buyer", "lessor", "service provider"]),
-        "obligations_b": _extract_obligation(text, ["party b", "second party", "employee", "seller", "lessee", "client"]),
+        "obligations_a": _extract_obligation(text, ["party a", "first party", "employer", "buyer", "lessor", "service provider"])
+        or _extract_named_party_obligation(text, party_a),
+        "obligations_b": _extract_obligation(text, ["party b", "second party", "employee", "seller", "lessee", "client"])
+        or _extract_named_party_obligation(text, party_b),
         "payment_terms": _match_first(
             [
                 r"\bpayment terms?\s*[:\-]\s*(.+?)(?=\.\s*(?:Start Date|End Date|Jurisdiction)\s*:|,\s*(?:Start Date|End Date|Jurisdiction)\s*:|$)",
@@ -509,7 +585,7 @@ def _extract_contract(text: str, people: List[str], orgs: List[str], dates: List
 
 def _extract_petition(text: str, people: List[str], orgs: List[str], dates: List[str]) -> Dict[str, Optional[str]]:
     petitioner = _match_dataset_cues(text, "petitioner_name") or _extract_labeled_role_value(text, ["petitioner", "petitioner-appellant"])
-    respondent = _match_dataset_cues(text, "respondent_name") or _extract_labeled_role_value(text, ["respondent", "defendant", "respondent-respondent"])
+    respondent = _extract_petition_respondent(text) or _match_dataset_cues(text, "respondent_name")
 
     if not respondent:
         respondent = _match_first(
@@ -529,12 +605,15 @@ def _extract_petition(text: str, people: List[str], orgs: List[str], dates: List
     nic_matches = NIC_PATTERN.findall(text)
     return {
         "petitioner_name": petitioner,
-        "petitioner_nic": nic_matches[0] if nic_matches else None,
-        "petitioner_address": _match_dataset_cues(text, "petitioner_address") or _extract_address(text, labels=["address", "petitioner address"]),
+        "petitioner_nic": _extract_nic_by_labels(text, ["NIC", "National Identity Card"])
+        or (nic_matches[0] if nic_matches else None),
+        "petitioner_address": _extract_petition_address(text)
+        or _match_dataset_cues(text, "petitioner_address")
+        or _extract_address(text, labels=["address", "petitioner address"]),
         "respondent_name": respondent,
-        "court_name": _match_dataset_cues(text, "court_name") or _extract_court_name(text),
-        "subject_matter": _extract_subject_matter(text),
-        "relief_sought": _extract_relief_sought(text),
+        "court_name": _extract_petition_court_name(text) or _match_dataset_cues(text, "court_name") or _extract_court_name(text),
+        "subject_matter": _extract_petition_subject_matter(text),
+        "relief_sought": _extract_petition_relief_sought(text) or _extract_relief_sought(text),
         "date": _extract_date_by_labels(text, ["Date", "Filed on", "Dated"]) or (dates[0] if dates else None),
     }
 
