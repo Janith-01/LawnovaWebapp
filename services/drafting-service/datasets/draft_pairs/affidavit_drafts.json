@@ -1,0 +1,232 @@
+[
+    {
+    "doc_type": "AFFIDAVIT",
+    "language": "English",
+    "input_params": {
+      "deponent_name": "Karunaratne Mudiyanselage Sunil Perera",
+      "deponent_nic": "197234500123",
+      "deponent_address": "No. 45, Kandy Road, Kelaniya, Western Province",
+      "statement_facts": "I am the registered owner of the land bearing Assessment No. 45, Kandy Road, Kelaniya, as per Deed No. 1234 dated 15th March 2005 registered in the Land Registry of Kelaniya. The said land has been in my possession and enjoyment since the date of purchase. No other person has any claim, encumbrance, or mortgage over the said land. I make this affidavit in support of my application for a certified copy of the title deed.",
+      "date": "2024-03-10",
+      "jurisdiction": "District Court of Colombo"
+    },
+    "expected_structure": [
+      "Title / Heading",
+      "Court and Case Reference",
+      "Deponent Identification",
+      "Oath / Affirmation Statement",
+      "Numbered Statement of Facts",
+      "Verification Clause",
+      "Deponent Signature",
+      "Commissioner for Oaths / Notary Attestation"
+    ],
+    "drafted_document": "IN THE DISTRICT COURT OF COLOMBO\n\nAFFIDAVIT\n\nI, Karunaratne Mudiyanselage Sunil Perera, holder of National Identity Card No. 197234500123, residing at No. 45, Kandy Road, Kelaniya, Western Province, being a Buddhist, do solemnly, sincerely and truly declare and affirm as follows:\n\n1. I am the Deponent herein and I make this Affidavit from facts within my own personal knowledge and belief.\n\n2. I am the registered owner of the land and premises bearing Assessment No. 45, Kandy Road, Kelaniya, Western Province, which land was conveyed to me by virtue of Deed No. 1234 dated the 15th day of March 2005, attested by Notary Public Nimal Jayasuriya and duly registered in the Land Registry of Kelaniya under Volume 250, Folio 10.\n\n3. The said land has been in my continuous, undisturbed, and exclusive possession and enjoyment from the date of purchase to date, and no other person, party, or entity has any lawful claim, right, title, encumbrance, mortgage, lien, or interest over the said land.\n\n4. I have not executed any deed of transfer, mortgage, or encumbrance in respect of the said property subsequent to the aforesaid Deed No. 1234, and the said property remains free from all encumbrances.\n\n5. I make this Affidavit bona fide and in support of my application for a certified copy of the title deed from the relevant Land Registry, and for no other purpose.\n\n6. The facts stated herein are true and correct to the best of my knowledge, information, and belief.\n\nSOLEMNLY AFFIRMED at Colombo on this 10th day of March 2024.\n\n_________________________\nKarunaratne Mudiyanselage Sunil Perera\nDeponent\n\nBefore me,\n\n_________________________\nCommissioner for Oaths / Notary Public\nColombo"
+  },
+  {
+    "doc_type": "AFFIDAVIT",
+    "language": "English",
+    "input_params": {
+      "deponent_name": "Fatima Nusrath Razeen",
+      "deponent_nic": "198556702345",
+      "deponent_address": "No. 12, Station Road, Dehiwala, Western Province",
+      "statement_facts": "I am the mother and natural guardian of the minor child Mohamed Razeen Fahim, born on 14th June 2015. The father of the said minor, Mohamed Imran Razeen, holder of NIC No. 197345601234, has been residing abroad since 2019 and has failed to provide maintenance for the child. I seek legal custody orders in my favour for the welfare of the minor. The child has been in my sole care since birth.",
+      "date": "2024-05-22",
+      "jurisdiction": "Family Court of Colombo"
+    },
+    "expected_structure": [
+      "Title / Heading",
+      "Court and Case Reference",
+      "Deponent Identification",
+      "Oath / Affirmation Statement",
+      "Numbered Statement of Facts",
+      "Verification Clause",
+      "Deponent Signature",
+      "Commissioner for Oaths / Notary Attestation"
+    ],
+    "drafted_document": "IN THE FAMILY COURT OF COLOMBO\n\nAFFIDAVIT\n\nI, Fatima Nusrath Razeen, holder of National Identity Card No. 198556702345, residing at No. 12, Station Road, Dehiwala, Western Province, being a Muslim, do hereby solemnly and sincerely affirm and declare as follows:\n\n1. I am the Deponent named herein and I make this Affidavit based on facts within my own personal knowledge and belief.\n\n2. I am the biological mother and natural guardian of the minor child Mohamed Razeen Fahim, a male child born on the 14th day of June 2015, at the De Soysa Hospital for Women, Colombo 08.\n\n3. The natural father of the said minor child is Mohamed Imran Razeen, holder of National Identity Card No. 197345601234, who has been residing in the State of Qatar since the year 2019 and has failed and neglected to provide any financial maintenance or parental support for the said minor child.\n\n4. Since the departure of the said Mohamed Imran Razeen from Sri Lanka, the said minor child has been in my sole and exclusive care, custody, and control, and I have been solely responsible for all expenses relating to the education, health, clothing, and general welfare of the said child.\n\n5. It is in the best interests and welfare of the said minor child that sole legal custody be vested in me, the Deponent, as I am the primary caregiver and the person best suited to protect and nurture the said child.\n\n6. I make this Affidavit bona fide in support of my application for custody of the said minor child and for no other collateral or improper purpose.\n\n7. The contents of this Affidavit are true and correct to the best of my knowledge, information, and belief.\n\nSOLEMNLY AFFIRMED at Colombo on this 22nd day of May 2024.\n\n_________________________\nFatima Nusrath Razeen\nDeponent\n\nBefore me,\n\n_________________________\nCommissioner for Oaths / Notary Public\nColombo"
+  },
+  {
+    "doc_type": "AFFIDAVIT",
+    "language": "English",
+    "input_params": {
+      "deponent_name": "Thilagarajah Sooriyakumar",
+      "deponent_nic": "196712304567",
+      "deponent_address": "No. 88, Temple Street, Jaffna, Northern Province",
+      "statement_facts": "I am the executor of the Last Will and Testament of the late Mrs. Saraswathy Thilagarajah, who passed away on 20th January 2024. The said Last Will was duly executed on 5th March 2018 before Notary Public Rajan Arulanandam. I hereby depose that the deceased had no other valid Will and that I am the sole executor named therein. I intend to apply for Probate before the District Court of Jaffna.",
+      "date": "2024-02-18",
+      "jurisdiction": "District Court of Jaffna"
+    },
+    "expected_structure": [
+      "Title / Heading",
+      "Court and Case Reference",
+      "Deponent Identification",
+      "Oath / Affirmation Statement",
+      "Numbered Statement of Facts",
+      "Verification Clause",
+      "Deponent Signature",
+      "Commissioner for Oaths / Notary Attestation"
+    ],
+    "drafted_document": "IN THE DISTRICT COURT OF JAFFNA\n\nIN THE MATTER OF THE LAST WILL AND TESTAMENT OF THE LATE MRS. SARASWATHY THILAGARAJAH\n\nAFFIDAVIT OF EXECUTOR\n\nI, Thilagarajah Sooriyakumar, holder of National Identity Card No. 196712304567, residing at No. 88, Temple Street, Jaffna, Northern Province, being a Hindu, do solemnly, sincerely and truly affirm and declare as follows:\n\n1. I am the Deponent herein and I make this Affidavit from facts within my own personal knowledge and belief.\n\n2. The late Mrs. Saraswathy Thilagarajah, who was residing at No. 88, Temple Street, Jaffna, departed this life on the 20th day of January 2024, at the Teaching Hospital, Jaffna.\n\n3. During her lifetime and while of sound mind and disposing memory, the said deceased duly executed her Last Will and Testament on the 5th day of March 2018, before Notary Public Rajan Arulanandam, Jaffna, in compliance with the provisions of the Prevention of Frauds Ordinance (Chapter 71) and the Wills Ordinance of Sri Lanka.\n\n4. By the said Last Will and Testament, the deceased appointed me, the Deponent, as the sole Executor of her estate.\n\n5. The said Last Will dated 5th March 2018 is, to the best of my knowledge and belief, the last valid and subsisting Will of the deceased, and the deceased did not execute any subsequent or codicil to the said Will.\n\n6. I am desirous of obtaining Probate of the said Will from this Honourable Court in order to administer the estate of the deceased in accordance with the terms of the said Will.\n\n7. The contents of this Affidavit are true and correct to the best of my knowledge, information, and belief.\n\nSOLEMNLY AFFIRMED at Jaffna on this 18th day of February 2024.\n\n_________________________\nThilagarajah Sooriyakumar\nDeponent / Executor\n\nBefore me,\n\n_________________________\nCommissioner for Oaths / Notary Public\nJaffna"
+  },
+  {
+    "doc_type": "AFFIDAVIT",
+    "language": "English",
+    "input_params": {
+      "deponent_name": "Ruwan Chaminda Wickramasinghe",
+      "deponent_nic": "198923401234",
+      "deponent_address": "No. 7, Galle Road, Moratuwa, Western Province",
+      "statement_facts": "I am an employee of ABC Garments (Pvt) Ltd and was involved in a road traffic accident on 15th November 2023 at the junction of Galle Road and Hospital Road, Moratuwa. A vehicle bearing registration number WP CAB-3421 collided with my motorcycle bearing registration number WP EF-9034 causing me bodily injuries. I was hospitalised for five days at Kalubowila Teaching Hospital. I was not at fault and the accident was caused solely by the negligence of the driver of the said vehicle.",
+      "date": "2024-01-05",
+      "jurisdiction": "Magistrate's Court of Moratuwa"
+    },
+    "expected_structure": [
+      "Title / Heading",
+      "Court and Case Reference",
+      "Deponent Identification",
+      "Oath / Affirmation Statement",
+      "Numbered Statement of Facts",
+      "Verification Clause",
+      "Deponent Signature",
+      "Commissioner for Oaths / Notary Attestation"
+    ],
+    "drafted_document": "IN THE MAGISTRATE'S COURT OF MORATUWA\n\nAFFIDAVIT\n\nI, Ruwan Chaminda Wickramasinghe, holder of National Identity Card No. 198923401234, residing at No. 7, Galle Road, Moratuwa, Western Province, being a Buddhist, do solemnly, sincerely and truly affirm and declare as follows:\n\n1. I am the Deponent herein and I make this Affidavit from facts within my own personal knowledge, information, and belief.\n\n2. I am currently employed as a machine operator at ABC Garments (Pvt) Ltd, situated at Export Processing Zone, Katunayake.\n\n3. On the 15th day of November 2023, at approximately 8:15 a.m., while I was travelling on my motorcycle bearing registration number WP EF-9034 along Galle Road in the direction of Colombo, a motor vehicle bearing registration number WP CAB-3421, driven in a reckless, negligent and unlawful manner, collided with my said motorcycle at the junction of Galle Road and Hospital Road, Moratuwa.\n\n4. As a direct result of the said collision, I sustained multiple bodily injuries including fractures to the left arm and lacerations to the face and upper body, necessitating emergency medical treatment and hospitalisation at the Kalubowila Teaching Hospital, Dehiwala, for a period of five (05) days, from 15th November 2023 to 20th November 2023.\n\n5. I was not in any manner at fault for the said accident, and the collision was caused solely and entirely by the negligence, recklessness, and want of care of the driver of the said vehicle bearing registration number WP CAB-3421.\n\n6. I make this Affidavit bona fide in support of the proceedings before this Honourable Court and for no other purpose.\n\n7. The contents of this Affidavit are true and correct to the best of my knowledge, information, and belief.\n\nSOLEMNLY AFFIRMED at Moratuwa on this 5th day of January 2024.\n\n_________________________\nRuwan Chaminda Wickramasinghe\nDeponent\n\nBefore me,\n\n_________________________\nCommissioner for Oaths / Notary Public\nMoratuwa"
+  },
+  {
+    "doc_type": "AFFIDAVIT",
+    "language": "English",
+    "input_params": {
+      "deponent_name": "Sandamali Priyanthi Alwis",
+      "deponent_nic": "199145603456",
+      "deponent_address": "No. 23, Flower Road, Kandy, Central Province",
+      "statement_facts": "I am a student registered at the University of Peradeniya under Index No. 2019/ICT/056. I lost my original degree certificate issued to me on 12th September 2023. I have conducted a thorough search and have been unable to locate the said certificate. I believe it was inadvertently misplaced during my relocation from the university hostel. I have not pledged or deposited the said certificate with any institution. I require a duplicate certificate for employment purposes.",
+      "date": "2024-04-01",
+      "jurisdiction": "Magistrate's Court of Kandy"
+    },
+    "expected_structure": [
+      "Title / Heading",
+      "Court and Case Reference",
+      "Deponent Identification",
+      "Oath / Affirmation Statement",
+      "Numbered Statement of Facts",
+      "Verification Clause",
+      "Deponent Signature",
+      "Commissioner for Oaths / Notary Attestation"
+    ],
+    "drafted_document": "IN THE MAGISTRATE'S COURT OF KANDY\n\nAFFIDAVIT REGARDING LOSS OF ACADEMIC CERTIFICATE\n\nI, Sandamali Priyanthi Alwis, holder of National Identity Card No. 199145603456, residing at No. 23, Flower Road, Kandy, Central Province, being a Buddhist, do solemnly, sincerely and truly affirm and declare as follows:\n\n1. I am the Deponent herein and I make this Affidavit from facts within my own personal knowledge and belief.\n\n2. I was a registered student of the University of Peradeniya, having been enrolled in the Bachelor of Science in Information and Communication Technology degree programme under Index No. 2019/ICT/056.\n\n3. Upon the successful completion of my studies, the University of Peradeniya issued me with an original degree certificate on the 12th day of September 2023, certifying the conferment of the Bachelor of Science (Honours) degree in Information and Communication Technology upon me.\n\n4. I have lost the aforesaid original degree certificate and, despite conducting a thorough and diligent search of all my belongings and premises, I have been unable to trace or locate the same. I believe the said certificate was inadvertently misplaced in the course of my relocation from the University Hostel to my present address.\n\n5. I have not transferred, pledged, deposited, or otherwise encumbered the said original degree certificate with any bank, financial institution, employer, or any other person or entity.\n\n6. I require a duplicate degree certificate from the University of Peradeniya for the purpose of seeking employment, and I make this Affidavit in support of my application to the said University for the issuance of a duplicate certificate.\n\n7. I undertake to surrender the original certificate to the University forthwith upon its recovery.\n\n8. The contents of this Affidavit are true and correct to the best of my knowledge, information, and belief.\n\nSOLEMNLY AFFIRMED at Kandy on this 1st day of April 2024.\n\n_________________________\nSandamali Priyanthi Alwis\nDeponent\n\nBefore me,\n\n_________________________\nCommissioner for Oaths / Notary Public\nKandy"
+  },
+  {
+    "doc_type": "AFFIDAVIT",
+    "language": "English",
+    "input_params": {
+      "deponent_name": "Pradeep Lalith Bandara",
+      "deponent_nic": "197534502211",
+      "deponent_address": "No. 56, Main Street, Gampaha, Western Province",
+      "statement_facts": "I am the sole proprietor of Bandara Trading Company, registered at the Registrar of Business Names under Registration No. BN/2012/04567. I have been carrying on business as a general trader since 2012. My business partner, Nishantha Kumara Bandara, ceased to be a partner from 1st January 2023 and has no further authority to act on behalf of or bind the said business. All future liabilities and obligations from that date are solely mine.",
+      "date": "2024-02-28",
+      "jurisdiction": "Commercial High Court of the Western Province"
+    },
+    "expected_structure": [
+      "Title / Heading",
+      "Court and Case Reference",
+      "Deponent Identification",
+      "Oath / Affirmation Statement",
+      "Numbered Statement of Facts",
+      "Verification Clause",
+      "Deponent Signature",
+      "Commissioner for Oaths / Notary Attestation"
+    ],
+    "drafted_document": "IN THE COMMERCIAL HIGH COURT OF THE WESTERN PROVINCE\n\nAFFIDAVIT\n\nI, Pradeep Lalith Bandara, holder of National Identity Card No. 197534502211, residing at No. 56, Main Street, Gampaha, Western Province, being a Buddhist, do solemnly, sincerely and truly affirm and declare as follows:\n\n1. I am the Deponent herein and I make this Affidavit from facts within my own personal knowledge and belief.\n\n2. I am the sole proprietor and registered owner of the business enterprise known as Bandara Trading Company, which is duly registered under the Business Names (Registration) Act, No. 07 of 1987, bearing Business Registration No. BN/2012/04567, issued by the Registrar of Business Names, Gampaha.\n\n3. I have been carrying on business as a general trader under the aforesaid business name continuously since the year 2012.\n\n4. One Nishantha Kumara Bandara, holder of National Identity Card No. 197645601234, who previously acted as a partner and agent of the aforesaid business, ceased to be associated with, and to hold any authority in relation to, the said Bandara Trading Company with effect from the 1st day of January 2023.\n\n5. From the said 1st day of January 2023, the said Nishantha Kumara Bandara has no authority whatsoever to enter into any contract, incur any liability, or otherwise act on behalf of the said Bandara Trading Company.\n\n6. All liabilities, obligations, and responsibilities of the said Bandara Trading Company incurred on or after the 1st day of January 2023 are solely and exclusively mine as the sole proprietor.\n\n7. I make this Affidavit bona fide for the purpose of placing on record the cessation of the said Nishantha Kumara Bandara's association with my business.\n\n8. The contents of this Affidavit are true and correct to the best of my knowledge, information, and belief.\n\nSOLEMNLY AFFIRMED at Colombo on this 28th day of February 2024.\n\n_________________________\nPradeep Lalith Bandara\nDeponent\n\nBefore me,\n\n_________________________\nCommissioner for Oaths / Notary Public\nColombo"
+  },
+  {
+    "doc_type": "AFFIDAVIT",
+    "language": "English",
+    "input_params": {
+      "deponent_name": "Anoma Dilrukshi Jayawardena",
+      "deponent_nic": "198867803456",
+      "deponent_address": "No. 3, Lake View Mawatha, Polonnaruwa, North Central Province",
+      "statement_facts": "I am the owner of a motor vehicle bearing Registration No. NC-3456, a Toyota Corolla, manufactured in 2015. The said vehicle was reported stolen on 10th October 2023 from the car park of Polonnaruwa General Hospital. A complaint was duly lodged at the Polonnaruwa Police Station under Crime Report No. CR/POL/2023/1234. As of the date of this Affidavit, the said vehicle has not been recovered. I require this Affidavit for the purpose of claiming insurance benefits.",
+      "date": "2024-01-20",
+      "jurisdiction": "Magistrate's Court of Polonnaruwa"
+    },
+    "expected_structure": [
+      "Title / Heading",
+      "Court and Case Reference",
+      "Deponent Identification",
+      "Oath / Affirmation Statement",
+      "Numbered Statement of Facts",
+      "Verification Clause",
+      "Deponent Signature",
+      "Commissioner for Oaths / Notary Attestation"
+    ],
+    "drafted_document": "IN THE MAGISTRATE'S COURT OF POLONNARUWA\n\nAFFIDAVIT REGARDING THEFT OF MOTOR VEHICLE\n\nI, Anoma Dilrukshi Jayawardena, holder of National Identity Card No. 198867803456, residing at No. 3, Lake View Mawatha, Polonnaruwa, North Central Province, being a Buddhist, do solemnly, sincerely and truly affirm and declare as follows:\n\n1. I am the Deponent herein and I make this Affidavit from facts within my own personal knowledge and belief.\n\n2. I am the registered owner of a motor vehicle described as a Toyota Corolla, bearing Registration No. NC-3456, Engine No. 1NZ-FE-4567890, Chassis No. ZZE1221234567, manufactured in the year 2015.\n\n3. On the 10th day of October 2023, the said vehicle was stolen from the car park of the Polonnaruwa General Hospital, Polonnaruwa, while I was attending to a medical appointment at the said hospital.\n\n4. I immediately reported the said theft to the Polonnaruwa Police Station, and the said complaint was duly recorded under Crime Report No. CR/POL/2023/1234 on the 10th day of October 2023.\n\n5. As of the date of this Affidavit, the said motor vehicle has not been recovered by the police or by any other authority, and its whereabouts remain unknown to me.\n\n6. The said motor vehicle was insured under Policy No. IL/MV/2023/78901 issued by Ceylinco Insurance PLC, and I make this Affidavit for the purpose of supporting my claim for insurance benefits in respect of the said stolen vehicle.\n\n7. I have not been involved in any manner in the disappearance of the said vehicle, and I make this Affidavit bona fide.\n\n8. The contents of this Affidavit are true and correct to the best of my knowledge, information, and belief.\n\nSOLEMNLY AFFIRMED at Polonnaruwa on this 20th day of January 2024.\n\n_________________________\nAnoma Dilrukshi Jayawardena\nDeponent\n\nBefore me,\n\n_________________________\nCommissioner for Oaths / Notary Public\nPolonnaruwa"
+  },
+  {
+    "doc_type": "AFFIDAVIT",
+    "language": "English",
+    "input_params": {
+      "deponent_name": "Mohomad Shafiq Ahamed",
+      "deponent_nic": "197812305678",
+      "deponent_address": "No. 14, Bazaar Street, Puttalam, North Western Province",
+      "statement_facts": "I am a fisherman by occupation and I have been the traditional owner and operator of the fishing vessel named 'Sea Pearl', bearing Boat Registration No. FV/NW/2010/0345, registered with the Department of Fisheries and Aquatic Resources. On 3rd December 2023, the said vessel was damaged beyond repair due to a sudden and severe storm in the Puttalam Lagoon. The vessel has been confirmed as a total loss by the Department of Fisheries surveyor. I make this affidavit to support my claim for compensation under the Fisheries and Aquatic Resources Act.",
+      "date": "2024-01-08",
+      "jurisdiction": "Magistrate's Court of Puttalam"
+    },
+    "expected_structure": [
+      "Title / Heading",
+      "Court and Case Reference",
+      "Deponent Identification",
+      "Oath / Affirmation Statement",
+      "Numbered Statement of Facts",
+      "Verification Clause",
+      "Deponent Signature",
+      "Commissioner for Oaths / Notary Attestation"
+    ],
+    "drafted_document": "IN THE MAGISTRATE'S COURT OF PUTTALAM\n\nAFFIDAVIT REGARDING LOSS OF FISHING VESSEL\n\nI, Mohomad Shafiq Ahamed, holder of National Identity Card No. 197812305678, residing at No. 14, Bazaar Street, Puttalam, North Western Province, being a Muslim, do solemnly and sincerely affirm and declare as follows:\n\n1. I am the Deponent herein and I make this Affidavit from facts within my own personal knowledge and belief.\n\n2. I am a fisherman by occupation and have been engaged in coastal and lagoon fishing in the Puttalam area for over twenty (20) years.\n\n3. I am the registered owner and operator of the fishing vessel known as 'Sea Pearl', bearing Boat Registration No. FV/NW/2010/0345, duly registered with the Department of Fisheries and Aquatic Resources of Sri Lanka.\n\n4. On the 3rd day of December 2023, the said fishing vessel 'Sea Pearl' was moored at its customary anchorage point in the Puttalam Lagoon when a sudden and severe tropical storm struck the area, causing the vessel to be completely submerged and damaged beyond repair.\n\n5. Following the said storm, a survey was conducted by an authorised surveyor of the Department of Fisheries and Aquatic Resources, who confirmed by Survey Report dated 15th December 2023 that the said vessel constitutes a total loss and is beyond economical repair.\n\n6. The damage to the said vessel was caused entirely by the said act of nature and was not the result of any negligence, misuse, or improper conduct on my part or on the part of any member of my crew.\n\n7. I make this Affidavit bona fide in support of my application for compensation under the provisions of the Fisheries and Aquatic Resources Act, No. 02 of 1996, and for no other purpose.\n\n8. The contents of this Affidavit are true and correct to the best of my knowledge, information, and belief.\n\nSOLEMNLY AFFIRMED at Puttalam on this 8th day of January 2024.\n\n_________________________\nMohomad Shafiq Ahamed\nDeponent\n\nBefore me,\n\n_________________________\nCommissioner for Oaths / Notary Public\nPuttalam"
+  },
+  {
+    "doc_type": "AFFIDAVIT",
+    "language": "English",
+    "input_params": {
+      "deponent_name": "Lasanthi Kumudini Silva",
+      "deponent_nic": "199267803456",
+      "deponent_address": "No. 67, Temple Road, Nugegoda, Western Province",
+      "statement_facts": "I am a registered nurse employed at Nawaloka Hospital, Colombo 02. I have been approached by an unknown third party claiming that a forged power of attorney has been executed in my name in respect of my parents' property at No. 45, High Level Road, Nugegoda. I have not executed any power of attorney in favour of any person. The document purporting to bear my signature as donor is false and fraudulent. I make this affidavit to denounce the fraudulent document and to protect the property of my parents.",
+      "date": "2024-03-15",
+      "jurisdiction": "District Court of Colombo"
+    },
+    "expected_structure": [
+      "Title / Heading",
+      "Court and Case Reference",
+      "Deponent Identification",
+      "Oath / Affirmation Statement",
+      "Numbered Statement of Facts",
+      "Verification Clause",
+      "Deponent Signature",
+      "Commissioner for Oaths / Notary Attestation"
+    ],
+    "drafted_document": "IN THE DISTRICT COURT OF COLOMBO\n\nAFFIDAVIT DENOUNCING FRAUDULENT POWER OF ATTORNEY\n\nI, Lasanthi Kumudini Silva, holder of National Identity Card No. 199267803456, residing at No. 67, Temple Road, Nugegoda, Western Province, being a Buddhist, do solemnly, sincerely and truly affirm and declare as follows:\n\n1. I am the Deponent herein and I make this Affidavit from facts within my own personal knowledge and belief.\n\n2. I am a qualified and registered nurse, currently employed at Nawaloka Hospitals (Pvt) Ltd., No. 23, Deshamanya H.K. Dharmadasa Mawatha, Colombo 02.\n\n3. It has recently come to my attention that an unknown third party has fraudulently executed or caused to be executed a Power of Attorney purportedly in my name, purporting to authorise that party or some other person to deal with the property of my parents situated at No. 45, High Level Road, Nugegoda, Western Province.\n\n4. I solemnly and unequivocally declare that I have never, at any time, executed, signed, or caused to be executed any Power of Attorney, whether general or special, in favour of any person or entity in respect of the aforesaid property or any other property.\n\n5. Any document purporting to bear my signature as the donor of a Power of Attorney in respect of the aforesaid property is entirely false, fraudulent, and null and void, and has been executed without my knowledge, consent, or authorisation.\n\n6. I have reported the aforesaid fraudulent conduct to the Nugegoda Police Station and the matter is under investigation.\n\n7. I make this Affidavit bona fide for the purpose of denouncing the said fraudulent document and placing on record my strong protest against the same, and for the protection of the lawful property rights of my parents.\n\n8. The contents of this Affidavit are true and correct to the best of my knowledge, information, and belief.\n\nSOLEMNLY AFFIRMED at Colombo on this 15th day of March 2024.\n\n_________________________\nLasanthi Kumudini Silva\nDeponent\n\nBefore me,\n\n_________________________\nCommissioner for Oaths / Notary Public\nColombo"
+  },
+  {
+    "doc_type": "AFFIDAVIT",
+    "language": "English",
+    "input_params": {
+      "deponent_name": "Ranjit Kumar Gunawardena",
+      "deponent_nic": "196534501234",
+      "deponent_address": "No. 9, Sea Beach Road, Matara, Southern Province",
+      "statement_facts": "I am the owner of a commercial building situated at No. 22, Main Street, Matara, comprising ground floor and two upper floors. I have been the landlord of tenant Suresh Mahinda Rathnayake since 2015 under a lease agreement. The said tenant has failed to pay monthly rent of Rs. 35,000 for the months of July, August, September, and October 2023, totalling Rs. 140,000 in arrears. All verbal demands for payment have been ignored. I seek a court order for eviction and recovery of arrears under the Rent Act.",
+      "date": "2023-11-14",
+      "jurisdiction": "Magistrate's Court of Matara"
+    },
+    "expected_structure": [
+      "Title / Heading",
+      "Court and Case Reference",
+      "Deponent Identification",
+      "Oath / Affirmation Statement",
+      "Numbered Statement of Facts",
+      "Verification Clause",
+      "Deponent Signature",
+      "Commissioner for Oaths / Notary Attestation"
+    ],
+    "drafted_document": "IN THE MAGISTRATE'S COURT OF MATARA\n\nAFFIDAVIT IN SUPPORT OF APPLICATION FOR EVICTION\n\nI, Ranjit Kumar Gunawardena, holder of National Identity Card No. 196534501234, residing at No. 9, Sea Beach Road, Matara, Southern Province, being a Buddhist, do solemnly, sincerely and truly affirm and declare as follows:\n\n1. I am the Deponent herein and I make this Affidavit from facts within my own personal knowledge and belief.\n\n2. I am the sole registered owner of the commercial building bearing Assessment No. 22, Main Street, Matara, which comprises a ground floor and two upper floors (hereinafter referred to as the \"Premises\").\n\n3. By virtue of a lease agreement duly executed in the year 2015, I leased the ground floor of the said Premises to one Suresh Mahinda Rathnayake, holder of National Identity Card No. 198045602345, of No. 5, Garden Road, Matara, at a monthly rental of Rupees Thirty-Five Thousand (Rs. 35,000/-).\n\n4. The said Suresh Mahinda Rathnayake has, in breach of the said lease agreement, failed and neglected to pay the monthly rental in respect of the months of July 2023, August 2023, September 2023, and October 2023, resulting in rental arrears totalling Rupees One Hundred and Forty Thousand (Rs. 140,000/-).\n\n5. Despite repeated oral demands made by me and my authorised agent, the said tenant has failed, neglected, and refused to settle the said arrears of rent.\n\n6. By reason of the said default, the said tenant has forfeited his right to remain in occupation of the Premises, and I am entitled to seek an order for recovery of possession under the provisions of the Rent Act, No. 07 of 1972.\n\n7. I make this Affidavit bona fide in support of my application for an order for eviction of the said tenant and recovery of the said rental arrears.\n\n8. The contents of this Affidavit are true and correct to the best of my knowledge, information, and belief.\n\nSOLEMNLY AFFIRMED at Matara on this 14th day of November 2023.\n\n_________________________\nRanjit Kumar Gunawardena\nDeponent\n\nBefore me,\n\n_________________________\nCommissioner for Oaths / Notary Public\nMatara"
+  }
+]
