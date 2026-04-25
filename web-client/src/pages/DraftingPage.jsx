@@ -245,6 +245,46 @@ const buildRefinedPrompt = (basePrompt, docType, missingFields, refinementValues
 };
 
 
+const formatFieldLabel = (docType, field) => {
+  const metadata = getRefinementFieldMetadata(docType, field);
+  if (metadata?.appendLabel) {
+    return metadata.appendLabel;
+  }
+
+  return field
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+};
+
+
+const formatConfidenceLabel = (confidence) => {
+  if (confidence === 'HIGH') return 'High';
+  if (confidence === 'MEDIUM') return 'Medium';
+  if (confidence === 'LOW') return 'Low';
+  return confidence;
+};
+
+
+const confidenceBadgeClasses = (isDarkMode, confidence) => {
+  if (confidence === 'HIGH') {
+    return isDarkMode
+      ? 'bg-emerald-900/40 text-emerald-200 border border-emerald-700/50'
+      : 'bg-emerald-100 text-emerald-700 border border-emerald-200';
+  }
+
+  if (confidence === 'MEDIUM') {
+    return isDarkMode
+      ? 'bg-amber-900/40 text-amber-200 border border-amber-700/50'
+      : 'bg-amber-100 text-amber-700 border border-amber-200';
+  }
+
+  return isDarkMode
+    ? 'bg-rose-900/40 text-rose-200 border border-rose-700/50'
+    : 'bg-rose-100 text-rose-700 border border-rose-200';
+};
+
+
 const DraftingPage = () => {
   const { isDarkMode } = useTheme();
   const [prompt, setPrompt] = useState('');
@@ -378,6 +418,9 @@ const DraftingPage = () => {
     activeFeedback?.status === 'incomplete' && activeFeedback?.missing_fields?.length > 0
       ? activeFeedback.missing_fields
       : [];
+  const extractedFieldEntries = completedResult
+    ? Object.entries(completedResult.extracted_fields || {}).filter(([, value]) => value !== null && value !== undefined && String(value).trim() !== '')
+    : [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -713,6 +756,41 @@ const DraftingPage = () => {
                 isDarkMode ? 'border-slate-700 bg-slate-900 text-slate-100' : 'border-emerald-100 bg-white text-gray-900'
               )}
             >
+              {extractedFieldEntries.length > 0 && (
+                <div className="mb-5">
+                  <div className="mb-3 flex items-center gap-2">
+                    <FileCheck2 className="h-4 w-4" />
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.18em]">Extraction confidence</h3>
+                  </div>
+                  <div className="space-y-2">
+                    {extractedFieldEntries.map(([field, value]) => {
+                      const confidence = completedResult.confidence_scores?.[field] || 'LOW';
+                      return (
+                        <div
+                          key={field}
+                          className={cn(
+                            'flex flex-col gap-2 rounded-2xl px-3 py-3 text-sm leading-6 sm:flex-row sm:items-center',
+                            isDarkMode ? 'bg-slate-800' : 'bg-gray-50'
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              'inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.16em]',
+                              confidenceBadgeClasses(isDarkMode, confidence)
+                            )}
+                          >
+                            {formatConfidenceLabel(confidence)}
+                          </span>
+                          <span>
+                            <span className="font-semibold">{formatFieldLabel(completedResult.doc_type, field)}:</span> {value}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div className="mb-3 flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 <h3 className="text-sm font-semibold uppercase tracking-[0.18em]">Draft preview</h3>

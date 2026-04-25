@@ -196,6 +196,8 @@ def draft(payload: PromptRequest, authenticated_user_id: str = Depends(require_a
         return error_response
 
     result = run_pipeline(prompt, authenticated_user_id)
+    result.setdefault("extracted_fields", {})
+    result.setdefault("confidence_scores", {})
     result["user_id"] = authenticated_user_id
     return _json_payload_response(result, status_code=_status_code_for_payload(result))
 
@@ -207,6 +209,8 @@ def validate(payload: PromptRequest, authenticated_user_id: str = Depends(requir
         return error_response
 
     result = run_validation(prompt)
+    result.setdefault("extracted_fields", {})
+    result.setdefault("confidence_scores", {})
     result["user_id"] = authenticated_user_id
     return _json_payload_response(result, status_code=_status_code_for_payload(result))
 

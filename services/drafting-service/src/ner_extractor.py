@@ -75,6 +75,7 @@ FIELD_TERMINATORS = {
 _NLP = None
 _DATASET_EXACT_LOOKUP = None
 _DATASET_FIELD_CUES = None
+_LAST_CONFIDENCE_SOURCES = {}
 
 
 def _get_nlp():
@@ -182,6 +183,11 @@ def _load_verified_dataset_hints():
 
 def _empty_result(doc_type: str) -> Dict[str, Optional[str]]:
     return {field: None for field in REQUIRED_FIELDS.get(doc_type, [])}
+
+
+def _set_last_confidence_sources(sources: Dict[str, Optional[str]]) -> None:
+    global _LAST_CONFIDENCE_SOURCES
+    _LAST_CONFIDENCE_SOURCES = dict(sources)
 
 
 def _clean_value(value: Optional[str]) -> Optional[str]:
@@ -468,6 +474,125 @@ def _extract_labeled_role_value(text: str, labels: List[str]) -> Optional[str]:
     return None
 
 
+def _extract_labeled_nic_value(text: str) -> Optional[str]:
+    return _extract_nic_by_labels(text, ["NIC", "National Identity Card"])
+
+
+def _extract_labeled_jurisdiction_value(text: str) -> Optional[str]:
+    return _match_first([r"\bJurisdiction\s*[:\-]\s*([A-Za-z][A-Za-z0-9 ,.-]*?)(?=[.;,\n]|$)"], text)
+
+
+def _extract_labeled_payment_terms_value(text: str) -> Optional[str]:
+    return _match_first([r"\bpayment terms?\s*[:\-]\s*(.+?)(?=\.\s*(?:Start Date|End Date|Jurisdiction)\s*:|,\s*(?:Start Date|End Date|Jurisdiction)\s*:|$)"], text)
+
+
+def _infer_ner_confidence_sources(
+    text: str,
+    doc_type: str,
+    extracted_fields: Dict[str, Optional[str]],
+    *,
+    people: List[str],
+    orgs: List[str],
+    dates: List[str],
+    locations: List[str],
+    cardinals: List[str],
+) -> Dict[str, Optional[str]]:
+    sources: Dict[str, Optional[str]] = {field: None for field in REQUIRED_FIELDS.get(doc_type, [])}
+
+    labeled_values = {
+        "deponent_nic": _extract_labeled_nic_value(text),
+        "petitioner_nic": _extract_labeled_nic_value(text),
+        "date": _extract_date_by_labels(text, ["Date", "The date is", "dated", "Filed on", "Dated"]),
+        "jurisdiction": _extract_labeled_jurisdiction_value(text),
+        "party_a": _extract_labeled_role_value(
+            text,
+            ["party a", "first party", "employer", "buyer", "lessor", "landlord", "vendor", "service provider"],
+        ),
+        "party_b": _extract_labeled_role_value(
+            text,
+            ["party b", "second party", "employee", "seller", "lessee", "tenant", "client", "purchaser"],
+        ),
+        "petitioner_name": _extract_labeled_role_value(text, ["petitioner", "petitioner-appellant"]),
+        "respondent_name": _extract_labeled_role_value(text, ["respondent"]),
+        "court_name": _extract_labeled_role_value(text, ["court"]),
+        "payment_terms": _extract_labeled_payment_terms_value(text),
+    }
+
+    medium_values = {
+        "deponent_name": _extract_name_from_intro(text),
+        "deponent_address": _match_dataset_cues(text, "deponent_address") or _extract_address(text),
+        "statement_facts": _match_first(
+            [
+                r"(?:declaring|declare|stating|state|affirming|affirm)\s+that\s+(.+?)(?=\s*(?:Date|Jurisdiction)\s*:|$)",
+                r"facts?\s*(?:are|is)?\s*[:\-]\s*(.+?)(?=\s*(?:Date|Jurisdiction)\s*:|$)",
+            ],
+            text,
+        ),
+        "party_a": _match_dataset_cues(text, "party_a"),
+        "party_b": _match_dataset_cues(text, "party_b"),
+        "contract_purpose": _extract_contract_purpose(text),
+        "obligations_a": _extract_obligation(text, ["party a", "first party", "employer", "buyer", "lessor", "service provider"]),
+        "obligations_b": _extract_obligation(text, ["party b", "second party", "employee", "seller", "lessee", "client"]),
+        "start_date": _extract_date_by_labels(text, ["Start Date", "Commencement Date", "Effective Date", "Start", "Lease starts"]),
+        "end_date": _extract_date_by_labels(text, ["End Date", "Termination Date", "End", "Lease ends"])
+        or _extract_duration_by_labels(text, ["End Date", "Termination Date", "End", "Term"]),
+        "petitioner_address": _extract_petition_address(text)
+        or _match_dataset_cues(text, "petitioner_address")
+        or _extract_address(text, labels=["address", "petitioner address"]),
+        "subject_matter": _extract_petition_subject_matter(text),
+        "relief_sought": _extract_petition_relief_sought(text) or _extract_relief_sought(text),
+    }
+
+    if not medium_values["obligations_a"]:
+        medium_values["obligations_a"] = _extract_named_party_obligation(text, extracted_fields.get("party_a"))
+    if not medium_values["obligations_b"]:
+        medium_values["obligations_b"] = _extract_named_party_obligation(text, extracted_fields.get("party_b"))
+
+    for field, value in extracted_fields.items():
+        cleaned = _clean_value(value)
+        if not cleaned:
+            sources[field] = None
+            continue
+
+        labeled_match = _clean_value(labeled_values.get(field))
+        if labeled_match and labeled_match.casefold() == cleaned.casefold():
+            sources[field] = "HIGH"
+            continue
+
+        medium_match = _clean_value(medium_values.get(field))
+        if medium_match and medium_match.casefold() == cleaned.casefold():
+            sources[field] = "MEDIUM"
+            continue
+
+        if field == "deponent_name" and cleaned in people:
+            sources[field] = "LOW"
+        elif field in {"party_a", "party_b", "petitioner_name", "respondent_name"} and (cleaned in people or cleaned in orgs):
+            sources[field] = "LOW"
+        elif field == "court_name" and cleaned in orgs:
+            sources[field] = "LOW"
+        elif field in {"date", "start_date", "end_date"} and cleaned in dates:
+            sources[field] = "LOW"
+        elif field == "jurisdiction" and cleaned in locations:
+            sources[field] = "LOW"
+        elif field in {"deponent_nic", "petitioner_nic"} and cleaned in cardinals:
+            sources[field] = "LOW"
+        else:
+            sources[field] = "MEDIUM"
+
+    return sources
+
+
+def get_confidence_scores(extracted_fields: Dict[str, Optional[str]], doc_type: str) -> Dict[str, Optional[str]]:
+    confidence_scores = {}
+    last_sources = _LAST_CONFIDENCE_SOURCES or {}
+
+    for field in REQUIRED_FIELDS.get(doc_type, []):
+        value = _clean_value(extracted_fields.get(field))
+        confidence_scores[field] = last_sources.get(field) if value else None
+
+    return confidence_scores
+
+
 def _extract_between_parties(text: str) -> Tuple[Optional[str], Optional[str]]:
     patterns = [
         r"\bbetween\b\s+(.+?)\s+\band\b\s+(.+?)(?=\s+(?:for the purpose\b|for\b|purpose\b|whereas\b|effective\b|with effect\b|dated\b|on\b|payment\b|obligations?\b|jurisdiction\b)|,\s*(?:payment\b|jurisdiction\b|effective\b|dated\b)\b|\n|[.;]|$)",
@@ -669,7 +794,20 @@ def extract_entities_ner(text: str, doc_type: str) -> dict:
     elif doc_type == "PETITION":
         extracted.update(_extract_petition(text, people, orgs, dates))
 
-    return {
+    normalized = {
         field: _clean_value(extracted.get(field))
         for field in REQUIRED_FIELDS[doc_type]
     }
+    _set_last_confidence_sources(
+        _infer_ner_confidence_sources(
+            text,
+            doc_type,
+            normalized,
+            people=people,
+            orgs=orgs,
+            dates=dates,
+            locations=locations,
+            cardinals=cardinals,
+        )
+    )
+    return normalized

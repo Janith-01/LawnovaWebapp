@@ -25,6 +25,14 @@ def _empty_result(doc_type: str) -> dict:
     return {field: None for field in REQUIRED_FIELDS.get(doc_type, [])}
 
 
+_LAST_CONFIDENCE_SOURCES: Dict[str, Optional[str]] = {}
+
+
+def _set_last_confidence_sources(sources: Dict[str, Optional[str]]) -> None:
+    global _LAST_CONFIDENCE_SOURCES
+    _LAST_CONFIDENCE_SOURCES = dict(sources)
+
+
 def _get_gemini_client():
     if not GEMINI_API_KEY or genai is None:
         return None
@@ -541,6 +549,17 @@ def _merge_payloads(primary: Dict[str, Optional[str]], fallback: Dict[str, Optio
     return merged
 
 
+def get_confidence_scores(extracted_fields: Dict[str, Optional[str]], doc_type: str) -> Dict[str, Optional[str]]:
+    confidence_scores = {}
+    last_sources = _LAST_CONFIDENCE_SOURCES or {}
+
+    for field in REQUIRED_FIELDS.get(doc_type, []):
+        value = _clean_value(extracted_fields.get(field))
+        confidence_scores[field] = last_sources.get(field) if value else None
+
+    return confidence_scores
+
+
 def extract_entities_gemini(text: str, doc_type: str) -> dict:
     fallback = _empty_result(doc_type)
     required_fields = REQUIRED_FIELDS.get(doc_type)
@@ -549,7 +568,12 @@ def extract_entities_gemini(text: str, doc_type: str) -> dict:
     if not required_fields:
         return fallback
     if not client:
-        return _fallback_extraction(text, doc_type, required_fields)
+        merged = _fallback_extraction(text, doc_type, required_fields)
+        _set_last_confidence_sources({
+            field: ("MEDIUM" if merged.get(field) is not None else None)
+            for field in required_fields
+        })
+        return merged
 
     prompt = f"""
 You are a Sri Lankan legal parameter extractor.
@@ -592,12 +616,29 @@ Rules for the JSON output:
         print("[Gemini Extractor] Raw response received from Gemini:")
         print(json.dumps(raw_response_text or "(no valid JSON payload)", ensure_ascii=True, indent=2))
         normalized = _normalize_payload(payload or {}, required_fields)
-        merged = _merge_payloads(normalized, _fallback_extraction(text, doc_type, required_fields), required_fields)
+        fallback_payload = _fallback_extraction(text, doc_type, required_fields)
+        merged = _merge_payloads(normalized, fallback_payload, required_fields)
+        _set_last_confidence_sources(
+            {
+                field: (
+                    "HIGH"
+                    if normalized.get(field) is not None
+                    else "MEDIUM"
+                    if fallback_payload.get(field) is not None
+                    else None
+                )
+                for field in required_fields
+            }
+        )
         print("[Gemini Extractor] Parsed result before validator:")
         print(json.dumps(merged, ensure_ascii=True, indent=2))
         return merged
     except Exception:
         merged = _fallback_extraction(text, doc_type, required_fields)
+        _set_last_confidence_sources({
+            field: ("MEDIUM" if merged.get(field) is not None else None)
+            for field in required_fields
+        })
         print("[Gemini Extractor] Raw response received from Gemini:")
         print(json.dumps("(exception or no response)", ensure_ascii=True, indent=2))
         print("[Gemini Extractor] Parsed result before validator:")

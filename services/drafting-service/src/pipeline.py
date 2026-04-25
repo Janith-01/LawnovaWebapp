@@ -1,11 +1,12 @@
 from pathlib import Path
 
+from config import REQUIRED_FIELDS
 from src.doc_classifier import classify_doc_type
 from src.gemini_drafter import draft_document
-from src.gemini_extractor import extract_entities_gemini
+from src.gemini_extractor import extract_entities_gemini, get_confidence_scores as get_gemini_confidence_scores
 from src.history import save_document
 from src.language_detector import detect_language
-from src.ner_extractor import extract_entities_ner
+from src.ner_extractor import extract_entities_ner, get_confidence_scores as get_ner_confidence_scores
 from src.output_generator import save_as_docx, save_as_pdf
 from src.role_resolver import resolve_roles
 from src.template_loader import load_template
@@ -22,6 +23,8 @@ def build_response(
     docx_path: str | None = None,
     pdf_path: str | None = None,
     drafted_content: str | None = None,
+    extracted_fields: dict | None = None,
+    confidence_scores: dict | None = None,
     error_code: str | None = None,
     error_details=None,
 ) -> dict:
@@ -34,6 +37,8 @@ def build_response(
         "docx_path": docx_path,
         "pdf_path": pdf_path,
         "drafted_content": drafted_content,
+        "extracted_fields": extracted_fields or {},
+        "confidence_scores": confidence_scores or {},
         "error": (
             {
                 "code": error_code,
@@ -90,6 +95,17 @@ def _extract_entities(user_prompt: str, doc_type: str, language: str) -> dict:
         return {}
 
 
+def _get_confidence_scores(entities: dict, doc_type: str, language: str) -> dict:
+    try:
+        if language == "en":
+            scores = get_ner_confidence_scores(entities, doc_type)
+        else:
+            scores = get_gemini_confidence_scores(entities, doc_type)
+        return scores if isinstance(scores, dict) else {}
+    except Exception:
+        return {field: None for field in REQUIRED_FIELDS.get(doc_type, [])}
+
+
 def _safe_detect_language(user_prompt: str) -> str:
     try:
         language = detect_language(user_prompt)
@@ -123,6 +139,7 @@ def run_validation(user_prompt: str) -> dict:
 
     entities = _extract_entities(user_prompt, doc_type, language)
     entities = _safe_resolve_roles(entities, doc_type)
+    confidence_scores = _get_confidence_scores(entities, doc_type, language)
 
     try:
         validation = validate_fields(doc_type, entities, language)
@@ -149,6 +166,8 @@ def run_validation(user_prompt: str) -> dict:
         doc_type=doc_type,
         language=language,
         missing_fields=validation.get("missing_fields", []),
+        extracted_fields=entities,
+        confidence_scores=confidence_scores,
     )
 
 
@@ -161,6 +180,7 @@ def run_pipeline(user_prompt: str, user_id: str | None = None) -> dict:
 
     entities = _extract_entities(user_prompt, doc_type, language)
     entities = _safe_resolve_roles(entities, doc_type)
+    confidence_scores = _get_confidence_scores(entities, doc_type, language)
 
     try:
         validation = validate_fields(doc_type, entities, language)
@@ -180,6 +200,8 @@ def run_pipeline(user_prompt: str, user_id: str | None = None) -> dict:
             doc_type=doc_type,
             language=language,
             missing_fields=validation.get("missing_fields", []),
+            extracted_fields=entities,
+            confidence_scores=confidence_scores,
         )
 
     clean_entities = {
@@ -257,6 +279,8 @@ def run_pipeline(user_prompt: str, user_id: str | None = None) -> dict:
         docx_path=docx_path,
         pdf_path=pdf_path,
         drafted_content=drafted,
+        extracted_fields=entities,
+        confidence_scores=confidence_scores,
     )
     if document_id:
         response["document_id"] = document_id
