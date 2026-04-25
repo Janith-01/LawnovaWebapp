@@ -19,6 +19,131 @@ import { cn } from '@/lib/utils';
 import draftingService from '@/services/draftingService';
 
 
+const REFINEMENT_FIELD_METADATA = {
+  AFFIDAVIT: {
+    deponent_name: {
+      label: 'Full name of the deponent',
+      hint: 'e.g. Kamal Perera',
+      appendLabel: 'Deponent Name',
+    },
+    deponent_nic: {
+      label: 'NIC number',
+      hint: 'e.g. 199034500123',
+      appendLabel: 'NIC',
+    },
+    deponent_address: {
+      label: 'Residential address',
+      hint: 'e.g. 45 Galle Road, Colombo 03',
+      appendLabel: 'Address',
+    },
+    statement_facts: {
+      label: 'Facts being declared',
+      hint: 'Describe what you are declaring',
+      appendLabel: 'Statement Facts',
+    },
+    date: {
+      label: 'Date of affidavit',
+      hint: 'e.g. 2024-01-15',
+      appendLabel: 'Date',
+    },
+    jurisdiction: {
+      label: 'Jurisdiction',
+      hint: 'e.g. Colombo',
+      appendLabel: 'Jurisdiction',
+    },
+  },
+  CONTRACT: {
+    party_a: {
+      label: 'First party name',
+      hint: 'e.g. Nimal Fernando',
+      appendLabel: 'Party A',
+    },
+    party_b: {
+      label: 'Second party name',
+      hint: 'e.g. Saman Builders Pvt Ltd',
+      appendLabel: 'Party B',
+    },
+    contract_purpose: {
+      label: 'Purpose of the contract',
+      hint: 'e.g. construction of a house',
+      appendLabel: 'Contract Purpose',
+    },
+    obligations_a: {
+      label: 'First party obligations',
+      hint: 'What the first party must do',
+      appendLabel: 'Obligations of Party A',
+    },
+    obligations_b: {
+      label: 'Second party obligations',
+      hint: 'What the second party must do',
+      appendLabel: 'Obligations of Party B',
+    },
+    payment_terms: {
+      label: 'Payment terms',
+      hint: 'e.g. Rs. 500,000 in 4 installments',
+      appendLabel: 'Payment Terms',
+    },
+    start_date: {
+      label: 'Start date',
+      hint: 'e.g. 2024-03-01',
+      appendLabel: 'Start Date',
+    },
+    end_date: {
+      label: 'End date',
+      hint: 'e.g. 2025-02-28',
+      appendLabel: 'End Date',
+    },
+    jurisdiction: {
+      label: 'Jurisdiction',
+      hint: 'e.g. Colombo',
+      appendLabel: 'Jurisdiction',
+    },
+  },
+  PETITION: {
+    petitioner_name: {
+      label: 'Petitioner full name',
+      hint: 'e.g. Kamal Perera',
+      appendLabel: 'Petitioner',
+    },
+    petitioner_nic: {
+      label: 'Petitioner NIC',
+      hint: 'e.g. 197834512345',
+      appendLabel: 'Petitioner NIC',
+    },
+    petitioner_address: {
+      label: 'Petitioner address',
+      hint: 'e.g. 12 Flower Road, Colombo 07',
+      appendLabel: 'Petitioner Address',
+    },
+    respondent_name: {
+      label: 'Respondent name',
+      hint: 'e.g. Officer in Charge, Kollupitiya Police',
+      appendLabel: 'Respondent',
+    },
+    court_name: {
+      label: 'Court name',
+      hint: 'e.g. Supreme Court of Sri Lanka',
+      appendLabel: 'Court Name',
+    },
+    subject_matter: {
+      label: 'Subject matter',
+      hint: 'Brief description of the legal issue',
+      appendLabel: 'Subject Matter',
+    },
+    relief_sought: {
+      label: 'Relief sought',
+      hint: 'What outcome you are requesting from court',
+      appendLabel: 'Relief Sought',
+    },
+    date: {
+      label: 'Date of petition',
+      hint: 'e.g. 2024-02-15',
+      appendLabel: 'Date',
+    },
+  },
+};
+
+
 const EXAMPLE_PROMPTS = [
   {
     key: 'AFFIDAVIT',
@@ -90,14 +215,46 @@ const getFeedbackConfig = (status) => {
 };
 
 
+const getRefinementFieldMetadata = (docType, field) =>
+  REFINEMENT_FIELD_METADATA[docType]?.[field] || {
+    label: field,
+    hint: 'Provide this detail to continue.',
+    appendLabel: field,
+  };
+
+
+const buildRefinedPrompt = (basePrompt, docType, missingFields, refinementValues) => {
+  const appendedLines = missingFields
+    .map((field) => {
+      const value = refinementValues[field]?.trim();
+      if (!value) {
+        return null;
+      }
+
+      const metadata = getRefinementFieldMetadata(docType, field);
+      const appendLabel = metadata.appendLabel || field;
+      return `${appendLabel}: ${value}`;
+    })
+    .filter(Boolean);
+
+  if (appendedLines.length === 0) {
+    return basePrompt.trim();
+  }
+
+  return `${basePrompt.trim()}\n${appendedLines.join('\n')}`;
+};
+
+
 const DraftingPage = () => {
   const { isDarkMode } = useTheme();
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isRefining, setIsRefining] = useState(false);
   const [selectedExampleKey, setSelectedExampleKey] = useState(null);
   const [downloadTarget, setDownloadTarget] = useState(null);
   const [validationResult, setValidationResult] = useState(null);
   const [draftResult, setDraftResult] = useState(null);
+  const [refinementValues, setRefinementValues] = useState({});
   const textareaRef = useRef(null);
 
   const resetResults = () => {
@@ -105,10 +262,16 @@ const DraftingPage = () => {
     setDraftResult(null);
   };
 
+  const resetRefinement = () => {
+    setRefinementValues({});
+    setIsRefining(false);
+  };
+
   const handleExampleClick = (example) => {
     setPrompt(example.prompt);
     setSelectedExampleKey(example.key);
     resetResults();
+    resetRefinement();
     window.requestAnimationFrame(() => {
       textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       textareaRef.current?.focus();
@@ -124,6 +287,7 @@ const DraftingPage = () => {
 
     setIsGenerating(true);
     resetResults();
+    resetRefinement();
 
     const validation = await draftingService.validateDraftPrompt(normalizedPrompt);
     setValidationResult(validation);
@@ -154,6 +318,44 @@ const DraftingPage = () => {
     setIsGenerating(false);
   };
 
+  const handleRefinementChange = (field, value) => {
+    setRefinementValues((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const handleCompleteGenerate = async () => {
+    const missingFields = activeFeedback?.missing_fields || [];
+    const hasAnyFilledValue = missingFields.some((field) => refinementValues[field]?.trim());
+
+    if (!hasAnyFilledValue) {
+      toast.error('Fill at least one missing field before continuing.');
+      return;
+    }
+
+    const refinedPrompt = buildRefinedPrompt(prompt, activeFeedback?.doc_type, missingFields, refinementValues);
+
+    setIsRefining(true);
+    setDraftResult(null);
+
+    const draft = await draftingService.draftDocument(refinedPrompt);
+    setDraftResult(draft);
+
+    if (draft.status === 'complete') {
+      toast.success('Document generated successfully.');
+      resetRefinement();
+    } else if (draft.status === 'error') {
+      toast.error(draft.message || 'Draft generation failed.');
+    } else if (draft.status === 'unknown_doc_type') {
+      toast.error('Document type could not be determined.');
+    } else {
+      toast.error(draft.message || 'More drafting details are required.');
+    }
+
+    setIsRefining(false);
+  };
+
   const handleDownload = async (filename, type) => {
     if (!filename || downloadTarget) {
       return;
@@ -172,6 +374,10 @@ const DraftingPage = () => {
   const activeFeedback = draftResult && draftResult.status !== 'complete' ? draftResult : validationResult;
   const completedResult = draftResult?.status === 'complete' ? draftResult : null;
   const feedbackConfig = activeFeedback ? getFeedbackConfig(activeFeedback.status) : null;
+  const refinementFields =
+    activeFeedback?.status === 'incomplete' && activeFeedback?.missing_fields?.length > 0
+      ? activeFeedback.missing_fields
+      : [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -295,6 +501,7 @@ const DraftingPage = () => {
             onChange={(event) => {
               setPrompt(event.target.value);
               setSelectedExampleKey(null);
+              resetRefinement();
               if (validationResult || draftResult) {
                 resetResults();
               }
@@ -362,8 +569,8 @@ const DraftingPage = () => {
           </div>
 
           {activeFeedback && activeFeedback.status !== 'complete' && (
-            <div className={cn('rounded-3xl border p-5 sm:p-6', statusToneClasses(isDarkMode, feedbackConfig?.tone || 'warning'))}>
-              <div className="mb-3 flex items-start gap-3">
+            <div className={cn('space-y-4 rounded-3xl border p-5 sm:p-6', statusToneClasses(isDarkMode, feedbackConfig?.tone || 'warning'))}>
+              <div className="flex items-start gap-3">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                 <div>
                   <h3 className="text-base font-semibold">{feedbackConfig?.title || 'Drafting feedback'}</h3>
@@ -379,6 +586,64 @@ const DraftingPage = () => {
                       <li key={field}>{field}</li>
                     ))}
                   </ul>
+                </div>
+              )}
+
+              {refinementFields.length > 0 && (
+                <div
+                  className={cn(
+                    'rounded-2xl border px-4 py-4',
+                    isDarkMode ? 'border-slate-700 bg-slate-900/70 text-slate-100' : 'border-white/70 bg-white/80 text-gray-900'
+                  )}
+                >
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold uppercase tracking-[0.18em]">Refine missing details</h4>
+                    <p className={cn('mt-1 text-sm leading-6', isDarkMode ? 'text-slate-300' : 'text-gray-600')}>
+                      Fill only the fields you have available. Empty inputs will be left out and the backend will keep showing only the remaining missing details.
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {refinementFields.map((field) => {
+                      const metadata = getRefinementFieldMetadata(activeFeedback?.doc_type, field);
+
+                      return (
+                        <label key={field} className="block space-y-2">
+                          <span className="block text-sm font-semibold">{metadata.label}</span>
+                          <input
+                            type="text"
+                            value={refinementValues[field] || ''}
+                            onChange={(event) => handleRefinementChange(field, event.target.value)}
+                            placeholder={metadata.hint}
+                            className={cn(
+                              'w-full rounded-2xl border px-4 py-3 text-sm outline-none transition-all',
+                              isDarkMode
+                                ? 'border-slate-600 bg-slate-950 text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30'
+                                : 'border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
+                            )}
+                          />
+                          <span className={cn('block text-xs', isDarkMode ? 'text-slate-400' : 'text-gray-500')}>
+                            {metadata.hint}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-5">
+                    <button
+                      type="button"
+                      onClick={handleCompleteGenerate}
+                      disabled={isRefining}
+                      className={cn(
+                        'inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60',
+                        isDarkMode ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-700'
+                      )}
+                    >
+                      {isRefining ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                      {isRefining ? 'Completing...' : 'Complete & Generate'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
