@@ -44,6 +44,8 @@ def test_run_pipeline_completes_for_english_affidavit(stub_pipeline_outputs):
     assert Path(result["docx_path"]).exists()
     assert Path(result["pdf_path"]).exists()
     assert "AFFIDAVIT" in result["drafted_content"]
+    assert result["ai_provenance"]["entity_extraction"]["provider"] == "local_ner"
+    assert result["ai_provenance"]["draft_generation"]["provider"] == "local_template"
 
 
 def test_run_pipeline_completes_for_english_contract(stub_pipeline_outputs):

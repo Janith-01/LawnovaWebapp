@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from src.gemini_extractor import extract_entities_gemini
+from src.gemini_extractor import extract_entities_gemini, get_last_provenance
 
 
 class FakeModels:
@@ -54,6 +54,9 @@ def test_extract_entities_gemini_returns_normalized_fields_from_mocked_json(monk
         "relief_sought": "an order directing registration",
         "date": "2024-03-20",
     }
+    provenance = get_last_provenance()
+    assert provenance["provider"] == "gemini"
+    assert provenance["field_sources"]["petitioner_name"] == "gemini"
 
 
 def test_extract_entities_gemini_returns_empty_fields_when_mocked_response_is_invalid(monkeypatch):
@@ -72,6 +75,9 @@ def test_extract_entities_gemini_returns_empty_fields_when_mocked_response_is_in
         "date": None,
         "jurisdiction": None,
     }
+    provenance = get_last_provenance()
+    assert provenance["provider"] == "local_fallback"
+    assert provenance["gemini_attempted"] is True
 
 
 def test_extract_entities_gemini_returns_empty_fields_when_mocked_client_raises(monkeypatch):
@@ -93,3 +99,6 @@ def test_extract_entities_gemini_returns_empty_fields_when_mocked_client_raises(
         "end_date": None,
         "jurisdiction": None,
     }
+    provenance = get_last_provenance()
+    assert provenance["provider"] == "local_fallback"
+    assert provenance["gemini_attempted"] is True

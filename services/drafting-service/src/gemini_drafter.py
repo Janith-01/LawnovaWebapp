@@ -9,10 +9,21 @@ except Exception:
     genai = None
 
 from config import GEMINI_API_KEY, GEMINI_MODEL
+from src.provenance import gemini_response_provenance, local_provenance
 
 
 IF_PATTERN = re.compile(r"\[IF\s+([a-zA-Z0-9_]+)\s*:\s*(.*?)\]", re.DOTALL)
 EXPAND_PATTERN = re.compile(r"\[EXPAND:\s*(.*?)\]")
+_LAST_PROVENANCE: dict = {}
+
+
+def _set_last_provenance(provenance: dict) -> None:
+    global _LAST_PROVENANCE
+    _LAST_PROVENANCE = dict(provenance)
+
+
+def get_last_provenance() -> dict:
+    return dict(_LAST_PROVENANCE)
 
 
 def _strip_code_fences(raw_text: str) -> str:
@@ -240,6 +251,17 @@ def _get_gemini_client():
 def _generate_gemini_draft(prompt: str) -> str:
     client = _get_gemini_client()
     if not client:
+        _set_last_provenance(
+            local_provenance(
+                stage="draft_generation",
+                provider="local_template",
+                source="template_renderer",
+                reason="gemini_client_unavailable",
+                requested_model=GEMINI_MODEL,
+                prompt=prompt,
+                gemini_attempted=False,
+            )
+        )
         return ""
 
     try:
@@ -251,12 +273,47 @@ def _generate_gemini_draft(prompt: str) -> str:
                 "response_mime_type": "text/plain",
             },
         )
-        return _clean_document_text(_strip_code_fences(_extract_response_text(response)))
-    except Exception:
+        drafted = _clean_document_text(_strip_code_fences(_extract_response_text(response)))
+        if drafted:
+            _set_last_provenance(
+                gemini_response_provenance(
+                    stage="draft_generation",
+                    requested_model=GEMINI_MODEL,
+                    response=response,
+                    prompt=prompt,
+                    output=drafted,
+                )
+            )
+        else:
+            _set_last_provenance(
+                local_provenance(
+                    stage="draft_generation",
+                    provider="local_template",
+                    source="template_renderer",
+                    reason="empty_gemini_response",
+                    requested_model=GEMINI_MODEL,
+                    prompt=prompt,
+                    gemini_attempted=True,
+                )
+            )
+        return drafted
+    except Exception as exc:
+        _set_last_provenance(
+            local_provenance(
+                stage="draft_generation",
+                provider="local_template",
+                source="template_renderer",
+                reason=f"gemini_error: {exc}",
+                requested_model=GEMINI_MODEL,
+                prompt=prompt,
+                gemini_attempted=True,
+            )
+        )
         return ""
 
 
 def draft_document(doc_type: str, params: dict, template: str, language: str) -> str:
+    _set_last_provenance({})
     cleaned_params = {
         key: value for key, value in params.items() if not key.startswith("_")
     }
@@ -300,6 +357,34 @@ Instructions:
 
     drafted = _generate_gemini_draft(prompt)
     if drafted:
+        if not get_last_provenance():
+            _set_last_provenance(
+                local_provenance(
+                    stage="draft_generation",
+                    provider="gemini",
+                    source="gemini_api",
+                    reason="gemini_metadata_unavailable",
+                    requested_model=GEMINI_MODEL,
+                    prompt=prompt,
+                    output=drafted,
+                    gemini_attempted=True,
+                    fallback_used=False,
+                )
+            )
         return drafted
 
-    return _render_locally(doc_type, params, template, language)
+    rendered = _render_locally(doc_type, params, template, language)
+    previous = get_last_provenance()
+    _set_last_provenance(
+        local_provenance(
+            stage="draft_generation",
+            provider="local_template",
+            source="template_renderer",
+            reason=previous.get("reason") or "gemini_output_unavailable",
+            requested_model=GEMINI_MODEL,
+            prompt=prompt,
+            output=rendered,
+            gemini_attempted=bool(previous.get("gemini_attempted")),
+        )
+    )
+    return rendered

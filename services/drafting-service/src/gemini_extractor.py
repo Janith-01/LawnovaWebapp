@@ -8,6 +8,7 @@ except Exception:
     genai = None
 
 from config import FIELD_LABELS, GEMINI_API_KEY, GEMINI_MODEL, REQUIRED_FIELDS
+from src.provenance import gemini_response_provenance, local_provenance, sha256_text
 
 
 NIC_PATTERN = re.compile(r"^(?:\d{9}[vVxX]|\d{12})$")
@@ -26,11 +27,21 @@ def _empty_result(doc_type: str) -> dict:
 
 
 _LAST_CONFIDENCE_SOURCES: Dict[str, Optional[str]] = {}
+_LAST_PROVENANCE: Dict[str, Any] = {}
 
 
 def _set_last_confidence_sources(sources: Dict[str, Optional[str]]) -> None:
     global _LAST_CONFIDENCE_SOURCES
     _LAST_CONFIDENCE_SOURCES = dict(sources)
+
+
+def _set_last_provenance(provenance: Dict[str, Any]) -> None:
+    global _LAST_PROVENANCE
+    _LAST_PROVENANCE = dict(provenance)
+
+
+def get_last_provenance() -> Dict[str, Any]:
+    return dict(_LAST_PROVENANCE)
 
 
 def _get_gemini_client():
@@ -155,7 +166,11 @@ def _response_schema(required_fields: list) -> dict:
     }
 
 
-def _request_json_payload(client, prompt: str, required_fields: list) -> tuple[Optional[Dict[str, Any]], Optional[str]]:
+def _json_hash_payload(payload: Dict[str, Any]) -> str:
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True)
+
+
+def _request_json_payload(client, prompt: str, required_fields: list) -> tuple[Optional[Dict[str, Any]], Optional[str], Optional[Dict[str, Any]]]:
     attempts = [
         {
             "temperature": 0,
@@ -169,6 +184,7 @@ def _request_json_payload(client, prompt: str, required_fields: list) -> tuple[O
     ]
 
     last_error = None
+    last_provenance = None
     for config in attempts:
         try:
             response = client.models.generate_content(
@@ -177,14 +193,21 @@ def _request_json_payload(client, prompt: str, required_fields: list) -> tuple[O
                 config=config,
             )
             raw_text = _extract_response_text(response)
+            last_provenance = gemini_response_provenance(
+                stage="entity_extraction",
+                requested_model=GEMINI_MODEL,
+                response=response,
+                prompt=prompt,
+                output=raw_text,
+            )
             payload = _extract_first_json_object(raw_text)
             if payload:
-                return payload, raw_text
-            last_error = raw_text
+                return payload, raw_text, last_provenance
+            last_error = "invalid_json_response"
         except Exception as exc:
             last_error = f"(Gemini error: {exc})"
 
-    return None, last_error
+    return None, last_error, last_provenance
 
 
 def _split_sentences(text: str) -> list[str]:
@@ -206,13 +229,21 @@ def _find_date_sentence_index(sentences: list[str]) -> int:
 
 
 def _extract_name_sinhala(text: str) -> Optional[str]:
+    labeled_patterns = [
+        r"(?:මගේ නම|නම|ප්‍රකාශකයා|ප්‍රකාශකයාගේ නම)\s*[:\-]?\s*([^\n.,]+)",
+        r"දිවුරුම් ප්‍රකාශය කරන්නේ\s+([^\n.,]+)",
+        r"\bමම\s+([^\n.]+?)(?=\.\s*(?:NIC|ජා|මගේ ලිපිනය|ලිපිනය)|,\s*(?:NIC|ජා|ලිපිනය)|$)",
+    ]
+    for pattern in labeled_patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1))
+
     sentences = _split_sentences(text)
     nic_index = _find_nic_sentence_index(sentences)
     candidate = None
     if nic_index > 0:
         candidate = sentences[nic_index - 1]
-    elif sentences:
-        candidate = sentences[0]
     if not candidate:
         return None
 
@@ -266,16 +297,23 @@ def _extract_date_sinhala(text: str) -> Optional[str]:
 
 
 def _extract_jurisdiction_sinhala(text: str) -> Optional[str]:
+    labeled_patterns = [
+        r"Jurisdiction\s*[:\-]?\s*([^\n.]+)",
+        r"([^\n.]+?)\s+jurisdiction\b",
+        r"අධිකරණ බල ප්‍රදේශය\s*[:\-]?\s*([^\n.]+)",
+        r"([^\n.]+?)\s+අධිකරණ බලය",
+    ]
+    for pattern in labeled_patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            return _clean_value(match.group(1))
+
     sentences = _split_sentences(text)
     date_index = _find_date_sentence_index(sentences)
     if date_index != -1 and date_index + 1 < len(sentences):
         trailing = sentences[date_index + 1].split()
-        if trailing:
-            return _clean_value(trailing[-1].rstrip(" ."))
-    if sentences:
-        trailing = sentences[-1].split()
-        if trailing:
-            return _clean_value(trailing[-1].rstrip(" ."))
+        if 1 <= len(trailing) <= 4:
+            return _clean_value(sentences[date_index + 1].rstrip(" ."))
     return None
 
 
@@ -560,19 +598,94 @@ def get_confidence_scores(extracted_fields: Dict[str, Optional[str]], doc_type: 
     return confidence_scores
 
 
+def _field_sources_from_payloads(
+    normalized: Dict[str, Optional[str]],
+    fallback_payload: Dict[str, Optional[str]],
+    required_fields: list,
+) -> Dict[str, Optional[str]]:
+    return {
+        field: (
+            "gemini"
+            if normalized.get(field) is not None
+            else "local_fallback"
+            if fallback_payload.get(field) is not None
+            else None
+        )
+        for field in required_fields
+    }
+
+
+def _provider_from_field_sources(field_sources: Dict[str, Optional[str]], gemini_payload_received: bool) -> str:
+    gemini_used = any(source == "gemini" for source in field_sources.values())
+    fallback_used = any(source == "local_fallback" for source in field_sources.values())
+    if gemini_used and fallback_used:
+        return "hybrid"
+    if gemini_used or gemini_payload_received:
+        return "gemini"
+    return "local_fallback"
+
+
+def _set_local_extraction_provenance(
+    *,
+    reason: str,
+    prompt: str,
+    merged: Dict[str, Optional[str]],
+    field_sources: Dict[str, Optional[str]],
+    gemini_attempted: bool,
+) -> None:
+    _set_last_provenance(
+        local_provenance(
+            stage="entity_extraction",
+            provider="local_fallback",
+            source="rule_based_extractor",
+            reason=reason,
+            requested_model=GEMINI_MODEL,
+            prompt=prompt,
+            output=_json_hash_payload(merged),
+            field_sources=field_sources,
+            gemini_attempted=gemini_attempted,
+        )
+    )
+
+
 def extract_entities_gemini(text: str, doc_type: str) -> dict:
+    _set_last_provenance({})
     fallback = _empty_result(doc_type)
     required_fields = REQUIRED_FIELDS.get(doc_type)
     client = _get_gemini_client()
 
     if not required_fields:
+        _set_last_provenance(
+            local_provenance(
+                stage="entity_extraction",
+                provider="not_applicable",
+                source="unsupported_document_type",
+                reason="unknown_required_fields",
+                requested_model=GEMINI_MODEL,
+                prompt=text,
+                output=_json_hash_payload(fallback),
+                gemini_attempted=False,
+                fallback_used=False,
+            )
+        )
         return fallback
     if not client:
         merged = _fallback_extraction(text, doc_type, required_fields)
+        field_sources = {
+            field: ("local_fallback" if merged.get(field) is not None else None)
+            for field in required_fields
+        }
         _set_last_confidence_sources({
             field: ("MEDIUM" if merged.get(field) is not None else None)
             for field in required_fields
         })
+        _set_local_extraction_provenance(
+            reason="gemini_client_unavailable",
+            prompt=text,
+            merged=merged,
+            field_sources=field_sources,
+            gemini_attempted=False,
+        )
         return merged
 
     prompt = f"""
@@ -612,12 +725,13 @@ Rules for the JSON output:
     try:
         print("[Gemini Extractor] Prompt sent to Gemini:")
         print(json.dumps(prompt, ensure_ascii=True, indent=2))
-        payload, raw_response_text = _request_json_payload(client, prompt, required_fields)
+        payload, raw_response_text, gemini_provenance = _request_json_payload(client, prompt, required_fields)
         print("[Gemini Extractor] Raw response received from Gemini:")
         print(json.dumps(raw_response_text or "(no valid JSON payload)", ensure_ascii=True, indent=2))
         normalized = _normalize_payload(payload or {}, required_fields)
         fallback_payload = _fallback_extraction(text, doc_type, required_fields)
         merged = _merge_payloads(normalized, fallback_payload, required_fields)
+        field_sources = _field_sources_from_payloads(normalized, fallback_payload, required_fields)
         _set_last_confidence_sources(
             {
                 field: (
@@ -630,15 +744,57 @@ Rules for the JSON output:
                 for field in required_fields
             }
         )
+        provider = _provider_from_field_sources(field_sources, payload is not None)
+        fallback_used = (
+            provider == "local_fallback"
+            or any(source == "local_fallback" for source in field_sources.values())
+        )
+        if gemini_provenance:
+            provenance = dict(gemini_provenance)
+            source = "gemini_api"
+            if provider == "hybrid":
+                source = "gemini_api+rule_based_extractor"
+            elif provider == "local_fallback":
+                source = "rule_based_extractor"
+            provenance.update(
+                {
+                    "provider": provider,
+                    "source": source,
+                    "reason": str(raw_response_text) if provider == "local_fallback" else None,
+                    "fallback_used": fallback_used,
+                    "field_sources": field_sources,
+                    "output_hash": sha256_text(_json_hash_payload(merged)),
+                }
+            )
+            _set_last_provenance(provenance)
+        else:
+            _set_local_extraction_provenance(
+                reason=str(raw_response_text or "invalid_gemini_response"),
+                prompt=prompt,
+                merged=merged,
+                field_sources=field_sources,
+                gemini_attempted=True,
+            )
         print("[Gemini Extractor] Parsed result before validator:")
         print(json.dumps(merged, ensure_ascii=True, indent=2))
         return merged
-    except Exception:
+    except Exception as exc:
         merged = _fallback_extraction(text, doc_type, required_fields)
+        field_sources = {
+            field: ("local_fallback" if merged.get(field) is not None else None)
+            for field in required_fields
+        }
         _set_last_confidence_sources({
             field: ("MEDIUM" if merged.get(field) is not None else None)
             for field in required_fields
         })
+        _set_local_extraction_provenance(
+            reason=f"gemini_error: {exc}",
+            prompt=prompt if "prompt" in locals() else text,
+            merged=merged,
+            field_sources=field_sources,
+            gemini_attempted=True,
+        )
         print("[Gemini Extractor] Raw response received from Gemini:")
         print(json.dumps("(exception or no response)", ensure_ascii=True, indent=2))
         print("[Gemini Extractor] Parsed result before validator:")
