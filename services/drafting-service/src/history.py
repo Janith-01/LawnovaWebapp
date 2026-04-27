@@ -1,3 +1,4 @@
+import json
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
@@ -26,11 +27,41 @@ def init_db() -> None:
                 drafted_content TEXT,
                 docx_filename TEXT,
                 pdf_filename TEXT,
+                ai_provenance TEXT,
                 created_at TEXT
             )
             """
         )
+        columns = {
+            row["name"]
+            for row in connection.execute("PRAGMA table_info(document_history)").fetchall()
+        }
+        if "ai_provenance" not in columns:
+            connection.execute("ALTER TABLE document_history ADD COLUMN ai_provenance TEXT")
         connection.commit()
+
+
+def _serialize_provenance(ai_provenance: dict | None) -> str | None:
+    if not ai_provenance:
+        return None
+    return json.dumps(ai_provenance, ensure_ascii=False, sort_keys=True)
+
+
+def _deserialize_provenance(value: str | None) -> dict:
+    if not value:
+        return {}
+    try:
+        payload = json.loads(value)
+        return payload if isinstance(payload, dict) else {}
+    except Exception:
+        return {}
+
+
+def _row_to_dict(row: sqlite3.Row) -> dict:
+    record = dict(row)
+    if "ai_provenance" in record:
+        record["ai_provenance"] = _deserialize_provenance(record.get("ai_provenance"))
+    return record
 
 
 def save_document(
@@ -41,6 +72,7 @@ def save_document(
     drafted_content: str,
     docx_filename: str | None,
     pdf_filename: str | None,
+    ai_provenance: dict | None = None,
 ) -> str:
     init_db()
     document_id = str(uuid4())
@@ -58,8 +90,9 @@ def save_document(
                 drafted_content,
                 docx_filename,
                 pdf_filename,
+                ai_provenance,
                 created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 document_id,
@@ -70,6 +103,7 @@ def save_document(
                 drafted_content,
                 docx_filename,
                 pdf_filename,
+                _serialize_provenance(ai_provenance),
                 created_at,
             ),
         )
@@ -91,6 +125,7 @@ def get_user_history(user_id: str) -> list[dict]:
                 prompt,
                 docx_filename,
                 pdf_filename,
+                ai_provenance,
                 created_at
             FROM document_history
             WHERE user_id = ?
@@ -99,7 +134,7 @@ def get_user_history(user_id: str) -> list[dict]:
             (user_id,),
         ).fetchall()
 
-    return [dict(row) for row in rows]
+    return [_row_to_dict(row) for row in rows]
 
 
 def get_document(document_id: str, user_id: str) -> dict | None:
@@ -116,6 +151,7 @@ def get_document(document_id: str, user_id: str) -> dict | None:
                 drafted_content,
                 docx_filename,
                 pdf_filename,
+                ai_provenance,
                 created_at
             FROM document_history
             WHERE id = ? AND user_id = ?
@@ -123,4 +159,4 @@ def get_document(document_id: str, user_id: str) -> dict | None:
             (document_id, user_id),
         ).fetchone()
 
-    return dict(row) if row else None
+    return _row_to_dict(row) if row else None
