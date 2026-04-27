@@ -46,6 +46,15 @@ const PORT = process.env.API_GATEWAY_PORT || process.env.PORT || 5000;
 const hasJwtSecret = !!process.env.JWT_SECRET;
 console.log(`[Gateway] JWT_SECRET loaded: ${hasJwtSecret}`);
 
+// Docker-aware upstream service URLs.
+// In containers, never use localhost/127.0.0.1 for cross-service calls.
+const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://user-service:5005';
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://ai-service:5008';
+const MOCKTRIAL_SERVICE_URL = process.env.MOCKTRIAL_SERVICE_URL || 'http://mocktrial-service:10004';
+const ROLEPLAY_SERVICE_URL = process.env.ROLEPLAY_SERVICE_URL || 'http://roleplay-service:10005';
+const JUDGMENT_SERVICE_URL = process.env.JUDGMENT_SERVICE_URL || 'http://judgment-prediction-service:5006';
+const AUDIT_SERVICE_URL = process.env.AUDIT_SERVICE_URL || 'http://argument-audit-service:5001';
+
 // Decode access token and attach user to req for downstream header injection.
 // Token payload is expected to include: { sub: userId, role: 'student'|'admin', email: '...' }
 app.use((req, res, next) => {
@@ -99,7 +108,7 @@ app.post('/auth/login', async (req, res) => {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    const userServiceUrl = 'http://127.0.0.1:5005/auth/login';
+    const userServiceUrl = `${USER_SERVICE_URL}/auth/login`;
     const upstream = await fetch(userServiceUrl, {
       method: 'POST',
       headers: {
@@ -196,7 +205,7 @@ app.get('/auth/me', async (req, res) => {
     }
 
     // Fetch user profile from user-service to return a stable name
-    const meResp = await fetch('http://127.0.0.1:5005/users/me', {
+    const meResp = await fetch(`${USER_SERVICE_URL}/users/me`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -261,7 +270,7 @@ const forwardJsonBodyToProxy = (proxyReq, req) => {
 
 // Proxy configuration for user-service
 const userServiceProxy = createProxyMiddleware({
-  target: 'http://localhost:5005',
+  target: USER_SERVICE_URL,
   changeOrigin: true,
   // NOTE: Express strips the mount path from req.url when a middleware is mounted
   // (e.g. app.use('/api/users', proxy) makes req.url start with '/me').
@@ -300,7 +309,7 @@ const userServiceProxy = createProxyMiddleware({
 
 // Proxy configuration for mocktrial-service
 const mocktrialServiceProxy = createProxyMiddleware({
-  target: 'http://127.0.0.1:10004',
+  target: MOCKTRIAL_SERVICE_URL,
   changeOrigin: true,
   proxyTimeout: 300000, // 5 minutes
   timeout: 300000, // 5 minutes
@@ -363,12 +372,12 @@ const mocktrialServiceProxy = createProxyMiddleware({
 
 // Socket.IO proxy (WebSocket upgrades) for mocktrial-service
 const mocktrialSocketIoProxy = createProxyMiddleware({
-  target: 'http://localhost:10004',
+  target: MOCKTRIAL_SERVICE_URL,
   changeOrigin: true,
   logLevel: 'debug', // Increased for troubleshooting
   onProxyReqWs: (proxyReq, req, socket, options, head) => {
     // Forward Host and Origin headers to allow handshake
-    proxyReq.setHeader('Host', '127.0.0.1:10004');
+    proxyReq.setHeader('Host', new URL(MOCKTRIAL_SERVICE_URL).host);
     const origin = req.headers.origin;
     if (origin) {
       proxyReq.setHeader('Origin', origin);
@@ -389,7 +398,7 @@ app.use('/api/user', userServiceProxy);
 app.use('/api/users', userServiceProxy);
 
 const aiServiceProxy = createProxyMiddleware({
-  target: 'http://127.0.0.1:5008',
+  target: AI_SERVICE_URL,
   changeOrigin: true,
   proxyTimeout: 300000,
   timeout: 300000,
@@ -450,13 +459,13 @@ const aiServiceProxy = createProxyMiddleware({
 
 // Socket.IO for Roleplay Service
 const roleplaySocketProxy = createProxyMiddleware({
-  target: 'http://127.0.0.1:10005',
+  target: ROLEPLAY_SERVICE_URL,
   changeOrigin: true,
   pathRewrite: {
     '^/roleplay-socket': '/roleplay-socket'
   },
   onProxyReqWs: (proxyReq, req, socket, options, head) => {
-    proxyReq.setHeader('Host', '127.0.0.1:10005');
+    proxyReq.setHeader('Host', new URL(ROLEPLAY_SERVICE_URL).host);
   },
   onError: (err, req, res) => {
     console.error('[Gateway] Roleplay WebSocket Proxy Error:', err.message);
@@ -465,7 +474,7 @@ const roleplaySocketProxy = createProxyMiddleware({
 
 // Proxy for HTTP requests to roleplay-service
 const roleplayServiceProxy = createProxyMiddleware({
-  target: 'http://127.0.0.1:10005',
+  target: ROLEPLAY_SERVICE_URL,
   changeOrigin: true,
   pathRewrite: (path, req) => {
     return req.originalUrl || path;
@@ -477,6 +486,13 @@ const roleplayServiceProxy = createProxyMiddleware({
     }
     forwardJsonBodyToProxy(proxyReq, req);
     logProxyRequest(req, 'roleplay-service', 10005);
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    if (proxyRes.statusCode >= 400) {
+      console.error(`[Gateway] Roleplay Proxy: ${req.method} ${req.originalUrl} → ${proxyRes.statusCode}`);
+    } else {
+      console.log(`[Gateway] Roleplay Proxy: ${req.method} ${req.originalUrl} → ${proxyRes.statusCode}`);
+    }
   },
   onError: (err, req, res) => {
     console.error('[Gateway] Roleplay Service proxy error:', err.message);
@@ -492,11 +508,11 @@ app.use('/api/chat', aiServiceProxy);
 
 // New Audit Route for Flask Microservice
 const auditServiceProxy = createProxyMiddleware({
-  target: 'http://127.0.0.1:5009',
+  target: AUDIT_SERVICE_URL,
   changeOrigin: true,
   onProxyReq: (proxyReq, req, res) => {
     forwardJsonBodyToProxy(proxyReq, req);
-    logProxyRequest(req, 'audit-service', 5009);
+    logProxyRequest(req, 'audit-service', new URL(AUDIT_SERVICE_URL).port || 80);
   },
   onError: (err, req, res) => {
     console.error('[Gateway] Audit Service proxy error:', err.message);
@@ -519,7 +535,7 @@ app.use('/api/trials', roleplayServiceProxy);
 // Judgment Prediction Service Proxy (ML Predictions + Data Pipelines)
 // ------------------------------------------------------------------
 const judgmentServiceProxy = createProxyMiddleware({
-  target: 'http://127.0.0.1:8000',
+  target: JUDGMENT_SERVICE_URL,
   changeOrigin: true,
   pathRewrite: (path, req) => {
     const original = req.originalUrl || path;
@@ -544,7 +560,7 @@ const judgmentServiceProxy = createProxyMiddleware({
     }
 
     forwardJsonBodyToProxy(proxyReq, req);
-    logProxyRequest(req, 'judgment-prediction-service', 8000);
+    logProxyRequest(req, 'judgment-prediction-service', new URL(JUDGMENT_SERVICE_URL).port || 80);
   },
   onProxyRes: (proxyRes, req, res) => {
     if (proxyRes.statusCode >= 400) {
@@ -560,6 +576,47 @@ const judgmentServiceProxy = createProxyMiddleware({
 });
 
 app.use('/api/judgment', judgmentServiceProxy);
+const draftingServiceProxy = createProxyMiddleware({
+  target: 'http://localhost:8001',
+  changeOrigin: true,
+  pathRewrite: (path, req) => {
+    const original = req.originalUrl || path;
+    if (original.startsWith('/api/drafting')) return original.replace(/^\/api\/drafting/, '');
+    return path;
+  },
+  onProxyReq: (proxyReq, req, res) => {
+    // Forward auth token from cookie if present
+    const cookieToken = req.cookies?.access_token;
+    if (!req.headers.authorization && cookieToken) {
+      proxyReq.setHeader('Authorization', `Bearer ${cookieToken}`);
+    }
+
+    // Inject auth headers from JWT
+    if (req.user) {
+      proxyReq.setHeader('user-id', req.user.id);
+      proxyReq.setHeader('user-role', req.user.role);
+      if (req.user.email) {
+        proxyReq.setHeader('user-email', req.user.email);
+      }
+    }
+
+    forwardJsonBodyToProxy(proxyReq, req);
+    logProxyRequest(req, 'drafting-service', 8001);
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    if (proxyRes.statusCode >= 400) {
+      console.error(`[Gateway] Drafting Proxy: ${req.method} ${req.originalUrl} â†’ ${proxyRes.statusCode}`);
+    } else {
+      console.log(`[Gateway] Drafting Proxy: ${req.method} ${req.originalUrl} â†’ ${proxyRes.statusCode}`);
+    }
+  },
+  onError: (err, req, res) => {
+    console.error('[Gateway] Drafting Service proxy error:', err.message);
+    res.status(503).json({ error: 'Drafting service unavailable', details: err.message });
+  },
+});
+
+app.use('/api/drafting', draftingServiceProxy);
 
 // Health check endpoints
 app.get('/health', (req, res) => {
@@ -567,11 +624,12 @@ app.get('/health', (req, res) => {
     status: 'OK',
     service: 'API Gateway',
     services: {
-      'user-service': 'http://localhost:5005',
-      'mocktrial-service': 'http://localhost:10004',
-      'ai-service': 'http://localhost:5008',
-      'roleplay-service': 'http://localhost:10005',
-      'judgment-prediction-service': 'http://localhost:8000'
+      'user-service': USER_SERVICE_URL,
+      'mocktrial-service': MOCKTRIAL_SERVICE_URL,
+      'ai-service': AI_SERVICE_URL,
+      'roleplay-service': ROLEPLAY_SERVICE_URL,
+      'audit-service': AUDIT_SERVICE_URL,
+      'judgment-prediction-service': JUDGMENT_SERVICE_URL
     }
   });
 });
@@ -581,11 +639,12 @@ app.get('/health/services', (req, res) => {
     status: 'API Gateway Health Check',
     timestamp: new Date().toISOString(),
     services: {
-      'user-service': { port: 5005, status: 'configured' },
-      'mocktrial-service': { port: 10004, status: 'configured' },
-      'ai-service': { port: 5008, status: 'configured' },
-      'roleplay-service': { port: 10005, status: 'configured' },
-      'judgment-prediction-service': { port: 8000, status: 'configured' }
+      'user-service': { url: USER_SERVICE_URL, status: 'configured' },
+      'mocktrial-service': { url: MOCKTRIAL_SERVICE_URL, status: 'configured' },
+      'ai-service': { url: AI_SERVICE_URL, status: 'configured' },
+      'roleplay-service': { url: ROLEPLAY_SERVICE_URL, status: 'configured' },
+      'audit-service': { url: AUDIT_SERVICE_URL, status: 'configured' },
+      'judgment-prediction-service': { url: JUDGMENT_SERVICE_URL, status: 'configured' }
     },
     routing: {
       '/api/auth/*': 'user-service',
@@ -596,7 +655,7 @@ app.get('/health/services', (req, res) => {
       '/api/sessions/*': 'mocktrial-service (10004)',
       '/api/ai/*': 'ai-service (5008)',
       '/api/roleplay/*': 'roleplay-service (10005)',
-      '/api/judgment/*': 'judgment-prediction-service (8000)'
+      '/api/judgment/*': 'judgment-prediction-service (5006)'
     }
   });
 });
@@ -614,7 +673,7 @@ const server = app.listen(PORT, () => {
   console.log(`  /api/sessions/*   → mocktrial-service (10004)`);
   console.log(`  /api/ai/*         → ai-service (5008)`);
   console.log(`  /api/roleplay/*   → roleplay-service (10005)`);
-  console.log(`  /api/judgment/*   → judgment-prediction-service (8000)`);
+  console.log(`  /api/judgment/*   → judgment-prediction-service (5006)`);
   console.log(`\nHealth Checks:`);
   console.log(`  GET /health            → Gateway status`);
   console.log(`  GET /health/services   → Service status`);

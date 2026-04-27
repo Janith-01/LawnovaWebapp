@@ -1,0 +1,392 @@
+[
+  {
+    "text": "I, Kamal Perera, NIC 197834512345, of 12 Flower Road, Colombo 07, wish to file a fundamental rights petition against the Officer in Charge, Kollupitiya Police Station before the Supreme Court of Sri Lanka. The respondent unlawfully detained me for 48 hours without producing me before a magistrate. I seek a declaration that my rights under Article 13 were violated and compensation of Rs. 500,000. Date: 2024-02-15.",
+    "entities": [
+      [3, 15, "PETITIONER_NAME"],
+      [17, 29, "PETITIONER_NIC"],
+      [34, 64, "PETITIONER_ADDRESS"],
+      [100, 141, "RESPONDENT_NAME"],
+      [149, 176, "COURT_NAME"],
+      [182, 249, "SUBJECT_MATTER"],
+      [253, 383, "RELIEF_SOUGHT"],
+      [391, 401, "DATE"]
+    ]
+  },
+  {
+    "text": "Petitioner: Nimalka Fernando, NIC 198956789012, residing at 34 Peradeniya Road, Kandy. Respondent: Director General of Customs. Court: Court of Appeal of Sri Lanka. Subject: The respondent unlawfully seized my imported textile machinery without following due process under the Customs Ordinance. Relief sought: An order quashing the seizure and return of the machinery. Date: 2024-01-20.",
+    "entities": [
+      [12, 28, "PETITIONER_NAME"],
+      [30, 42, "PETITIONER_NIC"],
+      [57, 84, "PETITIONER_ADDRESS"],
+      [97, 126, "RESPONDENT_NAME"],
+      [135, 162, "COURT_NAME"],
+      [172, 278, "SUBJECT_MATTER"],
+      [288, 357, "RELIEF_SOUGHT"],
+      [365, 375, "DATE"]
+    ]
+  },
+  {
+    "text": "I want to file a maintenance petition. My name is Sandya Jayawardena, NIC 199012345678, living at 78 Galle Road, Matara. The respondent is my husband Roshan Jayawardena. Court: Magistrate's Court of Matara. He has failed to pay maintenance for our two minor children since January 2023. I am asking the court to order Rs. 25,000 monthly maintenance per child. Date: 2024-03-10.",
+    "entities": [
+      [50, 68, "PETITIONER_NAME"],
+      [70, 82, "PETITIONER_NIC"],
+      [95, 119, "PETITIONER_ADDRESS"],
+      [150, 168, "RESPONDENT_NAME"],
+      [177, 205, "COURT_NAME"],
+      [207, 281, "SUBJECT_MATTER"],
+      [285, 356, "RELIEF_SOUGHT"],
+      [364, 374, "DATE"]
+    ]
+  },
+  {
+    "text": "Petition by Anura Dissanayake, NIC 197623456789V, of No. 5 Temple Road, Anuradhapura. Against: Provincial Land Commissioner, North Central Province. Filed in: High Court of Anuradhapura. The respondent issued an order cancelling my land permit No. 4521/B without a proper inquiry or hearing. Relief: Set aside the cancellation order and restore my land permit. Date: 2023-11-25.",
+    "entities": [
+      [11, 29, "PETITIONER_NAME"],
+      [31, 47, "PETITIONER_NIC"],
+      [52, 85, "PETITIONER_ADDRESS"],
+      [96, 147, "RESPONDENT_NAME"],
+      [158, 183, "COURT_NAME"],
+      [189, 281, "SUBJECT_MATTER"],
+      [291, 352, "RELIEF_SOUGHT"],
+      [360, 370, "DATE"]
+    ]
+  },
+  {
+    "text": "My name is Priyanka Wijesekara, NIC 200134567890, at 23 Negombo Road, Wattala. I want to petition against my former employer, ABC Garments Pvt Ltd. Court: Labour Tribunal Colombo. My employer terminated me without notice or gratuity after 8 years of service. I want reinstatement or compensation of Rs. 450,000 as terminal benefits. Date: 2024-04-05.",
+    "entities": [
+      [11, 30, "PETITIONER_NAME"],
+      [32, 44, "PETITIONER_NIC"],
+      [49, 74, "PETITIONER_ADDRESS"],
+      [122, 144, "RESPONDENT_NAME"],
+      [153, 176, "COURT_NAME"],
+      [178, 255, "SUBJECT_MATTER"],
+      [259, 333, "RELIEF_SOUGHT"],
+      [341, 351, "DATE"]
+    ]
+  },
+  {
+    "text": "I am Tharanga Rathnayake, NIC 197845678901, of 67 Kandy Road, Kurunegala, filing a petition before the Supreme Court of Sri Lanka against the Inspector General of Police. The police raided my home without a valid warrant and caused damage to property worth Rs. 180,000. I seek a declaration of fundamental rights violation under Article 12 and damages. Date: 2024-02-28.",
+    "entities": [
+      [5, 24, "PETITIONER_NAME"],
+      [26, 38, "PETITIONER_NIC"],
+      [43, 72, "PETITIONER_ADDRESS"],
+      [104, 131, "COURT_NAME"],
+      [140, 167, "RESPONDENT_NAME"],
+      [169, 262, "SUBJECT_MATTER"],
+      [266, 352, "RELIEF_SOUGHT"],
+      [360, 370, "DATE"]
+    ]
+  },
+  {
+    "text": "Petitioner: Ravi Shankar, NIC 197534512679, address 18 Jaffna Road, Vavuniya. Respondent: Secretary, Ministry of Education. Court: Court of Appeal of Sri Lanka. The Ministry refused my application for transfer to a school closer to my ill mother without giving reasons. Relief sought: A writ of mandamus directing the Ministry to consider my transfer application fairly and transparently. Date: 2023-12-15.",
+    "entities": [
+      [12, 23, "PETITIONER_NAME"],
+      [25, 37, "PETITIONER_NIC"],
+      [47, 76, "PETITIONER_ADDRESS"],
+      [89, 121, "RESPONDENT_NAME"],
+      [130, 157, "COURT_NAME"],
+      [163, 270, "SUBJECT_MATTER"],
+      [280, 384, "RELIEF_SOUGHT"],
+      [392, 402, "DATE"]
+    ]
+  },
+  {
+    "text": "I, Shanthi Mendis, NIC 196878901234, of No. 3 Galle Road, Ambalangoda, want to file a petition about a boundary dispute. The respondent is my neighbour Piyal de Alwis. Court: District Court of Galle. Piyal de Alwis has encroached on my land by constructing a wall beyond the survey boundary. I am asking for an injunction to demolish the wall and restore the boundary. Date: 2024-01-08.",
+    "entities": [
+      [3, 16, "PETITIONER_NAME"],
+      [18, 30, "PETITIONER_NIC"],
+      [35, 69, "PETITIONER_ADDRESS"],
+      [152, 165, "RESPONDENT_NAME"],
+      [174, 198, "COURT_NAME"],
+      [200, 281, "SUBJECT_MATTER"],
+      [285, 367, "RELIEF_SOUGHT"],
+      [375, 385, "DATE"]
+    ]
+  },
+  {
+    "text": "Petition filed by Chamara Bandara, NIC 199267890123, of 45 Colombo Road, Badulla, before the High Court of Badulla against the Municipal Commissioner of Badulla. The respondent demolished my lawfully constructed shop without prior notice under the pretence of road widening. I seek compensation of Rs. 2,500,000 and a stay order on further demolition. Date: 2024-03-20.",
+    "entities": [
+      [18, 33, "PETITIONER_NAME"],
+      [35, 47, "PETITIONER_NIC"],
+      [52, 80, "PETITIONER_ADDRESS"],
+      [89, 110, "COURT_NAME"],
+      [119, 159, "RESPONDENT_NAME"],
+      [161, 271, "SUBJECT_MATTER"],
+      [275, 352, "RELIEF_SOUGHT"],
+      [360, 370, "DATE"]
+    ]
+  },
+  {
+    "text": "I want to petition the Family Court of Colombo. My name is Kumudini Samarasinghe, NIC 197012345679V, living at 89 Havelock Road, Colombo 05. The respondent is my estranged husband Dinesh Samarasinghe. I am applying for divorce on grounds of malicious desertion for more than two years. I also seek custody of our daughter born in 2019. Date: 2024-02-12.",
+    "entities": [
+      [58, 79, "PETITIONER_NAME"],
+      [81, 97, "PETITIONER_NIC"],
+      [110, 139, "PETITIONER_ADDRESS"],
+      [181, 200, "RESPONDENT_NAME"],
+      [21, 46, "COURT_NAME"],
+      [202, 276, "SUBJECT_MATTER"],
+      [280, 335, "RELIEF_SOUGHT"],
+      [343, 353, "DATE"]
+    ]
+  },
+  {
+    "text": "Fundamental rights petition. Petitioner: Nalika de Silva, NIC 198890123456, of 12 Bauddhaloka Mawatha, Colombo 04. Respondent: Warden, Welikade Prison. Court: Supreme Court of Sri Lanka. The warden denied me access to my legal counsel for three days after my remand. I seek an inquiry into the violation and immediate access to counsel going forward. Date: 2024-01-30.",
+    "entities": [
+      [41, 55, "PETITIONER_NAME"],
+      [57, 69, "PETITIONER_NIC"],
+      [74, 111, "PETITIONER_ADDRESS"],
+      [124, 145, "RESPONDENT_NAME"],
+      [154, 181, "COURT_NAME"],
+      [187, 267, "SUBJECT_MATTER"],
+      [271, 352, "RELIEF_SOUGHT"],
+      [360, 370, "DATE"]
+    ]
+  },
+  {
+    "text": "I need to file a petition. I am Saman Kumara, NIC 197356789013V, at 101 Main Street, Chilaw. Respondent is the Divisional Secretariat, Chilaw. Court is the High Court of Puttalam. They rejected my application for a national identity card without valid reason. I want a court order directing them to process my application within 30 days. Date: 2023-10-05.",
+    "entities": [
+      [32, 43, "PETITIONER_NAME"],
+      [45, 61, "PETITIONER_NIC"],
+      [66, 91, "PETITIONER_ADDRESS"],
+      [110, 140, "RESPONDENT_NAME"],
+      [150, 172, "COURT_NAME"],
+      [174, 249, "SUBJECT_MATTER"],
+      [253, 327, "RELIEF_SOUGHT"],
+      [335, 345, "DATE"]
+    ]
+  },
+  {
+    "text": "Petitioner Amara Gunaratne, NIC 197612378902, residing at 45 Katugastota Road, Kandy. Against Sri Lanka Railways. Court: Magistrate's Court of Kandy. I was injured on a railway platform due to a defective barrier maintained by Sri Lanka Railways. I seek compensation of Rs. 750,000 for medical expenses and loss of income. Date: 2024-04-15.",
+    "entities": [
+      [11, 26, "PETITIONER_NAME"],
+      [28, 40, "PETITIONER_NIC"],
+      [55, 83, "PETITIONER_ADDRESS"],
+      [92, 111, "RESPONDENT_NAME"],
+      [120, 146, "COURT_NAME"],
+      [148, 248, "SUBJECT_MATTER"],
+      [252, 331, "RELIEF_SOUGHT"],
+      [339, 349, "DATE"]
+    ]
+  },
+  {
+    "text": "I, Fathima Rizka, NIC 200034501789, of 18 Masjid Road, Beruwala, filing a writ petition before the Court of Appeal of Sri Lanka against the Director of Inland Revenue. The Director issued an arbitrary tax assessment notice without proper basis. I seek a writ of certiorari quashing the assessment and a declaration that it was issued without jurisdiction. Date: 2024-03-08.",
+    "entities": [
+      [3, 16, "PETITIONER_NAME"],
+      [18, 30, "PETITIONER_NIC"],
+      [35, 64, "PETITIONER_ADDRESS"],
+      [99, 126, "COURT_NAME"],
+      [135, 165, "RESPONDENT_NAME"],
+      [167, 254, "SUBJECT_MATTER"],
+      [258, 367, "RELIEF_SOUGHT"],
+      [375, 385, "DATE"]
+    ]
+  },
+  {
+    "text": "My petition is about wrongful termination. I am Lasith Malinga Perera, NIC 198534523457, of 23 Esplanade Road, Trincomalee. The respondent is Eastern Province Provincial Council. Filed in District Court of Trincomalee. I was terminated from my post of development officer without a departmental inquiry as required. I seek reinstatement with back pay. Date: 2023-09-22.",
+    "entities": [
+      [48, 69, "PETITIONER_NAME"],
+      [71, 83, "PETITIONER_NIC"],
+      [88, 123, "PETITIONER_ADDRESS"],
+      [148, 182, "RESPONDENT_NAME"],
+      [191, 220, "COURT_NAME"],
+      [222, 312, "SUBJECT_MATTER"],
+      [316, 356, "RELIEF_SOUGHT"],
+      [364, 374, "DATE"]
+    ]
+  },
+  {
+    "text": "Petition by Vijitha Bandara, NIC 196812379901, of No. 9 Peradeniya Road, Kandy, before the Supreme Court of Sri Lanka. Respondent: Director General of Immigration. The respondent cancelled my dual citizenship without affording me a proper hearing. I seek restoration of my dual citizenship status and a declaration of natural justice violation. Date: 2024-01-14.",
+    "entities": [
+      [11, 27, "PETITIONER_NAME"],
+      [29, 41, "PETITIONER_NIC"],
+      [46, 79, "PETITIONER_ADDRESS"],
+      [88, 115, "COURT_NAME"],
+      [128, 160, "RESPONDENT_NAME"],
+      [162, 246, "SUBJECT_MATTER"],
+      [250, 344, "RELIEF_SOUGHT"],
+      [352, 362, "DATE"]
+    ]
+  },
+  {
+    "text": "I want to file a custody petition. My name is Dilrukshi Rathnayake, NIC 199234501456V, at 91 Negombo Road, Wattala. Respondent: Thilak Rathnayake, my former spouse. Court: Family Court of Colombo. My ex-husband is preventing me from seeing our two children despite the interim order granting me visitation rights. I seek enforcement of the visitation order and primary custody. Date: 2024-02-20.",
+    "entities": [
+      [46, 66, "PETITIONER_NAME"],
+      [68, 84, "PETITIONER_NIC"],
+      [89, 114, "PETITIONER_ADDRESS"],
+      [127, 146, "RESPONDENT_NAME"],
+      [165, 186, "COURT_NAME"],
+      [188, 298, "SUBJECT_MATTER"],
+      [302, 375, "RELIEF_SOUGHT"],
+      [383, 393, "DATE"]
+    ]
+  },
+  {
+    "text": "Petitioner: Nalin Herath, NIC 198134524456, address No. 12 Rajapihilla Mawatha, Kandy. Against: Urban Development Authority. Court: High Court of Kandy. The UDA issued a notice to demolish my legally constructed building claiming it violates building regulations without carrying out a proper inspection. Relief: Injunction restraining demolition pending proper inquiry. Date: 2024-03-17.",
+    "entities": [
+      [12, 24, "PETITIONER_NAME"],
+      [26, 38, "PETITIONER_NIC"],
+      [48, 83, "PETITIONER_ADDRESS"],
+      [93, 120, "RESPONDENT_NAME"],
+      [129, 147, "COURT_NAME"],
+      [149, 287, "SUBJECT_MATTER"],
+      [297, 362, "RELIEF_SOUGHT"],
+      [370, 380, "DATE"]
+    ]
+  },
+  {
+    "text": "I am Rohan de Mel, NIC 196945678902V, of 200 Galle Road, Hikkaduwa, and I wish to file a petition before the District Court of Galle against my co-heir Sunil de Mel. He is refusing to agree to the partition of our jointly inherited land bearing lot No. 567 at Hikkaduwa. I seek a partition order dividing the property equally. Date: 2024-01-25.",
+    "entities": [
+      [5, 17, "PETITIONER_NAME"],
+      [19, 31, "PETITIONER_NIC"],
+      [36, 66, "PETITIONER_ADDRESS"],
+      [109, 132, "COURT_NAME"],
+      [151, 162, "RESPONDENT_NAME"],
+      [164, 252, "SUBJECT_MATTER"],
+      [256, 312, "RELIEF_SOUGHT"],
+      [320, 330, "DATE"]
+    ]
+  },
+  {
+    "text": "Writ petition. I, Anoma Jayasuriya, NIC 197823457890, of 56 Dutugemunu Street, Kelaniya, am filing before the Court of Appeal against the Secretary, Ministry of Health. The Ministry has failed to pay my approved medical reimbursement claim of Rs. 320,000 for over 18 months. I seek a mandamus order compelling payment within 14 days. Date: 2023-12-01.",
+    "entities": [
+      [19, 35, "PETITIONER_NAME"],
+      [37, 49, "PETITIONER_NIC"],
+      [54, 87, "PETITIONER_ADDRESS"],
+      [110, 124, "COURT_NAME"],
+      [133, 165, "RESPONDENT_NAME"],
+      [167, 279, "SUBJECT_MATTER"],
+      [283, 339, "RELIEF_SOUGHT"],
+      [347, 357, "DATE"]
+    ]
+  },
+  {
+    "text": "I am filing a maintenance petition. Petitioner: Sewwandi Fernando, NIC 199812391456, of 28 Hospital Road, Badulla. Respondent: Chamara Fernando, my estranged husband. Court: Magistrate's Court of Badulla. My husband abandoned me and our three children in 2022 and has paid no maintenance. I request maintenance of Rs. 15,000 per month per child and Rs. 20,000 for myself. Date: 2024-04-01.",
+    "entities": [
+      [49, 66, "PETITIONER_NAME"],
+      [68, 80, "PETITIONER_NIC"],
+      [85, 112, "PETITIONER_ADDRESS"],
+      [125, 143, "RESPONDENT_NAME"],
+      [164, 192, "COURT_NAME"],
+      [194, 290, "SUBJECT_MATTER"],
+      [294, 381, "RELIEF_SOUGHT"],
+      [389, 399, "DATE"]
+    ]
+  },
+  {
+    "text": "I, Gayan Pathirana, NIC 199134568790, at 78 Weligama Road, Matara, wish to petition the Supreme Court against the Director of the Sri Lanka Land Reclamation and Development Corporation. The Corporation unlawfully filled my land parcel without compensation claiming it was a public waterway. I seek restoration of the land or compensation of Rs. 4,200,000. Date: 2024-02-05.",
+    "entities": [
+      [3, 18, "PETITIONER_NAME"],
+      [20, 32, "PETITIONER_NIC"],
+      [37, 65, "PETITIONER_ADDRESS"],
+      [87, 101, "COURT_NAME"],
+      [110, 183, "RESPONDENT_NAME"],
+      [185, 282, "SUBJECT_MATTER"],
+      [286, 365, "RELIEF_SOUGHT"],
+      [373, 383, "DATE"]
+    ]
+  },
+  {
+    "text": "Petition of Nilmini Perera, NIC 198945679902, residing at 34 Nawala Road, Nugegoda. Respondent: Commissioner General of Elections. Court: Court of Appeal of Sri Lanka. The respondent disqualified my candidacy for local government elections without proper legal basis. I seek a writ of certiorari quashing the disqualification and an order restoring my candidacy. Date: 2024-03-25.",
+    "entities": [
+      [11, 25, "PETITIONER_NAME"],
+      [27, 39, "PETITIONER_NIC"],
+      [54, 82, "PETITIONER_ADDRESS"],
+      [95, 127, "RESPONDENT_NAME"],
+      [136, 163, "COURT_NAME"],
+      [165, 262, "SUBJECT_MATTER"],
+      [266, 367, "RELIEF_SOUGHT"],
+      [375, 385, "DATE"]
+    ]
+  },
+  {
+    "text": "I need to petition about my pension. My name is Chandana Wijerama, NIC 197234502235, of 67 Station Road, Matara. Against the Director General of Pensions. Court: Administrative Appeals Tribunal. My pension application was rejected after 30 years of service without any reason given. I want an order directing payment of my full pension entitlement backdated to my retirement date. Date: 2023-11-10.",
+    "entities": [
+      [48, 65, "PETITIONER_NAME"],
+      [67, 79, "PETITIONER_NIC"],
+      [84, 110, "PETITIONER_ADDRESS"],
+      [123, 152, "RESPONDENT_NAME"],
+      [161, 191, "COURT_NAME"],
+      [193, 284, "SUBJECT_MATTER"],
+      [288, 381, "RELIEF_SOUGHT"],
+      [389, 399, "DATE"]
+    ]
+  },
+  {
+    "text": "I am Tharindi Wickrema, NIC 200123457780, of 56 Haputale Road, Bandarawela. I want to file a petition before the High Court of Badulla against the Pradeshiya Sabha, Bandarawela. The Sabha refused to connect my premises to the municipal water supply despite my being a rate-paying resident for 10 years. I seek a mandamus order compelling connection within 60 days. Date: 2024-03-30.",
+    "entities": [
+      [5, 22, "PETITIONER_NAME"],
+      [24, 36, "PETITIONER_NIC"],
+      [41, 74, "PETITIONER_ADDRESS"],
+      [113, 133, "COURT_NAME"],
+      [142, 177, "RESPONDENT_NAME"],
+      [179, 290, "SUBJECT_MATTER"],
+      [294, 368, "RELIEF_SOUGHT"],
+      [376, 386, "DATE"]
+    ]
+  },
+  {
+    "text": "Petition: Petitioner is Kelum Gunasekara, NIC 199134569890, of 101 Puttalam Road, Chilaw. Respondent: Bank of Ceylon, Chilaw Branch. Court: District Court of Puttalam. The bank froze my business account without notice citing a suspicious transaction report which I was not informed about. I seek an order unfreezing the account and compensation for business losses. Date: 2024-01-18.",
+    "entities": [
+      [24, 40, "PETITIONER_NAME"],
+      [42, 54, "PETITIONER_NIC"],
+      [59, 88, "PETITIONER_ADDRESS"],
+      [101, 129, "RESPONDENT_NAME"],
+      [138, 163, "COURT_NAME"],
+      [165, 288, "SUBJECT_MATTER"],
+      [292, 376, "RELIEF_SOUGHT"],
+      [384, 394, "DATE"]
+    ]
+  },
+  {
+    "text": "I, Prasad Jayasuriya, NIC 199878902235, of 67 Mahaweli Road, Ampara, am petitioning the Magistrate's Court of Ampara against my landlord Senaka Perera. My landlord forcibly evicted me from the rented premises without a court order and changed the locks while I was away. I seek immediate restoration of possession and damages of Rs. 120,000. Date: 2024-02-22.",
+    "entities": [
+      [3, 20, "PETITIONER_NAME"],
+      [22, 34, "PETITIONER_NIC"],
+      [39, 67, "PETITIONER_ADDRESS"],
+      [88, 114, "COURT_NAME"],
+      [138, 151, "RESPONDENT_NAME"],
+      [153, 257, "SUBJECT_MATTER"],
+      [261, 338, "RELIEF_SOUGHT"],
+      [346, 356, "DATE"]
+    ]
+  },
+  {
+    "text": "Writ application by Amara Dissanayake, NIC 197890346612V, of No. 4 Temple Road, Dambulla. Respondent: Director General of Wildlife Conservation. Court: Court of Appeal of Sri Lanka. The respondent's officers confiscated my livestock claiming they strayed into a wildlife sanctuary without any legal process. Relief sought: Return of livestock or compensation of Rs. 280,000. Date: 2023-10-30.",
+    "entities": [
+      [20, 38, "PETITIONER_NAME"],
+      [40, 56, "PETITIONER_NIC"],
+      [61, 89, "PETITIONER_ADDRESS"],
+      [102, 142, "RESPONDENT_NAME"],
+      [151, 178, "COURT_NAME"],
+      [180, 283, "SUBJECT_MATTER"],
+      [293, 368, "RELIEF_SOUGHT"],
+      [376, 386, "DATE"]
+    ]
+  },
+  {
+    "text": "I need a petition. I am Saman Wijesinghe, NIC 197745678013, living at 200 Colombo Road, Negombo. The respondent is the Commissioner of Motor Traffic. Court: High Court of Western Province. My driving licence was suspended without giving me an opportunity to be heard. I want an order quashing the suspension and restoring my licence immediately. Date: 2024-04-08.",
+    "entities": [
+      [24, 40, "PETITIONER_NAME"],
+      [42, 54, "PETITIONER_NIC"],
+      [67, 94, "PETITIONER_ADDRESS"],
+      [113, 145, "RESPONDENT_NAME"],
+      [154, 183, "COURT_NAME"],
+      [185, 267, "SUBJECT_MATTER"],
+      [271, 344, "RELIEF_SOUGHT"],
+      [352, 362, "DATE"]
+    ]
+  },
+  {
+    "text": "Petition filed by Ranjith Perera, NIC 196845679901V, at 14 Lake Road, Boralesgamuwa, before the Supreme Court of Sri Lanka against the Chairman, Sri Lanka Broadcasting Corporation. The Corporation terminated my 22-year employment without following the required disciplinary procedure under the Corporation's service rules. I seek reinstatement or compensation of Rs. 3,500,000. Date: 2024-03-12.",
+    "entities": [
+      [18, 32, "PETITIONER_NAME"],
+      [34, 50, "PETITIONER_NIC"],
+      [55, 84, "PETITIONER_ADDRESS"],
+      [93, 120, "COURT_NAME"],
+      [129, 178, "RESPONDENT_NAME"],
+      [180, 318, "SUBJECT_MATTER"],
+      [322, 387, "RELIEF_SOUGHT"],
+      [395, 405, "DATE"]
+    ]
+  }
+]

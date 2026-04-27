@@ -210,7 +210,7 @@ const trialSessionSchema = new Schema({
     aiConfig: {
         model: {
             type: String,
-            default: 'gpt-4'
+            default: 'gemini-2.5-flash-lite'
         },
         temperature: {
             type: Number,

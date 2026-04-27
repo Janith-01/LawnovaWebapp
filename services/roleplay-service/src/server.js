@@ -23,6 +23,7 @@ import {
 
 const app = express();
 const PORT = process.env.PORT || 10005;
+const HOST = process.env.HOST || '0.0.0.0';
 
 // Create HTTP server (shared between Express + Socket.IO)
 const httpServer = http.createServer(app);
@@ -186,14 +187,14 @@ app.use((req, res, next) => {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-    const openaiConfigured = !!process.env.OPENAI_API_KEY;
+    const geminiConfigured = !!(process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY1);
     res.json({
         success: true,
         service: 'roleplay-service',
         status: 'healthy',
         features: {
-            aiEnabled: openaiConfigured,
-            model: process.env.OPENAI_MODEL || 'gpt-4',
+            aiEnabled: geminiConfigured,
+            model: process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite',
             autonomousMode: true,
             heartbeatStats: getHeartbeatStats()
         },
@@ -254,19 +255,19 @@ const startServer = async () => {
         // Connect to MongoDB
         await connectDB();
 
-        // Check OpenAI configuration
-        if (!process.env.OPENAI_API_KEY) {
-            logger.warn('OPENAI_API_KEY not configured - AI features will fail');
+        // Check Gemini configuration
+        if (!process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY1) {
+            logger.warn('GEMINI_API_KEY not configured - AI features will fail');
         } else {
-            logger.info('OpenAI API configured');
-            logger.info(`Using model: ${process.env.OPENAI_MODEL || 'gpt-4'}`);
+            logger.info('Gemini API configured');
+            logger.info(`Using model: ${process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite'}`);
         }
 
-        httpServer.listen(PORT, '127.0.0.1', () => {
-            logger.info(`Roleplay Service running on http://127.0.0.1:${PORT}`);
-            logger.info(`Socket.IO server ready on ws://127.0.0.1:${PORT}`);
+        httpServer.listen(PORT, HOST, () => {
+            logger.info(`Roleplay Service running on http://${HOST}:${PORT}`);
+            logger.info(`Socket.IO server ready on ws://${HOST}:${PORT}`);
             logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-            logger.info(`Health check: http://127.0.0.1:${PORT}/health`);
+            logger.info(`Health check: http://${HOST}:${PORT}/health`);
             logger.info(`Autonomous Courtroom Engine: v2.0.0`);
             logger.info(`Jurisdiction: Sri Lankan Law`);
         });

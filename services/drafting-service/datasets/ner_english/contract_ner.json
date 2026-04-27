@@ -1,0 +1,413 @@
+[
+  {
+    "text": "I need a contract between Sunshine Garments Ltd and Roshan Perera for tailoring services. Sunshine Garments must provide raw materials and Roshan must deliver 500 completed garments monthly. Payment is Rs. 150,000 per month. Start date: 2024-02-01. End date: 2025-01-31. Jurisdiction: Colombo.",
+    "entities": [
+      [25, 45, "PARTY_A"],
+      [50, 62, "PARTY_B"],
+      [67, 85, "CONTRACT_PURPOSE"],
+      [87, 136, "OBLIGATIONS_A"],
+      [141, 185, "OBLIGATIONS_B"],
+      [198, 222, "PAYMENT_TERMS"],
+      [236, 246, "START_DATE"],
+      [258, 268, "END_DATE"],
+      [285, 292, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Contract needed between Nimal Fernando and Saman Builders Pvt Ltd for construction of a residential house at Nugegoda. Nimal must provide approved building plans and clear the site. Saman Builders must complete construction to agreed specifications. Payment: Rs. 8,500,000 in four installments. Start: 01/03/2024. End: 01/03/2025. Jurisdiction: Colombo.",
+    "entities": [
+      [23, 37, "PARTY_A"],
+      [42, 62, "PARTY_B"],
+      [67, 116, "CONTRACT_PURPOSE"],
+      [118, 179, "OBLIGATIONS_A"],
+      [181, 246, "OBLIGATIONS_B"],
+      [257, 293, "PAYMENT_TERMS"],
+      [302, 312, "START_DATE"],
+      [318, 328, "END_DATE"],
+      [345, 352, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "I want a rental agreement between Kamala Wijesinghe as landlord and Pradeep Jayasuriya as tenant for the property at 45 Galle Road, Colombo 03. Kamala must maintain the property in habitable condition. Pradeep must pay rent on time and not sublet. Rent: Rs. 65,000 per month. Start date: 2024-03-01. End date: 2025-02-28. Jurisdiction: Colombo.",
+    "entities": [
+      [34, 50, "PARTY_A"],
+      [67, 84, "PARTY_B"],
+      [93, 141, "CONTRACT_PURPOSE"],
+      [143, 200, "OBLIGATIONS_A"],
+      [202, 245, "OBLIGATIONS_B"],
+      [253, 275, "PAYMENT_TERMS"],
+      [289, 299, "START_DATE"],
+      [311, 321, "END_DATE"],
+      [338, 345, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Draft a service agreement. Party A is Lanka Web Solutions, Party B is Colombo Fashion House. Lanka Web Solutions will design and maintain a website. Colombo Fashion House will provide branding materials and timely feedback. Payment: Rs. 120,000 upfront and Rs. 20,000 monthly maintenance. Start: 15-04-2024. End: 14-04-2025. Jurisdiction: Colombo.",
+    "entities": [
+      [45, 63, "PARTY_A"],
+      [73, 91, "PARTY_B"],
+      [93, 145, "CONTRACT_PURPOSE"],
+      [147, 197, "OBLIGATIONS_A"],
+      [199, 257, "OBLIGATIONS_B"],
+      [267, 318, "PAYMENT_TERMS"],
+      [327, 337, "START_DATE"],
+      [344, 354, "END_DATE"],
+      [371, 378, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Employment contract between Dilmah Exports Ltd as employer and Thilini Rathnayake as employee for the position of export documentation officer. Dilmah must provide salary, EPF, ETF and leave entitlements. Thilini must perform duties as assigned and maintain confidentiality. Salary: Rs. 85,000 per month. Start date: 01-05-2024. End date: 30-04-2026. Jurisdiction: Gampaha.",
+    "entities": [
+      [27, 43, "PARTY_A"],
+      [62, 79, "PARTY_B"],
+      [84, 141, "CONTRACT_PURPOSE"],
+      [143, 202, "OBLIGATIONS_A"],
+      [204, 270, "OBLIGATIONS_B"],
+      [280, 303, "PAYMENT_TERMS"],
+      [317, 327, "START_DATE"],
+      [339, 349, "END_DATE"],
+      [366, 373, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Need contract for sale of vehicle. Seller is Ajith Kumara, buyer is Nalika de Silva. Ajith sells his Toyota Prius bearing registration WP KA 2345 in good working condition. Nalika accepts the vehicle as inspected. Total price Rs. 6,200,000 payable in full on delivery. Date of sale: 2024-01-20. Jurisdiction: Kandy.",
+    "entities": [
+      [45, 57, "PARTY_A"],
+      [68, 83, "PARTY_B"],
+      [85, 169, "CONTRACT_PURPOSE"],
+      [171, 213, "OBLIGATIONS_A"],
+      [215, 248, "OBLIGATIONS_B"],
+      [257, 298, "PAYMENT_TERMS"],
+      [314, 324, "START_DATE"],
+      [341, 346, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "I am Chathura Bandara and I want a freelance contract with Pixel Studio Pvt Ltd. I will design 10 logo concepts and deliver final files within 14 days of approval. Pixel Studio will provide the brand brief and approve designs. They pay me Rs. 75,000 upon final delivery. Start: 2024-02-10. End: 2024-03-10. Jurisdiction: Colombo.",
+    "entities": [
+      [5, 21, "PARTY_A"],
+      [58, 76, "PARTY_B"],
+      [78, 162, "CONTRACT_PURPOSE"],
+      [163, 238, "OBLIGATIONS_A"],
+      [239, 268, "OBLIGATIONS_B"],
+      [278, 308, "PAYMENT_TERMS"],
+      [317, 327, "START_DATE"],
+      [334, 344, "END_DATE"],
+      [361, 368, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Contract between Mahaweli Farms Ltd and Fresh Produce Distributors for supply of vegetables. Mahaweli Farms will supply 2000 kg of fresh vegetables weekly meeting food safety standards. Fresh Produce will collect from farm gate and make payment weekly. Payment: Rs. 180,000 per week. Start date: 01-06-2024. End date: 31-05-2025. Jurisdiction: Kandy.",
+    "entities": [
+      [17, 33, "PARTY_A"],
+      [38, 63, "PARTY_B"],
+      [68, 90, "CONTRACT_PURPOSE"],
+      [92, 183, "OBLIGATIONS_A"],
+      [185, 249, "OBLIGATIONS_B"],
+      [259, 281, "PAYMENT_TERMS"],
+      [295, 305, "START_DATE"],
+      [317, 327, "END_DATE"],
+      [344, 349, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "I need an agreement between me, Samantha Perera, and my tenant Ruwan Jayawardena for renting out my shop at No. 12, Main Street, Negombo. I will keep the premises structurally sound. Ruwan will use the shop only for retail trade and pay rent promptly. Monthly rent: Rs. 45,000. Lease starts: 2024-04-01. Lease ends: 2027-03-31. Jurisdiction: Gampaha.",
+    "entities": [
+      [32, 47, "PARTY_A"],
+      [63, 79, "PARTY_B"],
+      [84, 136, "CONTRACT_PURPOSE"],
+      [138, 181, "OBLIGATIONS_A"],
+      [183, 249, "OBLIGATIONS_B"],
+      [259, 276, "PAYMENT_TERMS"],
+      [291, 301, "START_DATE"],
+      [314, 324, "END_DATE"],
+      [341, 348, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Agreement between Kelaniya University Bookshop and PrintMaster Lanka for printing services. Kelaniya Bookshop will supply digital files and paper stock. PrintMaster will print and bind 5000 copies of study guides per semester. Cost: Rs. 320,000 per semester payable within 30 days of delivery. Commencement: January 2024. Expiry: December 2024. Jurisdiction: Gampaha.",
+    "entities": [
+      [18, 45, "PARTY_A"],
+      [50, 66, "PARTY_B"],
+      [71, 89, "CONTRACT_PURPOSE"],
+      [91, 150, "OBLIGATIONS_A"],
+      [152, 228, "OBLIGATIONS_B"],
+      [237, 291, "PAYMENT_TERMS"],
+      [307, 319, "START_DATE"],
+      [328, 341, "END_DATE"],
+      [358, 365, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Security services contract. Client: Hemas Hospital Pvt Ltd. Service provider: Guardian Security Services. Hemas Hospital must provide access and workspace for security personnel. Guardian Security must deploy 12 trained guards on 24-hour rotation. Monthly fee: Rs. 280,000. Contract period: 01/07/2024 to 30/06/2025. Jurisdiction: Colombo.",
+    "entities": [
+      [36, 57, "PARTY_A"],
+      [77, 103, "PARTY_B"],
+      [105, 175, "CONTRACT_PURPOSE"],
+      [176, 237, "OBLIGATIONS_A"],
+      [239, 296, "OBLIGATIONS_B"],
+      [305, 322, "PAYMENT_TERMS"],
+      [342, 352, "START_DATE"],
+      [356, 366, "END_DATE"],
+      [383, 390, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "I want to make a contract. I am Lakshman de Mel, the owner, and Kithsiri Silva is the contractor. I need my house in Galle renovated. I will pay according to milestones and provide access to the property. Kithsiri will complete renovation in 6 months without subcontracting. Payment: Rs. 3,200,000 in 4 equal parts. Start: 2024-03-15. End: 2024-09-14. Jurisdiction: Galle.",
+    "entities": [
+      [32, 47, "PARTY_A"],
+      [63, 77, "PARTY_B"],
+      [84, 131, "CONTRACT_PURPOSE"],
+      [133, 200, "OBLIGATIONS_A"],
+      [202, 259, "OBLIGATIONS_B"],
+      [269, 299, "PAYMENT_TERMS"],
+      [308, 318, "START_DATE"],
+      [325, 335, "END_DATE"],
+      [352, 357, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "IT consultancy agreement between TechMinds Lanka and National Savings Bank. TechMinds Lanka will implement a core banking software upgrade and provide staff training. National Savings Bank will provide server access and appoint a project liaison. Fee: Rs. 4,500,000 payable in three tranches. Start date: 2024-05-01. End date: 2024-11-30. Jurisdiction: Colombo.",
+    "entities": [
+      [33, 46, "PARTY_A"],
+      [51, 72, "PARTY_B"],
+      [74, 172, "CONTRACT_PURPOSE"],
+      [174, 243, "OBLIGATIONS_A"],
+      [245, 288, "OBLIGATIONS_B"],
+      [295, 329, "PAYMENT_TERMS"],
+      [343, 353, "START_DATE"],
+      [365, 375, "END_DATE"],
+      [392, 399, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Please draft a catering contract between Spice Garden Catering and Colombo Cricket Club. Spice Garden will provide food and beverages for all home matches including setup and cleanup. Colombo Cricket Club will confirm match schedules 14 days in advance. Payment: Rs. 95,000 per match day. Agreement runs from 01-01-2024 to 31-12-2024. Jurisdiction: Colombo.",
+    "entities": [
+      [41, 61, "PARTY_A"],
+      [66, 85, "PARTY_B"],
+      [87, 181, "CONTRACT_PURPOSE"],
+      [183, 249, "OBLIGATIONS_A"],
+      [251, 306, "OBLIGATIONS_B"],
+      [316, 339, "PAYMENT_TERMS"],
+      [358, 368, "START_DATE"],
+      [372, 382, "END_DATE"],
+      [399, 406, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Land lease agreement. Lessor: Podina Dissanayake. Lessee: Agro Lanka Pvt Ltd. Podina grants Agro Lanka the right to cultivate 3 acres of paddy land in Polonnaruwa. Agro Lanka will maintain the land and share 20% of annual harvest. Lease payment: Rs. 120,000 per year. Start: 2024-04-15. End: 2029-04-14. Jurisdiction: Polonnaruwa.",
+    "entities": [
+      [30, 48, "PARTY_A"],
+      [58, 75, "PARTY_B"],
+      [77, 162, "CONTRACT_PURPOSE"],
+      [164, 229, "OBLIGATIONS_A"],
+      [231, 268, "OBLIGATIONS_B"],
+      [278, 302, "PAYMENT_TERMS"],
+      [311, 321, "START_DATE"],
+      [328, 338, "END_DATE"],
+      [355, 366, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Transport contract between Colombo Port Authority and Nippon Shipping Agents. Colombo Port Authority will provide berthing facilities and port services. Nippon Shipping Agents will handle customs documentation and cargo coordination. Service charge: USD 2,500 per vessel call. Effective from: 2024-06-01. Expires: 2025-05-31. Jurisdiction: Colombo.",
+    "entities": [
+      [26, 48, "PARTY_A"],
+      [53, 74, "PARTY_B"],
+      [76, 150, "CONTRACT_PURPOSE"],
+      [152, 230, "OBLIGATIONS_A"],
+      [232, 280, "OBLIGATIONS_B"],
+      [298, 320, "PAYMENT_TERMS"],
+      [335, 345, "START_DATE"],
+      [354, 364, "END_DATE"],
+      [381, 388, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "I need a cleaning services contract. My company is Lakeview Hotel and the cleaner is Sunil Enterprises. Lakeview Hotel provides cleaning equipment and chemicals. Sunil Enterprises will clean all rooms and common areas daily. Monthly payment: Rs. 185,000. Start: 2024-02-15. End: 2025-02-14. Jurisdiction: Matara.",
+    "entities": [
+      [51, 64, "PARTY_A"],
+      [85, 101, "PARTY_B"],
+      [103, 160, "CONTRACT_PURPOSE"],
+      [162, 220, "OBLIGATIONS_A"],
+      [222, 242, "OBLIGATIONS_B"],
+      [261, 275, "PAYMENT_TERMS"],
+      [284, 294, "START_DATE"],
+      [301, 311, "END_DATE"],
+      [328, 334, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Sale and purchase agreement for land. Vendor: Sunila Perera. Purchaser: Rohan Mendis. Sunila sells land lot No. 456 at Horana measuring 20 perches for Rs. 4,800,000. Rohan pays the full amount on deed execution and Sunila delivers vacant possession. Transaction date: 2024-03-22. Jurisdiction: Kalutara.",
+    "entities": [
+      [46, 59, "PARTY_A"],
+      [72, 83, "PARTY_B"],
+      [85, 163, "CONTRACT_PURPOSE"],
+      [165, 212, "OBLIGATIONS_A"],
+      [214, 247, "OBLIGATIONS_B"],
+      [267, 277, "START_DATE"],
+      [294, 302, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Event management agreement between Shangrila Events and Kelaniya Municipal Council for organizing the Vesak festival 2024. Shangrila Events will manage decorations, sound and stage. Kelaniya Municipal Council will provide the venue and security coordination. Total fee: Rs. 550,000. Event date: 22-05-2024. Jurisdiction: Gampaha.",
+    "entities": [
+      [35, 49, "PARTY_A"],
+      [54, 78, "PARTY_B"],
+      [83, 121, "CONTRACT_PURPOSE"],
+      [123, 180, "OBLIGATIONS_A"],
+      [182, 256, "OBLIGATIONS_B"],
+      [269, 281, "PAYMENT_TERMS"],
+      [295, 305, "START_DATE"],
+      [322, 329, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "I want a contract with my employee. I am the employer, Thilak Garment Factory, and my worker is Manel Kumari. I will pay salary, EPF and ETF contributions and provide a safe workplace. Manel Kumari will operate sewing machines and meet daily production targets. Salary: Rs. 42,000 per month. From: 2024-04-01. To: 2026-03-31. Jurisdiction: Colombo.",
+    "entities": [
+      [55, 77, "PARTY_A"],
+      [97, 109, "PARTY_B"],
+      [111, 183, "CONTRACT_PURPOSE"],
+      [185, 261, "OBLIGATIONS_A"],
+      [263, 310, "OBLIGATIONS_B"],
+      [320, 342, "PAYMENT_TERMS"],
+      [350, 360, "START_DATE"],
+      [367, 377, "END_DATE"],
+      [394, 401, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Software development contract. Developer: ByteWave Solutions. Client: Seylan Bank Ltd. ByteWave Solutions will develop a mobile banking app with specified features and deliver within agreed milestones. Seylan Bank will provide API documentation and testing environment. Payment: Rs. 12,000,000 in milestone-based installments. Start: 2024-07-01. End: 2025-06-30. Jurisdiction: Colombo.",
+    "entities": [
+      [42, 58, "PARTY_A"],
+      [68, 82, "PARTY_B"],
+      [84, 198, "CONTRACT_PURPOSE"],
+      [200, 262, "OBLIGATIONS_A"],
+      [264, 323, "PAYMENT_TERMS"],
+      [332, 342, "START_DATE"],
+      [349, 359, "END_DATE"],
+      [376, 383, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Advertising contract between Daily Mirror Newspaper and Cargills Food City. Daily Mirror will publish full-page advertisements on agreed dates. Cargills Food City will supply print-ready artwork 5 days before publication. Cost: Rs. 85,000 per insertion. Agreement period: 01/01/2024 to 31/12/2024. Jurisdiction: Colombo.",
+    "entities": [
+      [28, 49, "PARTY_A"],
+      [54, 72, "PARTY_B"],
+      [74, 141, "CONTRACT_PURPOSE"],
+      [143, 210, "OBLIGATIONS_A"],
+      [212, 251, "OBLIGATIONS_B"],
+      [259, 280, "PAYMENT_TERMS"],
+      [299, 309, "START_DATE"],
+      [313, 323, "END_DATE"],
+      [340, 347, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "I need a tutoring contract between me, Kasun Wijerama, and my student Nathasha Perera. I will provide 3 hours of mathematics tutoring per week and prepare practice papers. Nathasha will attend all sessions and complete assigned work. Fee: Rs. 8,000 per month payable in advance. Starting: 2024-03-01. Ending: 2024-08-31. Jurisdiction: Colombo.",
+    "entities": [
+      [38, 53, "PARTY_A"],
+      [70, 85, "PARTY_B"],
+      [87, 170, "CONTRACT_PURPOSE"],
+      [172, 232, "OBLIGATIONS_A"],
+      [234, 269, "OBLIGATIONS_B"],
+      [277, 304, "PAYMENT_TERMS"],
+      [315, 325, "START_DATE"],
+      [333, 343, "END_DATE"],
+      [360, 367, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Medical equipment supply agreement. Supplier: Medivest Lanka Ltd. Hospital: Teaching Hospital Kandy. Medivest Lanka will supply and install surgical equipment as per specification and provide 2 years warranty. Teaching Hospital will make payment as per approved purchase order. Payment: Rs. 7,800,000 on installation. From 01-08-2024. To 31-07-2026. Jurisdiction: Kandy.",
+    "entities": [
+      [46, 62, "PARTY_A"],
+      [73, 96, "PARTY_B"],
+      [98, 205, "CONTRACT_PURPOSE"],
+      [207, 272, "OBLIGATIONS_A"],
+      [274, 313, "PAYMENT_TERMS"],
+      [319, 329, "START_DATE"],
+      [333, 343, "END_DATE"],
+      [360, 365, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Consultancy agreement between Nirosha Amarasinghe and Colombo Municipality. Nirosha will provide urban planning consultancy services and submit monthly progress reports. Colombo Municipality will provide access to planning documents and data. Consultancy fee: Rs. 150,000 per month. Start date: 2024-05-01. End date: 2024-10-31. Jurisdiction: Colombo.",
+    "entities": [
+      [29, 48, "PARTY_A"],
+      [53, 72, "PARTY_B"],
+      [74, 167, "CONTRACT_PURPOSE"],
+      [169, 237, "OBLIGATIONS_A"],
+      [239, 279, "OBLIGATIONS_B"],
+      [297, 319, "PAYMENT_TERMS"],
+      [333, 343, "START_DATE"],
+      [355, 365, "END_DATE"],
+      [382, 389, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Equipment hire agreement. Owner: Bandara Plant Hire. Hirer: Southern Highway Project Ltd. Bandara Plant Hire will provide 3 excavators in good working order with operators. Southern Highway Project must return equipment in same condition and pay fuel costs. Hire charge: Rs. 95,000 per machine per month. Period: 2024-06-01 to 2025-05-31. Jurisdiction: Galle.",
+    "entities": [
+      [32, 50, "PARTY_A"],
+      [59, 86, "PARTY_B"],
+      [88, 169, "CONTRACT_PURPOSE"],
+      [171, 248, "OBLIGATIONS_A"],
+      [250, 301, "OBLIGATIONS_B"],
+      [316, 338, "PAYMENT_TERMS"],
+      [347, 357, "START_DATE"],
+      [361, 371, "END_DATE"],
+      [388, 393, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "I want a distribution agreement between my company, Tropical Beverages Lanka, and Kandy Supermart Ltd. Tropical Beverages will supply fruit juices at agreed wholesale prices and maintain stock levels. Kandy Supermart will display products prominently and settle invoices within 30 days. Credit terms: Rs. 500,000 maximum outstanding. From: 2024-01-01. To: 2024-12-31. Jurisdiction: Kandy.",
+    "entities": [
+      [52, 75, "PARTY_A"],
+      [81, 99, "PARTY_B"],
+      [101, 196, "CONTRACT_PURPOSE"],
+      [198, 258, "OBLIGATIONS_A"],
+      [260, 332, "OBLIGATIONS_B"],
+      [342, 373, "PAYMENT_TERMS"],
+      [381, 391, "START_DATE"],
+      [398, 408, "END_DATE"],
+      [425, 430, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Photography services contract between Amali Fernando and Kalani Weddings & Events. Amali Fernando will photograph the wedding ceremony and reception providing 500 edited images. Kalani Weddings will provide the event schedule and venue access. Fee: Rs. 95,000 for the full day. Wedding date: 2024-08-17. Jurisdiction: Colombo.",
+    "entities": [
+      [38, 53, "PARTY_A"],
+      [58, 81, "PARTY_B"],
+      [83, 173, "CONTRACT_PURPOSE"],
+      [175, 236, "OBLIGATIONS_A"],
+      [238, 278, "OBLIGATIONS_B"],
+      [286, 311, "PAYMENT_TERMS"],
+      [326, 336, "START_DATE"],
+      [353, 360, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Warehouse lease contract between Nipuna Storage Solutions as landlord and Lanka Exports Pvt Ltd as tenant. Nipuna provides 5000 sq ft of temperature-controlled warehouse space with loading dock. Lanka Exports will use space only for storage of export goods. Rent: Rs. 225,000 per month. Lease start: 2024-04-01. Lease end: 2027-03-31. Jurisdiction: Gampaha.",
+    "entities": [
+      [33, 57, "PARTY_A"],
+      [71, 91, "PARTY_B"],
+      [93, 190, "CONTRACT_PURPOSE"],
+      [192, 249, "OBLIGATIONS_A"],
+      [251, 290, "OBLIGATIONS_B"],
+      [298, 320, "PAYMENT_TERMS"],
+      [334, 344, "START_DATE"],
+      [357, 367, "END_DATE"],
+      [384, 391, "JURISDICTION"]
+    ]
+  },
+  {
+    "text": "Need a contract. I am Dinesh Rajapaksha, a legal consultant, and my client is Horizon Properties Ltd. I will provide legal due diligence on property transactions and draft necessary documents. Horizon Properties will provide all relevant documents and respond to queries within 48 hours. My fee is Rs. 35,000 per transaction. Engagement starts: 2024-02-01. No fixed end date, terminable with 30 days notice. Jurisdiction: Colombo.",
+    "entities": [
+      [22, 39, "PARTY_A"],
+      [78, 99, "PARTY_B"],
+      [101, 190, "CONTRACT_PURPOSE"],
+      [192, 271, "OBLIGATIONS_A"],
+      [273, 317, "OBLIGATIONS_B"],
+      [330, 340, "START_DATE"],
+      [416, 423, "JURISDICTION"]
+    ]
+  }
+]

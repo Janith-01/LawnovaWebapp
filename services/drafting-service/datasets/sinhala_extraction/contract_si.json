@@ -1,0 +1,282 @@
+[
+  {
+    "prompt": "ගිවිසුමක් ඕන. Party A: Sunshine Garments Ltd. Party B: රොෂාන් පෙරේරා. Sunshine Garments raw materials දෙනවා, රොෂාන් මසකට garments 500ක් deliver කරනවා. Payment රු. 150,000 per month. Start date: 2024-02-01. End date: 2025-01-31. Jurisdiction: Colombo.",
+    "ground_truth": {
+      "party_a": "Sunshine Garments Ltd",
+      "party_b": "රොෂාන් පෙරේරා",
+      "contract_purpose": "봉제 සේවා සැපයීම",
+      "obligations_a": "අමුද්‍රව්‍ය සැපයීම",
+      "obligations_b": "මසකට garments 500ක් deliver කිරීම",
+      "payment_terms": "රු. 150,000 per month",
+      "start_date": "2024-02-01",
+      "end_date": "2025-01-31",
+      "jurisdiction": "කොළඹ"
+    }
+  },
+  {
+    "prompt": "නිමල් ප්‍රනාන්දු සහ සමන් බිල්ඩර්ස් ප්‍රයිවට් ලිමිටඩ් අතර නිවසක් ඉදිකිරීමේ ගිවිසුමක් ඕනෑ. නිමල් approved building plans සහ site clear කරලා දෙනවා. සමන් බිල්ඩර්ස් specifications අනුව construction complete කරනවා. Payment රු. 8,500,000 වාරික හතරකින්. ආරම්භය: 01/03/2024. අවසානය: 01/03/2025. Jurisdiction: Colombo.",
+    "ground_truth": {
+      "party_a": "නිමල් ප්‍රනාන්දු",
+      "party_b": "සමන් බිල්ඩර්ස් ප්‍රයිවට් ලිමිටඩ්",
+      "contract_purpose": "නෙගොඹො හි නිවසක් ඉදිකිරීම",
+      "obligations_a": "approved building plans සහ site clear කිරීම",
+      "obligations_b": "specifications අනුව construction complete කිරීම",
+      "payment_terms": "රු. 8,500,000 වාරික හතරකින්",
+      "start_date": "2024-03-01",
+      "end_date": "2025-03-01",
+      "jurisdiction": "කොළඹ"
+    }
+  },
+  {
+    "prompt": "කමලා විජේසිංහ (landlord) සහ ප්‍රදීප් ජයසූරිය (tenant) අතර 45 ගාල්ල පාර, කොළඹ 03 දේපළ කුලී ගිවිසුමක් ඕන. කමලා property maintain කරනවා. ප්‍රදීප් කාලෙට කුලිය ගෙවලා sublet කරන්නෙ නැහැ. Monthly rent රු. 65,000. Start: 2024-03-01. End: 2025-02-28. Jurisdiction: Colombo.",
+    "ground_truth": {
+      "party_a": "කමලා විජේසිංහ",
+      "party_b": "ප්‍රදීප් ජයසූරිය",
+      "contract_purpose": "45 ගාල්ල පාර, කොළඹ 03 දේපළ කුලීයට දීම",
+      "obligations_a": "property habitable condition හි maintain කිරීම",
+      "obligations_b": "කාලෙට කුලිය ගෙවීම සහ sublet නොකිරීම",
+      "payment_terms": "රු. 65,000 per month",
+      "start_date": "2024-03-01",
+      "end_date": "2025-02-28",
+      "jurisdiction": "කොළඹ"
+    }
+  },
+  {
+    "prompt": "service agreement ඕන. Lanka Web Solutions (Party A) සහ Colombo Fashion House (Party B). Lanka Web Solutions website design කරලා maintain කරනවා. Colombo Fashion House branding materials දෙලා timely feedback දෙනවා. Payment: රු. 120,000 upfront, රු. 20,000 monthly maintenance. Start: 15-04-2024. End: 14-04-2025. Jurisdiction: Colombo.",
+    "ground_truth": {
+      "party_a": "Lanka Web Solutions",
+      "party_b": "Colombo Fashion House",
+      "contract_purpose": "Website design සහ maintenance සේවාව",
+      "obligations_a": "Website design කිරීම සහ maintain කිරීම",
+      "obligations_b": "Branding materials සැපයීම සහ timely feedback දීම",
+      "payment_terms": "රු. 120,000 upfront සහ රු. 20,000 monthly maintenance",
+      "start_date": "2024-04-15",
+      "end_date": "2025-04-14",
+      "jurisdiction": "කොළඹ"
+    }
+  },
+  {
+    "prompt": "රැකියා ගිවිසුමක් හදන්න ඕනෑ. Employer: Dilmah Exports Ltd. Employee: තිලිනී රත්නායක. Export documentation officer තනතුරට. Dilmah salary, EPF, ETF, leave entitlements දෙනවා. තිලිනී assigned duties කරලා confidentiality maintain කරනවා. Salary: රු. 85,000 per month. Start: 01-05-2024. End: 30-04-2026. Jurisdiction: Gampaha.",
+    "ground_truth": {
+      "party_a": "Dilmah Exports Ltd",
+      "party_b": "තිලිනී රත්නායක",
+      "contract_purpose": "Export documentation officer ලෙස රැකියා ගිවිසුම",
+      "obligations_a": "Salary, EPF, ETF, leave entitlements සැපයීම",
+      "obligations_b": "Assigned duties කිරීම සහ confidentiality maintain කිරීම",
+      "payment_terms": "රු. 85,000 per month",
+      "start_date": "2024-05-01",
+      "end_date": "2026-04-30",
+      "jurisdiction": "ගම්පහ"
+    }
+  },
+  {
+    "prompt": "රථවාහන විකිණීමේ ගිවිසුමක් ඕන. Seller: අජිත් කුමාර. Buyer: නලිකා ද සිල්වා. Toyota Prius WP KA 2345 රිය good condition හි විකිණේ. නලිකා රිය inspect කරලා accept කරනවා. Total price රු. 6,200,000, delivery දිනයේදී full payment. Sale date: 2024-01-20. Jurisdiction: Kandy.",
+    "ground_truth": {
+      "party_a": "අජිත් කුමාර",
+      "party_b": "නලිකා ද සිල්වා",
+      "contract_purpose": "Toyota Prius WP KA 2345 රිය විකිණීම",
+      "obligations_a": "රිය good working condition හි deliver කිරීම",
+      "obligations_b": "රිය inspect කර accept කිරීම",
+      "payment_terms": "රු. 6,200,000 delivery දිනයේදී full payment",
+      "start_date": "2024-01-20",
+      "end_date": null,
+      "jurisdiction": "මහනුවර"
+    }
+  },
+  {
+    "prompt": "මම චතුර බණ්ඩාර. Pixel Studio Pvt Ltd එක්ක freelance contract ඕන. මම logo concepts 10ක් design කරලා approval ලැබුණු දිනෙන් දින 14 ඇතුළත final files deliver කරනවා. Pixel Studio brand brief දෙලා designs approve කරනවා. Payment: රු. 75,000 final delivery ට. Start: 2024-02-10. End: 2024-03-10. Jurisdiction: Colombo.",
+    "ground_truth": {
+      "party_a": "චතුර බණ්ඩාර",
+      "party_b": "Pixel Studio Pvt Ltd",
+      "contract_purpose": "Freelance logo design සේවාව",
+      "obligations_a": "Logo concepts 10ක් design කර final files deliver කිරීම",
+      "obligations_b": "Brand brief සැපයීම සහ designs approve කිරීම",
+      "payment_terms": "රු. 75,000 final delivery දිනයේ",
+      "start_date": "2024-02-10",
+      "end_date": "2024-03-10",
+      "jurisdiction": "කොළඹ"
+    }
+  },
+  {
+    "prompt": "Mahaweli Farms Ltd සහ Fresh Produce Distributors අතර එළවළු සැපයීමේ ගිවිසුමක් ඕනෑ. Mahaweli Farms සතිපතා kg 2000ක් fresh vegetables food safety standards සහිතව supply කරනවා. Fresh Produce farm gate ඉදන් collect කරලා weekly payment කරනවා. Payment: රු. 180,000 per week. Start: 01-06-2024. End: 31-05-2025. Jurisdiction: Kandy.",
+    "ground_truth": {
+      "party_a": "Mahaweli Farms Ltd",
+      "party_b": "Fresh Produce Distributors",
+      "contract_purpose": "Fresh vegetables සතිපතා supply කිරීම",
+      "obligations_a": "සතිපතා kg 2000ක් fresh vegetables supply කිරීම",
+      "obligations_b": "Farm gate ඉදන් collect කර weekly payment කිරීම",
+      "payment_terms": "රු. 180,000 per week",
+      "start_date": "2024-06-01",
+      "end_date": "2025-05-31",
+      "jurisdiction": "මහනුවර"
+    }
+  },
+  {
+    "prompt": "Shop lease ගිවිසුමක් ඕන. මම සමන්තා පෙරේරා, owner. Tenant: රුවන් ජයවර්ධන. No. 12, Main Street, Negombo shop. මම premises structurally sound තියා ගන්නවා. රුවන් retail trade විතරක් කරලා rent time ට ගෙවනවා. Monthly rent: රු. 45,000. Lease starts: 2024-04-01. Lease ends: 2027-03-31. Jurisdiction: Gampaha.",
+    "ground_truth": {
+      "party_a": "සමන්තා පෙරේරා",
+      "party_b": "රුවන් ජයවර්ධන",
+      "contract_purpose": "No. 12, Main Street, Negombo shop කුලීයට දීම",
+      "obligations_a": "Premises structurally sound maintain කිරීම",
+      "obligations_b": "Retail trade විතරක් කර rent time ට ගෙවීම",
+      "payment_terms": "රු. 45,000 per month",
+      "start_date": "2024-04-01",
+      "end_date": "2027-03-31",
+      "jurisdiction": "ගම්පහ"
+    }
+  },
+  {
+    "prompt": "Security services contract. Hemas Hospital Pvt Ltd (client) සහ Guardian Security Services (provider). Hemas Hospital security personnel ට access සහ workspace දෙනවා. Guardian Security trained guards 12 දෙනෙකු 24-hour rotation deploy කරනවා. Monthly fee: රු. 280,000. 01/07/2024 to 30/06/2025. Jurisdiction: Colombo.",
+    "ground_truth": {
+      "party_a": "Hemas Hospital Pvt Ltd",
+      "party_b": "Guardian Security Services",
+      "contract_purpose": "Hospital security services සැපයීම",
+      "obligations_a": "Security personnel ට access සහ workspace සැපයීම",
+      "obligations_b": "Trained guards 12 දෙනෙකු 24-hour rotation deploy කිරීම",
+      "payment_terms": "රු. 280,000 per month",
+      "start_date": "2024-07-01",
+      "end_date": "2025-06-30",
+      "jurisdiction": "කොළඹ"
+    }
+  },
+  {
+    "prompt": "ගෙදර renovation ගිවිසුමක් ඕන. මම ලක්ෂ්මන් ද මෙල්, owner. Contractor: කිත්සිරි සිල්වා. Galle හි ගෙදර renovate කරන්න. මම milestones අනුව ගෙවලා property access දෙනවා. කිත්සිරි මාස 6 ඇතුළත subcontracting නැතිව renovation complete කරනවා. Payment: රු. 3,200,000 in 4 equal parts. Start: 2024-03-15. End: 2024-09-14. Jurisdiction: Galle.",
+    "ground_truth": {
+      "party_a": "ලක්ෂ්මන් ද මෙල්",
+      "party_b": "කිත්සිරි සිල්වා",
+      "contract_purpose": "Galle හි නිවස renovation කිරීම",
+      "obligations_a": "Milestones අනුව ගෙවීම සහ property access දීම",
+      "obligations_b": "මාස 6 ඇතුළත subcontracting නැතිව renovation complete කිරීම",
+      "payment_terms": "රු. 3,200,000 equal parts 4 කින්",
+      "start_date": "2024-03-15",
+      "end_date": "2024-09-14",
+      "jurisdiction": "ගාල්ල"
+    }
+  },
+  {
+    "prompt": "IT consultancy agreement. TechMinds Lanka (consultant) සහ National Savings Bank (client). TechMinds core banking software upgrade implement කරලා staff training දෙනවා. National Savings Bank server access දෙලා project liaison appoint කරනවා. Fee: රු. 4,500,000 tranches 3 කින්. Start date: 2024-05-01. End date: 2024-11-30. Jurisdiction: Colombo.",
+    "ground_truth": {
+      "party_a": "TechMinds Lanka",
+      "party_b": "National Savings Bank",
+      "contract_purpose": "Core banking software upgrade සහ staff training",
+      "obligations_a": "Software upgrade implement කිරීම සහ staff training දීම",
+      "obligations_b": "Server access සැපයීම සහ project liaison appoint කිරීම",
+      "payment_terms": "රු. 4,500,000 tranches 3 කින්",
+      "start_date": "2024-05-01",
+      "end_date": "2024-11-30",
+      "jurisdiction": "කොළඹ"
+    }
+  },
+  {
+    "prompt": "ඉඩම් lease ගිවිසුමක් ඕන. Lessor: පොඩිනා දිසානායක. Lessee: Agro Lanka Pvt Ltd. Polonnaruwa හි acres 3ක් paddy ඉඩම cultivate කිරීමේ අයිතිය. Agro Lanka ඉඩම maintain කරලා annual harvest 20% share කරනවා. Lease payment: රු. 120,000 per year. Start: 2024-04-15. End: 2029-04-14. Jurisdiction: Polonnaruwa.",
+    "ground_truth": {
+      "party_a": "පොඩිනා දිසානායක",
+      "party_b": "Agro Lanka Pvt Ltd",
+      "contract_purpose": "Polonnaruwa හි acres 3ක් paddy ඉඩම lease කිරීම",
+      "obligations_a": "Cultivation අයිතිය ලබා දීම",
+      "obligations_b": "ඉඩම maintain කර annual harvest 20% share කිරීම",
+      "payment_terms": "රු. 120,000 per year",
+      "start_date": "2024-04-15",
+      "end_date": "2029-04-14",
+      "jurisdiction": "පොළොන්නරුව"
+    }
+  },
+  {
+    "prompt": "catering contract ඕන. Spice Garden Catering (caterer) සහ Colombo Cricket Club (client). Spice Garden home matches සඳහා food සහ beverages provide කරලා setup, cleanup කරනවා. Colombo Cricket Club match schedules දින 14 කට කලින් confirm කරනවා. Payment: රු. 95,000 per match day. 01-01-2024 to 31-12-2024. Jurisdiction: Colombo.",
+    "ground_truth": {
+      "party_a": "Spice Garden Catering",
+      "party_b": "Colombo Cricket Club",
+      "contract_purpose": "Home matches සඳහා catering සේවාව",
+      "obligations_a": "Food සහ beverages provide කර setup, cleanup කිරීම",
+      "obligations_b": "Match schedules දින 14 කට කලින් confirm කිරීම",
+      "payment_terms": "රු. 95,000 per match day",
+      "start_date": "2024-01-01",
+      "end_date": "2024-12-31",
+      "jurisdiction": "කොළඹ"
+    }
+  },
+  {
+    "prompt": "ඉඩම් විකිණීමේ ගිවිසුමක් ඕන. Vendor: සුනිලා පෙරේරා. Purchaser: රොහාන් මේන්ඩිස්. Horana, lot No. 456 ඉඩම perches 20 රු. 4,800,000 ට. රොහාන් deed execution දිනයේ full amount ගෙවනවා. සුනිලා vacant possession deliver කරනවා. Transaction date: 2024-03-22. Jurisdiction: Kalutara.",
+    "ground_truth": {
+      "party_a": "සුනිලා පෙරේරා",
+      "party_b": "රොහාන් මේන්ඩිස්",
+      "contract_purpose": "Horana, lot No. 456 ඉඩම perches 20 විකිණීම",
+      "obligations_a": "Vacant possession deliver කිරීම",
+      "obligations_b": "Deed execution දිනයේ full payment කිරීම",
+      "payment_terms": "රු. 4,800,000 deed execution දිනයේ",
+      "start_date": "2024-03-22",
+      "end_date": null,
+      "jurisdiction": "කළුතර"
+    }
+  },
+  {
+    "prompt": "software development contract ඕන. Developer: ByteWave Solutions. Client: Seylan Bank Ltd. ByteWave mobile banking app develop කරලා milestones අනුව deliver කරනවා. Seylan Bank API documentation සහ testing environment provide කරනවා. Payment: රු. 12,000,000 milestone-based installments. Start: 2024-07-01. End: 2025-06-30. Jurisdiction: Colombo.",
+    "ground_truth": {
+      "party_a": "ByteWave Solutions",
+      "party_b": "Seylan Bank Ltd",
+      "contract_purpose": "Mobile banking app development",
+      "obligations_a": "Mobile banking app develop කර milestones අනුව deliver කිරීම",
+      "obligations_b": "API documentation සහ testing environment provide කිරීම",
+      "payment_terms": "රු. 12,000,000 milestone-based installments",
+      "start_date": "2024-07-01",
+      "end_date": "2025-06-30",
+      "jurisdiction": "කොළඹ"
+    }
+  },
+  {
+    "prompt": "tuition contract ඕන. මම කසුන් විජේරාම, teacher. Student: නතාෂා පෙරේරා. සතියකට mathematics hours 3ක් teach කරලා practice papers prepare කරලා දෙනවා. නතාෂා sessions attend කරලා assigned work complete කරනවා. Fee: රු. 8,000 per month in advance. Starting: 2024-03-01. Ending: 2024-08-31. Jurisdiction: Colombo.",
+    "ground_truth": {
+      "party_a": "කසුන් විජේරාම",
+      "party_b": "නතාෂා පෙරේරා",
+      "contract_purpose": "Mathematics tuition සේවාව",
+      "obligations_a": "සතියකට hours 3ක් teach කර practice papers දීම",
+      "obligations_b": "Sessions attend කර assigned work complete කිරීම",
+      "payment_terms": "රු. 8,000 per month in advance",
+      "start_date": "2024-03-01",
+      "end_date": "2024-08-31",
+      "jurisdiction": "කොළඹ"
+    }
+  },
+  {
+    "prompt": "advertising contract ඕන. Daily Mirror Newspaper (publisher) සහ Cargills Food City (advertiser). Daily Mirror agreed dates හි full-page advertisements publish කරනවා. Cargills publication ට දින 5 කට කලින් print-ready artwork supply කරනවා. Cost: රු. 85,000 per insertion. Agreement: 01/01/2024 to 31/12/2024. Jurisdiction: Colombo.",
+    "ground_truth": {
+      "party_a": "Daily Mirror Newspaper",
+      "party_b": "Cargills Food City",
+      "contract_purpose": "Newspaper advertising සේවාව",
+      "obligations_a": "Agreed dates හි full-page advertisements publish කිරීම",
+      "obligations_b": "Publication ට දින 5 කට කලින් print-ready artwork supply කිරීම",
+      "payment_terms": "රු. 85,000 per insertion",
+      "start_date": "2024-01-01",
+      "end_date": "2024-12-31",
+      "jurisdiction": "කොළඹ"
+    }
+  },
+  {
+    "prompt": "warehouse lease ගිවිසුමක් ඕන. Nipuna Storage Solutions (landlord) සහ Lanka Exports Pvt Ltd (tenant). Nipuna temperature-controlled warehouse sq ft 5000ක් loading dock සහිතව provide කරනවා. Lanka Exports export goods storage සඳහා විතරක් use කරනවා. Rent: රු. 225,000 per month. Lease start: 2024-04-01. Lease end: 2027-03-31. Jurisdiction: Gampaha.",
+    "ground_truth": {
+      "party_a": "Nipuna Storage Solutions",
+      "party_b": "Lanka Exports Pvt Ltd",
+      "contract_purpose": "Temperature-controlled warehouse space lease කිරීම",
+      "obligations_a": "Sq ft 5000ක් temperature-controlled warehouse provide කිරීම",
+      "obligations_b": "Export goods storage සඳහා පමණක් use කිරීම",
+      "payment_terms": "රු. 225,000 per month",
+      "start_date": "2024-04-01",
+      "end_date": "2027-03-31",
+      "jurisdiction": "ගම්පහ"
+    }
+  },
+  {
+    "prompt": "distribution agreement ඕන. මගේ company Tropical Beverages Lanka. Distributor: Kandy Supermart Ltd. Tropical Beverages wholesale prices හි fruit juices supply කරලා stock levels maintain කරනවා. Kandy Supermart products prominently display කරලා invoices days 30 ඇතුළත settle කරනවා. Credit terms: රු. 500,000 maximum outstanding. From: 2024-01-01. To: 2024-12-31. Jurisdiction: Kandy.",
+    "ground_truth": {
+      "party_a": "Tropical Beverages Lanka",
+      "party_b": "Kandy Supermart Ltd",
+      "contract_purpose": "Fruit juices distribution agreement",
+      "obligations_a": "Wholesale prices හි fruit juices supply කර stock levels maintain කිරීම",
+      "obligations_b": "Products prominently display කර invoices days 30 ඇතුළත settle කිරීම",
+      "payment_terms": "රු. 500,000 maximum outstanding credit",
+      "start_date": "2024-01-01",
+      "end_date": "2024-12-31",
+      "jurisdiction": "මහනුවර"
+    }
+  }
+]

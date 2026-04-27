@@ -27,7 +27,7 @@ const router = express.Router();
  * GET /search
  * Search for users by name or email
  */
-router.get('/search', searchUsers);
+router.get('/search', requireAuth, searchUsers);
 
 // ============================================
 // AUTHENTICATED USER ENDPOINTS

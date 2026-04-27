@@ -1,0 +1,302 @@
+[
+    {
+    "doc_type": "PETITION",
+    "language": "English",
+    "input_params": {
+      "petitioner_name": "Kumara Bandara Herath",
+      "petitioner_nic": "197823401234",
+      "petitioner_address": "No. 14, Temple Road, Kandy, Central Province",
+      "respondent_name": "Urban Development Authority",
+      "court_name": "Court of Appeal of the Democratic Socialist Republic of Sri Lanka",
+      "subject_matter": "Unlawful demolition of the Petitioner's commercial building without adequate notice or compensation under the Urban Development Authority Law",
+      "relief_sought": "A writ of certiorari to quash the demolition order; a writ of mandamus directing the Respondent to pay compensation; interim injunction restraining further action",
+      "date": "2024-03-20"
+    },
+    "expected_structure": [
+      "Court Heading",
+      "Petition Title and Case Reference",
+      "Parties",
+      "Jurisdiction",
+      "Statement of Facts",
+      "Grounds of Petition",
+      "Relief Sought",
+      "Verification",
+      "Petitioner / Attorney Signature",
+      "Date"
+    ],
+    "drafted_document": "IN THE COURT OF APPEAL OF THE DEMOCRATIC SOCIALIST REPUBLIC OF SRI LANKA\n\nCA (WRIT) APPLICATION NO. ____________/2024\n\nIN THE MATTER OF an Application for Writs of Certiorari and Mandamus and for Interim Relief under and in terms of Article 140 of the Constitution of the Democratic Socialist Republic of Sri Lanka and the Judicature Act, No. 02 of 1978;\n\nAND IN THE MATTER OF the Urban Development Authority Law, No. 41 of 1978 and the Urban Development Authority (Amendment) Act, No. 4 of 1982;\n\nBETWEEN:\n\nKumara Bandara Herath,\nholder of National Identity Card No. 197823401234,\nresiding at No. 14, Temple Road, Kandy, Central Province.\n...Petitioner\n\nAND:\n\nUrban Development Authority,\na body corporate established under the Urban Development Authority Law, No. 41 of 1978,\nhaving its principal office at No. 1, Sir Chittampalam A. Gardiner Mawatha, Colombo 02.\n...Respondent\n\nPETITION\n\nThe Petition of the above-named Petitioner, Kumara Bandara Herath, states as follows:\n\n1. The Petitioner is a citizen of the Democratic Socialist Republic of Sri Lanka residing at No. 14, Temple Road, Kandy, Central Province, and has legal standing to maintain this Application.\n\n2. The Respondent, the Urban Development Authority, is a statutory body corporate established under the Urban Development Authority Law, No. 41 of 1978, and is responsible for urban development and land use planning in declared urban development areas.\n\n3. The Petitioner is the registered owner of a commercial building situate at No. 25, Peradeniya Road, Kandy, comprised in Deed of Transfer No. 2345 dated 5th May 2010 registered at the Land Registry of Kandy.\n\n4. On or about the 15th day of February 2024, officers of the Respondent appeared at the said premises and purported to execute a demolition order in respect of the Petitioner's aforesaid building, without providing the Petitioner with adequate notice as required by law or any opportunity to be heard.\n\n5. The Petitioner avers that the said demolition order was issued without lawful authority, in breach of the principles of natural justice, without adequate notice as required under the Urban Development Authority Law, and without payment or offer of compensation as is legally required.\n\n6. The Petitioner avers that the actions of the Respondent are ultra vires, arbitrary, unreasonable, and in violation of the fundamental rights of the Petitioner, including the right to property recognised under the laws of Sri Lanka.\n\nGROUNDS OF PETITION\n\n7. The Petitioner states the following grounds:\n   (a) The demolition order was issued without adequate prior notice to the Petitioner in violation of Sections 8 and 14 of the Urban Development Authority Law, No. 41 of 1978;\n   (b) The Petitioner was denied any opportunity to be heard before the issuance of the demolition order, in breach of the rules of natural justice and the audi alteram partem principle;\n   (c) No adequate compensation has been offered or paid to the Petitioner as required by law;\n   (d) The Respondent acted in excess of jurisdiction and in an arbitrary and unreasonable manner;\n   (e) The demolition order is accordingly null, void, and of no legal effect.\n\nRELIEF SOUGHT\n\n8. WHEREFORE, the Petitioner respectfully prays that this Honourable Court be pleased to:\n   (a) Issue a Writ of Certiorari quashing the demolition order issued by the Respondent in respect of the Petitioner's building at No. 25, Peradeniya Road, Kandy;\n   (b) Issue a Writ of Mandamus directing the Respondent to pay just and adequate compensation to the Petitioner for the losses suffered;\n   (c) Issue an Interim Injunction restraining the Respondent from taking any further action in pursuance of the aforesaid demolition order pending the final determination of this Application;\n   (d) Award the costs of this Application to the Petitioner;\n   (e) Grant such further and other relief as this Honourable Court may deem just and equitable.\n\nVERIFICATION\n\nI, Kumara Bandara Herath, the Petitioner herein, do hereby verify and affirm that the facts stated in paragraphs 1 to 7 above are true and correct to the best of my knowledge, information, and belief, and that the matters stated therein are not false.\n\nSIGNED and submitted at Colombo on this 20th day of March 2024.\n\n_________________________\nKumara Bandara Herath\nPetitioner\n\n_________________________\nAttorney-at-Law for the Petitioner\nEnrolment No.:"
+  },
+  {
+    "doc_type": "PETITION",
+    "language": "English",
+    "input_params": {
+      "petitioner_name": "Rohini Nishantha Perera",
+      "petitioner_nic": "198934506789",
+      "petitioner_address": "No. 56, Flower Road, Colombo 07",
+      "respondent_name": "Colombo Municipal Council",
+      "court_name": "High Court of the Western Province",
+      "subject_matter": "Unlawful refusal to grant a business permit for a bakery business despite the Petitioner having fulfilled all legal requirements",
+      "relief_sought": "Order compelling the Respondent to issue the business permit forthwith; damages for loss of income; costs of proceedings",
+      "date": "2024-04-10"
+    },
+    "expected_structure": [
+      "Court Heading",
+      "Petition Title and Case Reference",
+      "Parties",
+      "Jurisdiction",
+      "Statement of Facts",
+      "Grounds of Petition",
+      "Relief Sought",
+      "Verification",
+      "Petitioner / Attorney Signature",
+      "Date"
+    ],
+    "drafted_document": "IN THE HIGH COURT OF THE WESTERN PROVINCE\n\nHC (CIVIL) APPLICATION NO. ____________/2024\n\nIN THE MATTER OF an Application under the Judicature Act, No. 02 of 1978, seeking an order in the nature of Mandamus and other relief;\n\nAND IN THE MATTER OF the Local Authorities Ordinance and the relevant By-laws of the Colombo Municipal Council;\n\nBETWEEN:\n\nRohini Nishantha Perera,\nholder of National Identity Card No. 198934506789,\nresiding at No. 56, Flower Road, Colombo 07.\n...Petitioner\n\nAND:\n\nColombo Municipal Council,\na local authority constituted under the Municipal Councils Ordinance (Chapter 252),\nhaving its principal office at the Town Hall, Colombo 07.\n...Respondent\n\nPETITION\n\nThe Petition of the above-named Petitioner, Rohini Nishantha Perera, states as follows:\n\n1. The Petitioner is a citizen of the Democratic Socialist Republic of Sri Lanka, residing at No. 56, Flower Road, Colombo 07.\n\n2. The Respondent, the Colombo Municipal Council, is the local authority responsible for the administration of the Municipal area of Colombo, including the grant and regulation of business permits under the relevant Municipal By-laws.\n\n3. The Petitioner is the proprietor of a bakery business operating under the name 'Rohini's Bakehouse' at No. 10, Park Street, Colombo 07.\n\n4. On the 15th day of November 2023, the Petitioner duly submitted a complete application for a business permit to operate the said bakery, together with all required documents, certificates, fees, and other requirements stipulated by the Respondent.\n\n5. Despite the Petitioner having fulfilled all legal requirements and the statutory period for determination of the application having long expired, the Respondent has failed, neglected, and refused to issue the said business permit or provide any lawful reason for the refusal.\n\n6. The Petitioner made written representations to the Respondent on 10th January 2024 and 14th February 2024, both of which have been ignored.\n\n7. By reason of the Respondent's failure to issue the business permit, the Petitioner has been unable to carry on her business lawfully and has suffered significant loss of income and livelihood.\n\nGROUNDS OF PETITION\n\n8. The Petitioner states the following grounds:\n   (a) The Petitioner has fulfilled all conditions and requirements for the issuance of the business permit;\n   (b) The Respondent has failed and refused to issue the permit without lawful justification;\n   (c) The Respondent has acted in breach of its statutory duty under the Municipal Councils Ordinance and the relevant By-laws;\n   (d) The Respondent's inaction is arbitrary, unreasonable, and in violation of the legitimate expectations of the Petitioner;\n   (e) The Petitioner has suffered and continues to suffer substantial financial loss as a result of the Respondent's unlawful conduct.\n\nRELIEF SOUGHT\n\n9. WHEREFORE, the Petitioner respectfully prays that this Honourable Court be pleased to:\n   (a) Issue an order in the nature of Mandamus directing the Respondent to issue the business permit to the Petitioner forthwith;\n   (b) Award the Petitioner damages for loss of income and business opportunities suffered by reason of the Respondent's unlawful refusal;\n   (c) Award the costs of these proceedings to the Petitioner;\n   (d) Grant such further and other relief as this Honourable Court may deem fit.\n\nVERIFICATION\n\nI, Rohini Nishantha Perera, the Petitioner herein, do verify and affirm that the contents of this Petition are true and correct to the best of my knowledge, information, and belief.\n\nSIGNED and submitted at Colombo on this 10th day of April 2024.\n\n_________________________\nRohini Nishantha Perera\nPetitioner\n\n_________________________\nAttorney-at-Law for the Petitioner\nEnrolment No.:"
+  },
+  {
+    "doc_type": "PETITION",
+    "language": "English",
+    "input_params": {
+      "petitioner_name": "Sivakumar Arumugam",
+      "petitioner_nic": "196845607890",
+      "petitioner_address": "No. 3, Navalar Road, Jaffna, Northern Province",
+      "respondent_name": "Commissioner General of Elections",
+      "court_name": "Court of Appeal of the Democratic Socialist Republic of Sri Lanka",
+      "subject_matter": "Failure of the Respondent to include the Petitioner's name in the electoral register for the Jaffna Electoral Division despite timely submission of claim",
+      "relief_sought": "Writ of mandamus directing the Respondent to include the Petitioner's name in the electoral register; declaration that the omission is unlawful",
+      "date": "2024-02-05"
+    },
+    "expected_structure": [
+      "Court Heading",
+      "Petition Title and Case Reference",
+      "Parties",
+      "Jurisdiction",
+      "Statement of Facts",
+      "Grounds of Petition",
+      "Relief Sought",
+      "Verification",
+      "Petitioner / Attorney Signature",
+      "Date"
+    ],
+    "drafted_document": "IN THE COURT OF APPEAL OF THE DEMOCRATIC SOCIALIST REPUBLIC OF SRI LANKA\n\nCA (WRIT) APPLICATION NO. ____________/2024\n\nIN THE MATTER OF an Application for a Writ of Mandamus and a Declaration under and in terms of Article 140 of the Constitution of the Democratic Socialist Republic of Sri Lanka;\n\nAND IN THE MATTER OF the Parliamentary Elections Act, No. 01 of 1981;\n\nBETWEEN:\n\nSivakumar Arumugam,\nholder of National Identity Card No. 196845607890,\nresiding at No. 3, Navalar Road, Jaffna, Northern Province.\n...Petitioner\n\nAND:\n\nCommissioner General of Elections,\nDepartment of Elections,\nsituated at No. 1283/3, Maradana Road, Borella, Colombo 08.\n...Respondent\n\nPETITION\n\nThe Petition of the above-named Petitioner, Sivakumar Arumugam, states as follows:\n\n1. The Petitioner is a citizen of the Democratic Socialist Republic of Sri Lanka, is above the age of eighteen (18) years, and is ordinarily resident at No. 3, Navalar Road, Jaffna, within the Jaffna Electoral Division.\n\n2. The Respondent is the Commissioner General of Elections, the official vested with authority under the Parliamentary Elections Act, No. 01 of 1981, to prepare and maintain the electoral registers for all electoral divisions in Sri Lanka.\n\n3. The Petitioner timely submitted a valid claim for registration as a voter in the Jaffna Electoral Division to the Registration Officer of the Jaffna Divisional Secretariat, in accordance with Section 12 of the Parliamentary Elections Act, during the period stipulated for the receipt of claims.\n\n4. Despite the Petitioner having submitted all required information and documents and having fulfilled all legal requirements for registration as a voter, the Petitioner's name was not included in the electoral register for the Jaffna Electoral Division as published.\n\n5. The Petitioner made written representations to the Respondent on 20th January 2024, but no action has been taken to correct the said omission.\n\n6. The omission of the Petitioner's name from the electoral register deprives the Petitioner of his constitutional right to vote as guaranteed by Article 4(e) of the Constitution of Sri Lanka.\n\nGROUNDS OF PETITION\n\n7. The Petitioner states the following grounds:\n   (a) The Petitioner is a qualified voter who satisfies all requirements for registration under Section 4 of the Parliamentary Elections Act, No. 01 of 1981;\n   (b) The Petitioner timely and properly submitted his claim for registration;\n   (c) The Respondent has failed, without lawful cause, to include the Petitioner's name in the electoral register;\n   (d) The omission constitutes a breach of the statutory duty of the Respondent and a violation of the Petitioner's democratic and constitutional rights;\n   (e) The Petitioner has no other adequate remedy at law.\n\nRELIEF SOUGHT\n\n8. WHEREFORE, the Petitioner respectfully prays that this Honourable Court be pleased to:\n   (a) Issue a Writ of Mandamus directing the Respondent to include the Petitioner's name in the electoral register for the Jaffna Electoral Division forthwith;\n   (b) Issue a Declaration that the omission of the Petitioner's name is unlawful and in breach of the Parliamentary Elections Act;\n   (c) Award costs of this Application to the Petitioner;\n   (d) Grant such other and further relief as this Honourable Court may deem appropriate.\n\nVERIFICATION\n\nI, Sivakumar Arumugam, the Petitioner herein, do verify and affirm that the facts stated herein are true and correct to the best of my knowledge, information, and belief.\n\nSIGNED and submitted at Colombo on this 5th day of February 2024.\n\n_________________________\nSivakumar Arumugam\nPetitioner\n\n_________________________\nAttorney-at-Law for the Petitioner\nEnrolment No.:"
+  },
+  {
+    "doc_type": "PETITION",
+    "language": "English",
+    "input_params": {
+      "petitioner_name": "Nalini Priyanka Rajapaksha",
+      "petitioner_nic": "199056703456",
+      "petitioner_address": "No. 22, Galle Road, Hikkaduwa, Southern Province",
+      "respondent_name": "Manager, Bank of Ceylon, Hikkaduwa Branch",
+      "court_name": "Magistrate's Court of Galle",
+      "subject_matter": "Unlawful refusal to release fixed deposit proceeds due to the Petitioner as the sole nominee and next-of-kin of the deceased account holder",
+      "relief_sought": "Order directing the Respondent to release all fixed deposit proceeds and accrued interest to the Petitioner; damages for distress and inconvenience",
+      "date": "2024-05-08"
+    },
+    "expected_structure": [
+      "Court Heading",
+      "Petition Title and Case Reference",
+      "Parties",
+      "Jurisdiction",
+      "Statement of Facts",
+      "Grounds of Petition",
+      "Relief Sought",
+      "Verification",
+      "Petitioner / Attorney Signature",
+      "Date"
+    ],
+    "drafted_document": "IN THE MAGISTRATE'S COURT OF GALLE\n\nMC APPLICATION NO. ____________/2024\n\nIN THE MATTER OF an Application under the Banking Act, No. 30 of 1988, and the Inland Revenue Act;\n\nAND IN THE MATTER OF Fixed Deposit Account No. xxxxxxxxxx held at the Bank of Ceylon, Hikkaduwa Branch;\n\nBETWEEN:\n\nNalini Priyanka Rajapaksha,\nholder of National Identity Card No. 199056703456,\nresiding at No. 22, Galle Road, Hikkaduwa, Southern Province.\n...Petitioner\n\nAND:\n\nManager, Bank of Ceylon, Hikkaduwa Branch,\nBank of Ceylon, Hikkaduwa Branch,\nGalle Road, Hikkaduwa.\n...Respondent\n\nPETITION\n\nThe Petition of the above-named Petitioner, Nalini Priyanka Rajapaksha, states as follows:\n\n1. The Petitioner is a citizen of the Democratic Socialist Republic of Sri Lanka, residing at No. 22, Galle Road, Hikkaduwa, Southern Province.\n\n2. The late Mr. Chaminda Pradeep Rajapaksha, the Petitioner's father, who resided at the same address, was the holder of Fixed Deposit Account No. xxxxxxxxxx at the Bank of Ceylon, Hikkaduwa Branch, with a principal sum of Rupees Seven Hundred and Fifty Thousand (Rs. 750,000/-) plus accrued interest.\n\n3. The said Mr. Chaminda Pradeep Rajapaksha departed this life on the 10th day of November 2023, and the Petitioner is his only surviving child and nominated beneficiary in respect of the said fixed deposit account.\n\n4. Following the death of the said account holder, the Petitioner duly approached the Respondent with the original death certificate, her National Identity Card, and all other documents requested by the Respondent for the purpose of claiming the fixed deposit proceeds as the sole nominee and next-of-kin.\n\n5. Despite the Petitioner having complied with all documentary requirements, the Respondent has, without lawful justification, refused and continued to refuse to release the fixed deposit proceeds and accrued interest to the Petitioner.\n\n6. The Respondent's refusal has caused the Petitioner significant financial hardship, stress, and inconvenience.\n\nGROUNDS OF PETITION\n\n7. The Petitioner states the following grounds:\n   (a) The Petitioner is the sole nominee and lawful claimant in respect of the said fixed deposit account;\n   (b) The Petitioner has complied with all documentary and procedural requirements stipulated by the Respondent;\n   (c) The Respondent's continued refusal to release the proceeds is without lawful basis and in breach of the relevant provisions of the Banking Act, No. 30 of 1988;\n   (d) The Respondent's conduct is arbitrary and has caused substantial loss and hardship to the Petitioner.\n\nRELIEF SOUGHT\n\n8. WHEREFORE, the Petitioner respectfully prays that this Honourable Court be pleased to:\n   (a) Issue an order directing the Respondent to release the full proceeds of Fixed Deposit Account No. xxxxxxxxxx together with all accrued interest to the Petitioner forthwith;\n   (b) Award the Petitioner damages for financial loss, distress, and inconvenience;\n   (c) Award the costs of this Application to the Petitioner;\n   (d) Grant such other and further relief as this Honourable Court may deem just.\n\nVERIFICATION\n\nI, Nalini Priyanka Rajapaksha, the Petitioner herein, do verify and affirm that the facts stated herein are true and correct to the best of my knowledge, information, and belief.\n\nSIGNED and submitted at Galle on this 8th day of May 2024.\n\n_________________________\nNalini Priyanka Rajapaksha\nPetitioner\n\n_________________________\nAttorney-at-Law for the Petitioner\nEnrolment No.:"
+  },
+  {
+    "doc_type": "PETITION",
+    "language": "English",
+    "input_params": {
+      "petitioner_name": "Dinesh Ratnayake Wickramarachchi",
+      "petitioner_nic": "197645601234",
+      "petitioner_address": "No. 7, Nawala Road, Rajagiriya, Western Province",
+      "respondent_name": "Secretary, Ministry of Public Administration",
+      "court_name": "Court of Appeal of the Democratic Socialist Republic of Sri Lanka",
+      "subject_matter": "Wrongful termination from public service without following due process and without a fair inquiry as required under the Establishment Code",
+      "relief_sought": "Writ of certiorari to quash the termination order; reinstatement to the post; payment of salary arrears; damages",
+      "date": "2024-01-30"
+    },
+    "expected_structure": [
+      "Court Heading",
+      "Petition Title and Case Reference",
+      "Parties",
+      "Jurisdiction",
+      "Statement of Facts",
+      "Grounds of Petition",
+      "Relief Sought",
+      "Verification",
+      "Petitioner / Attorney Signature",
+      "Date"
+    ],
+    "drafted_document": "IN THE COURT OF APPEAL OF THE DEMOCRATIC SOCIALIST REPUBLIC OF SRI LANKA\n\nCA (WRIT) APPLICATION NO. ____________/2024\n\nIN THE MATTER OF an Application for Writs of Certiorari and Mandamus under and in terms of Article 140 of the Constitution of the Democratic Socialist Republic of Sri Lanka;\n\nAND IN THE MATTER OF the termination of services of the Petitioner from the public service of Sri Lanka;\n\nBETWEEN:\n\nDinesh Ratnayake Wickramarachchi,\nholder of National Identity Card No. 197645601234,\nresiding at No. 7, Nawala Road, Rajagiriya, Western Province.\n...Petitioner\n\nAND:\n\nSecretary, Ministry of Public Administration,\nMinistry of Public Administration,\nNo. 330, Union Place, Colombo 02.\n...Respondent\n\nPETITION\n\nThe Petition of the above-named Petitioner, Dinesh Ratnayake Wickramarachchi, states as follows:\n\n1. The Petitioner is a citizen of the Democratic Socialist Republic of Sri Lanka and was at all material times a confirmed public servant employed in the capacity of Development Officer, Grade II, in the Ministry of Public Administration.\n\n2. The Respondent is the Secretary to the Ministry of Public Administration, the head of the Ministry and the authority with jurisdiction over the appointment, discipline, and termination of officers of the said Ministry.\n\n3. The Petitioner has served in the public service for a continuous period of seventeen (17) years with a satisfactory service record, and was confirmed in his post in the year 2010.\n\n4. By letter dated the 5th day of December 2023, the Respondent purported to terminate the services of the Petitioner with effect from the said date, alleging breach of certain provisions of the Establishment Code.\n\n5. The Petitioner avers that the said termination was effected without the conduct of any proper inquiry, without notice of the charges against the Petitioner, without affording the Petitioner an opportunity to be heard or to be represented, and without following the mandatory procedures prescribed under the Establishment Code of the Government of Sri Lanka.\n\n6. The said termination is accordingly null, void, and of no legal effect, and the Petitioner continues to be a public servant entitled to all rights and benefits of his post.\n\nGROUNDS OF PETITION\n\n7. The Petitioner states the following grounds:\n   (a) The Respondent failed to afford the Petitioner a fair opportunity to be heard prior to the termination of his services, in violation of the principles of natural justice and the audi alteram partem principle;\n   (b) The mandatory procedural requirements of Chapter XLVIII of the Establishment Code, relating to disciplinary action against public servants, were not followed;\n   (c) The termination order was issued in excess of jurisdiction and in breach of the Public Service Commission Rules;\n   (d) The termination was arbitrary, mala fide, and disproportionate;\n   (e) The Petitioner has suffered irreparable loss to his career, livelihood, and reputation.\n\nRELIEF SOUGHT\n\n8. WHEREFORE, the Petitioner respectfully prays that this Honourable Court be pleased to:\n   (a) Issue a Writ of Certiorari quashing the termination order dated the 5th day of December 2023;\n   (b) Issue a Writ of Mandamus directing the Respondent to reinstate the Petitioner to his substantive post forthwith;\n   (c) Issue an order directing the Respondent to pay to the Petitioner all salary arrears from the date of termination to the date of reinstatement;\n   (d) Award the Petitioner damages for loss of income, career loss, and mental distress;\n   (e) Award costs of this Application to the Petitioner;\n   (f) Grant such other and further relief as this Honourable Court may deem just.\n\nVERIFICATION\n\nI, Dinesh Ratnayake Wickramarachchi, the Petitioner herein, do verify and affirm that the contents of this Petition are true and correct to the best of my knowledge, information, and belief.\n\nSIGNED and submitted at Colombo on this 30th day of January 2024.\n\n_________________________\nDinesh Ratnayake Wickramarachchi\nPetitioner\n\n_________________________\nAttorney-at-Law for the Petitioner\nEnrolment No.:"
+  },
+  {
+    "doc_type": "PETITION",
+    "language": "English",
+    "input_params": {
+      "petitioner_name": "Mahinda Sampath Ekanayake",
+      "petitioner_nic": "198134502345",
+      "petitioner_address": "No. 45, Kandy Road, Matale, Central Province",
+      "respondent_name": "Matale Pradeshiya Sabha",
+      "court_name": "High Court of the Central Province",
+      "subject_matter": "Illegal construction of a commercial structure by the Respondent on a public road reservation adjacent to the Petitioner's private property causing obstruction and loss of access",
+      "relief_sought": "Order for removal of the illegal structure; damages for loss of access and business income; injunction restraining further construction",
+      "date": "2024-04-18"
+    },
+    "expected_structure": [
+      "Court Heading",
+      "Petition Title and Case Reference",
+      "Parties",
+      "Jurisdiction",
+      "Statement of Facts",
+      "Grounds of Petition",
+      "Relief Sought",
+      "Verification",
+      "Petitioner / Attorney Signature",
+      "Date"
+    ],
+    "drafted_document": "IN THE HIGH COURT OF THE CENTRAL PROVINCE\n\nHC (CIVIL) APPLICATION NO. ____________/2024\n\nIN THE MATTER OF an Application under the Judicature Act, No. 02 of 1978, and the Road Development Authority Act, No. 73 of 1981;\n\nBETWEEN:\n\nMahinda Sampath Ekanayake,\nholder of National Identity Card No. 198134502345,\nresiding at No. 45, Kandy Road, Matale, Central Province.\n...Petitioner\n\nAND:\n\nMatale Pradeshiya Sabha,\na local authority constituted under the Pradeshiya Sabhas Act, No. 15 of 1987,\nhaving its principal office at Kotugodella Street, Matale.\n...Respondent\n\nPETITION\n\nThe Petition of the above-named Petitioner, Mahinda Sampath Ekanayake, states as follows:\n\n1. The Petitioner is a citizen of the Democratic Socialist Republic of Sri Lanka, residing and carrying on business at No. 45, Kandy Road, Matale, Central Province.\n\n2. The Respondent, the Matale Pradeshiya Sabha, is a local authority constituted under the Pradeshiya Sabhas Act, No. 15 of 1987, and is responsible for the maintenance of local roads and public spaces within its administrative area.\n\n3. The Petitioner is the registered owner of the property bearing Assessment No. 45, Kandy Road, Matale, on which he operates a hardware store that has been in operation for over fifteen (15) years.\n\n4. In or about October 2023, servants and agents of the Respondent commenced the construction of a permanent commercial structure on the road reservation adjacent to the Petitioner's property, situated along the Kandy Road, Matale.\n\n5. The said construction is being carried out on a road reservation, which is public land vested in the Road Development Authority, and the Respondent has no authority or licence to construct any permanent structure thereon.\n\n6. The said structure has completely obstructed vehicular and pedestrian access to the Petitioner's property from the main road, causing severe disruption to the Petitioner's business and financial loss.\n\nGROUNDS OF PETITION\n\n7. The Petitioner states the following grounds:\n   (a) The construction of a permanent structure on a road reservation is unlawful and in violation of the Road Development Authority Act, No. 73 of 1981, and the relevant provisions of the Pradeshiya Sabhas Act;\n   (b) The Respondent has acted without lawful authority and in excess of its powers;\n   (c) The said structure constitutes a public nuisance and a private nuisance in respect of the Petitioner's property;\n   (d) The Petitioner has suffered and continues to suffer substantial financial loss and inconvenience as a direct result of the Respondent's unlawful action.\n\nRELIEF SOUGHT\n\n8. WHEREFORE, the Petitioner respectfully prays that this Honourable Court be pleased to:\n   (a) Issue an order directing the Respondent to demolish and remove the unlawfully constructed structure from the road reservation forthwith;\n   (b) Issue an Injunction restraining the Respondent from carrying out any further construction on the said road reservation;\n   (c) Award the Petitioner damages for loss of business income and access caused by the said obstruction;\n   (d) Award costs of this Application to the Petitioner;\n   (e) Grant such other and further relief as this Honourable Court may deem just.\n\nVERIFICATION\n\nI, Mahinda Sampath Ekanayake, the Petitioner herein, do verify and affirm that the contents of this Petition are true and correct to the best of my knowledge, information, and belief.\n\nSIGNED and submitted at Kandy on this 18th day of April 2024.\n\n_________________________\nMahinda Sampath Ekanayake\nPetitioner\n\n_________________________\nAttorney-at-Law for the Petitioner\nEnrolment No.:"
+  },
+  {
+    "doc_type": "PETITION",
+    "language": "English",
+    "input_params": {
+      "petitioner_name": "Ayesha Fathima Nazar",
+      "petitioner_nic": "199256703456",
+      "petitioner_address": "No. 18, Aluthmawatha Road, Colombo 15",
+      "respondent_name": "Principal, Zahira College, Colombo",
+      "court_name": "High Court of the Western Province",
+      "subject_matter": "Unlawful expulsion of the Petitioner's minor son from school without due process or a fair disciplinary inquiry, causing irreparable harm to the child's education",
+      "relief_sought": "Order for readmission of the minor student; declaration that the expulsion is null and void; damages for educational disruption",
+      "date": "2024-03-25"
+    },
+    "expected_structure": [
+      "Court Heading",
+      "Petition Title and Case Reference",
+      "Parties",
+      "Jurisdiction",
+      "Statement of Facts",
+      "Grounds of Petition",
+      "Relief Sought",
+      "Verification",
+      "Petitioner / Attorney Signature",
+      "Date"
+    ],
+    "drafted_document": "IN THE HIGH COURT OF THE WESTERN PROVINCE\n\nHC (CIVIL) APPLICATION NO. ____________/2024\n\nIN THE MATTER OF an Application under the Judicature Act, No. 02 of 1978, and the Education Act, No. 29 of 1947, as amended;\n\nAND IN THE MATTER OF the unlawful expulsion of the minor, Mohamed Adnan Nazar, from Zahira College, Colombo;\n\nBETWEEN:\n\nAyesha Fathima Nazar,\nholder of National Identity Card No. 199256703456,\nresiding at No. 18, Aluthmawatha Road, Colombo 15,\nacting as the natural mother and guardian of the minor Mohamed Adnan Nazar.\n...Petitioner\n\nAND:\n\nPrincipal, Zahira College, Colombo,\nZahira College,\nMaligakanda Road, Colombo 10.\n...Respondent\n\nPETITION\n\nThe Petition of the above-named Petitioner, Ayesha Fathima Nazar, states as follows:\n\n1. The Petitioner is a citizen of the Democratic Socialist Republic of Sri Lanka and is the natural mother and legal guardian of the minor child Mohamed Adnan Nazar, born on the 12th day of July 2010.\n\n2. The said minor Mohamed Adnan Nazar has been a duly enrolled student of Zahira College, Colombo, since 2017, and is currently registered in Grade 9 of the said school.\n\n3. The Respondent is the Principal of Zahira College and is the officer vested with administrative and disciplinary authority over the school's students.\n\n4. By letter dated the 28th day of February 2024, the Respondent purported to expel the minor Mohamed Adnan Nazar from Zahira College, alleging a breach of school rules.\n\n5. The Petitioner avers that the said expulsion was effected without conducting a fair and proper disciplinary inquiry, without notifying the Petitioner as the parent and guardian, without affording the minor or the Petitioner an opportunity to be heard, and without following the procedures prescribed by the Ministry of Education for the expulsion of students.\n\n6. The said unlawful expulsion has caused irreparable harm to the education, well-being, and future prospects of the minor child.\n\nGROUNDS OF PETITION\n\n7. The Petitioner states the following grounds:\n   (a) The expulsion of the minor was effected without a fair disciplinary inquiry and in breach of the principles of natural justice;\n   (b) The Respondent failed to notify the Petitioner as parent and guardian and denied the Petitioner and the minor an opportunity to be heard;\n   (c) The Respondent failed to follow the mandatory procedures prescribed by the Ministry of Education Circular governing student expulsions;\n   (d) The expulsion constitutes a violation of the minor's right to education as recognised under Article 27 of the Constitution of Sri Lanka;\n   (e) The expulsion order is accordingly null, void, and of no legal effect.\n\nRELIEF SOUGHT\n\n8. WHEREFORE, the Petitioner respectfully prays that this Honourable Court be pleased to:\n   (a) Issue a Declaration that the expulsion of the minor Mohamed Adnan Nazar from Zahira College is null and void;\n   (b) Issue an order directing the Respondent to readmit the minor to Zahira College forthwith;\n   (c) Award the Petitioner damages for the educational disruption and harm suffered by the minor;\n   (d) Award costs of this Application to the Petitioner;\n   (e) Grant such further and other relief as this Honourable Court may deem appropriate.\n\nVERIFICATION\n\nI, Ayesha Fathima Nazar, the Petitioner herein, do verify and affirm that the facts stated herein are true and correct to the best of my knowledge, information, and belief.\n\nSIGNED and submitted at Colombo on this 25th day of March 2024.\n\n_________________________\nAyesha Fathima Nazar\nPetitioner (Mother and Guardian)\n\n_________________________\nAttorney-at-Law for the Petitioner\nEnrolment No.:"
+  },
+  {
+    "doc_type": "PETITION",
+    "language": "English",
+    "input_params": {
+      "petitioner_name": "Priyantha Nuwan Jayasekara",
+      "petitioner_nic": "198623403456",
+      "petitioner_address": "No. 99, Station Road, Badulla, Uva Province",
+      "respondent_name": "Director, Land Registry, Badulla",
+      "court_name": "High Court of the Uva Province",
+      "subject_matter": "Wrongful registration of a fraudulent deed of transfer in respect of the Petitioner's land causing loss of title",
+      "relief_sought": "Order cancelling the fraudulent registration; restoration of the Petitioner's title; damages; injunction restraining further dealings with the property",
+      "date": "2024-05-14"
+    },
+    "expected_structure": [
+      "Court Heading",
+      "Petition Title and Case Reference",
+      "Parties",
+      "Jurisdiction",
+      "Statement of Facts",
+      "Grounds of Petition",
+      "Relief Sought",
+      "Verification",
+      "Petitioner / Attorney Signature",
+      "Date"
+    ],
+    "drafted_document": "IN THE HIGH COURT OF THE UVA PROVINCE\n\nHC (CIVIL) APPLICATION NO. ____________/2024\n\nIN THE MATTER OF an Application under the Judicature Act, No. 02 of 1978, and the Registration of Documents Ordinance (Chapter 117);\n\nAND IN THE MATTER OF the fraudulent registration of a deed of transfer in the Land Registry of Badulla;\n\nBETWEEN:\n\nPriyantha Nuwan Jayasekara,\nholder of National Identity Card No. 198623403456,\nresiding at No. 99, Station Road, Badulla, Uva Province.\n...Petitioner\n\nAND:\n\nDirector, Land Registry, Badulla,\nLand Registry of Badulla,\nKachcheri, Badulla.\n...Respondent\n\nPETITION\n\nThe Petition of the above-named Petitioner, Priyantha Nuwan Jayasekara, states as follows:\n\n1. The Petitioner is a citizen of the Democratic Socialist Republic of Sri Lanka, residing at No. 99, Station Road, Badulla, Uva Province.\n\n2. The Respondent is the Director of the Land Registry of Badulla, the authority responsible for the registration of deeds and maintenance of land records in the Badulla Registration District.\n\n3. The Petitioner is the lawful registered owner of the land and premises bearing Assessment No. 99, Station Road, Badulla, comprised in Deed of Transfer No. 5678 dated the 10th day of June 2008, registered at the Land Registry of Badulla under Volume 180, Folio 22.\n\n4. In or about December 2023, the Petitioner discovered that a purported Deed of Transfer in respect of the Petitioner's said property, bearing Deed No. 9012, had been registered at the Land Registry of Badulla in the name of one Anura Sisira Kumara Bandara.\n\n5. The Petitioner has not executed any deed of transfer, power of attorney, or any other document purporting to transfer or encumber the said property, and the said Deed No. 9012 is entirely false and fraudulent, bearing a forged signature of the Petitioner.\n\n6. The Respondent registered the said fraudulent deed without carrying out adequate verification, in breach of the duties imposed by the Registration of Documents Ordinance.\n\nGROUNDS OF PETITION\n\n7. The Petitioner states the following grounds:\n   (a) The Petitioner has not executed or authorised the execution of the purported Deed No. 9012, and the signature thereon is a forgery;\n   (b) The said deed was registered by the Respondent without adequate scrutiny and in breach of the Respondent's duties under the Registration of Documents Ordinance;\n   (c) The registration of the fraudulent deed is null, void, and of no legal effect;\n   (d) The Petitioner continues to be the lawful owner of the said property and has suffered and continues to suffer loss and prejudice by reason of the fraudulent registration.\n\nRELIEF SOUGHT\n\n8. WHEREFORE, the Petitioner respectfully prays that this Honourable Court be pleased to:\n   (a) Issue an order directing the Respondent to cancel the registration of the fraudulent Deed No. 9012 from the land records of the Land Registry of Badulla;\n   (b) Issue an order restoring and confirming the Petitioner's title to the said property;\n   (c) Issue an Injunction restraining the registered fraudulent transferee and all other parties from dealing with, encumbering, or transferring the said property;\n   (d) Award the Petitioner damages for loss suffered;\n   (e) Award costs of this Application to the Petitioner;\n   (f) Grant such other and further relief as this Honourable Court may deem just.\n\nVERIFICATION\n\nI, Priyantha Nuwan Jayasekara, the Petitioner herein, do verify and affirm that the contents of this Petition are true and correct to the best of my knowledge, information, and belief.\n\nSIGNED and submitted at Badulla on this 14th day of May 2024.\n\n_________________________\nPriyantha Nuwan Jayasekara\nPetitioner\n\n_________________________\nAttorney-at-Law for the Petitioner\nEnrolment No.:"
+  },
+  {
+    "doc_type": "PETITION",
+    "language": "English",
+    "input_params": {
+      "petitioner_name": "Sathiyamoorthi Balakrishnan",
+      "petitioner_nic": "197023406789",
+      "petitioner_address": "No. 5, Bazaar Street, Trincomalee, Eastern Province",
+      "respondent_name": "District Secretary, Trincomalee",
+      "court_name": "High Court of the Eastern Province",
+      "subject_matter": "Failure of the Respondent to process and grant the Petitioner's application for a permit to construct a residential house on state land allocated to the Petitioner under the Land Development Ordinance",
+      "relief_sought": "Order compelling the Respondent to process and issue the construction permit; declaration of the Petitioner's right to the said land grant; costs",
+      "date": "2024-02-22"
+    },
+    "expected_structure": [
+      "Court Heading",
+      "Petition Title and Case Reference",
+      "Parties",
+      "Jurisdiction",
+      "Statement of Facts",
+      "Grounds of Petition",
+      "Relief Sought",
+      "Verification",
+      "Petitioner / Attorney Signature",
+      "Date"
+    ],
+    "drafted_document": "IN THE HIGH COURT OF THE EASTERN PROVINCE\n\nHC (CIVIL) APPLICATION NO. ____________/2024\n\nIN THE MATTER OF an Application for Mandatory Relief under the Judicature Act, No. 02 of 1978;\n\nAND IN THE MATTER OF the Land Development Ordinance (Chapter 464) and the Land Grants (Special Provisions) Act, No. 43 of 1979;\n\nBETWEEN:\n\nSathiyamoorthi Balakrishnan,\nholder of National Identity Card No. 197023406789,\nresiding at No. 5, Bazaar Street, Trincomalee, Eastern Province.\n...Petitioner\n\nAND:\n\nDistrict Secretary, Trincomalee,\nDistrict Secretariat, Trincomalee.\n...Respondent\n\nPETITION\n\nThe Petition of the above-named Petitioner, Sathiyamoorthi Balakrishnan, states as follows:\n\n1. The Petitioner is a citizen of the Democratic Socialist Republic of Sri Lanka, residing at No. 5, Bazaar Street, Trincomalee, and is a long-standing resident of the Trincomalee District.\n\n2. The Respondent is the District Secretary of Trincomalee, the competent authority for the administration of state land and the processing of land grants and construction permits in the Trincomalee District under the Land Development Ordinance.\n\n3. In or about May 2022, the Petitioner was allocated a parcel of state land measuring 40 perches, bearing lot number as per the survey plan submitted herewith, situated at Orr's Hill, Trincomalee, under the Land Development Ordinance, for the purpose of constructing a residential dwelling.\n\n4. Following the said allocation, the Petitioner duly submitted an application for a permit to construct a residential house on the said land, together with the building plans prepared by a registered architect and all other required documents, to the Respondent in August 2022.\n\n5. Despite the passage of more than eighteen (18) months, the Respondent has failed and neglected to process or determine the said application and has neither issued the construction permit nor communicated any lawful reason for the failure to do so.\n\n6. The Petitioner made written representations to the Respondent on 15th August 2023 and 10th January 2024, both of which have been ignored.\n\nGROUNDS OF PETITION\n\n7. The Petitioner states the following grounds:\n   (a) The Petitioner has been lawfully allocated state land and is entitled to a construction permit;\n   (b) The Respondent has failed to discharge his statutory duty to process and determine the Petitioner's application within a reasonable time;\n   (c) The Respondent's inaction is arbitrary, unreasonable, and causes ongoing hardship to the Petitioner and his family;\n   (d) The Petitioner has no other adequate remedy at law.\n\nRELIEF SOUGHT\n\n8. WHEREFORE, the Petitioner respectfully prays that this Honourable Court be pleased to:\n   (a) Issue an order compelling the Respondent to process and issue the construction permit in respect of the Petitioner's land at Orr's Hill, Trincomalee, forthwith;\n   (b) Issue a Declaration affirming the Petitioner's right to the said land grant and to the construction permit;\n   (c) Award costs of this Application to the Petitioner;\n   (d) Grant such further and other relief as this Honourable Court may deem just and appropriate.\n\nVERIFICATION\n\nI, Sathiyamoorthi Balakrishnan, the Petitioner herein, do verify and affirm that the contents of this Petition are true and correct to the best of my knowledge, information, and belief.\n\nSIGNED and submitted at Trincomalee on this 22nd day of February 2024.\n\n_________________________\nSathiyamoorthi Balakrishnan\nPetitioner\n\n_________________________\nAttorney-at-Law for the Petitioner\nEnrolment No.:"
+  },
+  {
+    "doc_type": "CONTRACT",
+    "language": "English",
+    "input_params": {
+      "party_a": "Perera & Sons Construction (Pvt) Ltd, No. 77, Bauddhaloka Mawatha, Colombo 07, Company Registration No. PV/2003/00678",
+      "party_b": "Nippon Paints Lanka (Pvt) Ltd, No. 200, Grandpass Road, Colombo 14, Company Registration No. PV/2000/00345",
+      "contract_purpose": "Supply of exterior and interior paint materials for a residential apartment complex construction project at Rajagiriya",
+      "obligations_a": "To issue timely purchase orders per construction phase, provide storage space at site, inspect deliveries, and make payments as agreed",
+      "obligations_b": "To supply paints as per agreed specifications and colour schedule, deliver to site, replace defective materials, and provide technical advisory support",
+      "payment_terms": "Total estimated contract value Rs. 6,500,000. Payment within 30 days of delivery of each phase order and invoice. 5% retention released upon project completion.",
+      "start_date": "2024-05-01",
+      "end_date": "2025-04-30",
+      "jurisdiction": "Commercial High Court of the Western Province"
+    },
+    "expected_structure": [
+      "Title and Parties",
+      "Recitals / Background",
+      "Scope of Supply",
+      "Obligations of Party A",
+      "Obligations of Party B",
+      "Price and Payment Terms",
+      "Quality and Specifications",
+      "Delivery",
+      "Warranty",
+      "Termination",
+      "Governing Law and Jurisdiction",
+      "Signatures and Date"
+    ],
+    "drafted_document": "PAINT MATERIALS SUPPLY AGREEMENT\n\nThis Paint Materials Supply Agreement (hereinafter referred to as the \"Agreement\") is entered into on the 1st day of May 2024,\n\nBETWEEN:\n\nPerera & Sons Construction (Pvt) Ltd, a company incorporated under the Companies Act, No. 07 of 2007, bearing Company Registration No. PV/2003/00678, having its registered office at No. 77, Bauddhaloka Mawatha, Colombo 07 (hereinafter referred to as \"Party A\" or the \"Purchaser\");\n\nAND:\n\nNippon Paints Lanka (Pvt) Ltd, a company incorporated under the Companies Act, No. 07 of 2007, bearing Company Registration No. PV/2000/00345, having its registered office at No. 200, Grandpass Road, Colombo 14 (hereinafter referred to as \"Party B\" or the \"Supplier\").\n\nRECITALS\n\nA. Party A is engaged in the construction of a residential apartment complex at Rajagiriya and requires a reliable supply of paint materials for the exterior and interior finishing of the said project.\nB. Party B is a leading manufacturer and supplier of paint products in Sri Lanka and has the capacity to supply the materials required.\nC. The Parties have agreed to enter into this Agreement on the terms and conditions set out herein.\n\n1. SCOPE OF SUPPLY\n   Party B shall supply to Party A exterior and interior paint materials as specified in the Colour and Specification Schedule (Schedule 1), in such quantities as required by Party A from time to time during the term of this Agreement.\n\n2. OBLIGATIONS OF PARTY A\n   2.1 Party A shall issue written purchase orders per construction phase with adequate advance notice.\n   2.2 Party A shall provide appropriate storage facilities at the construction site.\n   2.3 Party A shall inspect all deliveries and notify Party B of any defects within seven (07) days of delivery.\n   2.4 Party A shall make all payments in accordance with Clause 4 hereof.\n\n3. OBLIGATIONS OF PARTY B\n   3.1 Party B shall supply paint materials conforming strictly to the specifications in Schedule 1.\n   3.2 Party B shall deliver materials to the Rajagiriya site within seven (07) days of each purchase order.\n   3.3 Party B shall replace at its own cost all defective or non-conforming materials notified within the inspection period.\n   3.4 Party B shall provide technical advisory support and colour consultation at no additional charge.\n\n4. PRICE AND PAYMENT TERMS\n   4.1 The total estimated contract value is Rupees Sixty-Five Lakhs (Rs. 6,500,000/-), subject to variation based on actual quantities ordered.\n   4.2 Party A shall make payment within thirty (30) days of delivery and receipt of a valid invoice for each phase order.\n   4.3 Party A shall retain five percent (5%) of the value of each invoice as retention, which shall be released to Party B upon the satisfactory completion of the entire project.\n\n5. QUALITY AND SPECIFICATIONS\n   All materials supplied shall conform to Sri Lanka Standards and the specifications in Schedule 1, and shall carry the manufacturer's quality guarantee.\n\n6. WARRANTY\n   Party B warrants all materials supplied against defects in manufacture for a period of one (01) year from the date of delivery.\n\n7. TERMINATION\n   Either Party may terminate this Agreement by giving thirty (30) days' written notice. Obligations in respect of amounts already due shall survive termination.\n\n8. GOVERNING LAW AND JURISDICTION\n   This Agreement shall be governed by the laws of the Democratic Socialist Republic of Sri Lanka. Any dispute shall be subject to the jurisdiction of the Commercial High Court of the Western Province.\n\nIN WITNESS WHEREOF the Parties have executed this Agreement on the day and year first above written.\n\nSIGNED for and on behalf of\nPERERA & SONS CONSTRUCTION (PVT) LTD:\n\n_________________________\nAuthorised Signatory\nDate: 01.05.2024\n\nSIGNED for and on behalf of\nNIPPON PAINTS LANKA (PVT) LTD:\n\n_________________________\nAuthorised Signatory\nDate: 01.05.2024"
+  },
+  {
+    "doc_type": "PETITION",
+    "language": "English",
+    "input_params": {
+      "petitioner_name": "Rohan Chamara Siriwardena",
+      "petitioner_nic": "198045601234",
+      "petitioner_address": "No. 11, Lorenz Road, Colombo 04",
+      "respondent_name": "Secretary, Ministry of Environment",
+      "court_name": "Court of Appeal of the Democratic Socialist Republic of Sri Lanka",
+      "subject_matter": "Failure of the Respondent to take action against an unlicensed factory operating in a residential area in breach of the National Environmental Act causing health hazards to residents",
+      "relief_sought": "Writ of mandamus compelling the Respondent to investigate and shut down the unlicensed factory; declaration that its continued operation is unlawful; damages",
+      "date": "2024-06-03"
+    },
+    "expected_structure": [
+      "Court Heading",
+      "Petition Title and Case Reference",
+      "Parties",
+      "Jurisdiction",
+      "Statement of Facts",
+      "Grounds of Petition",
+      "Relief Sought",
+      "Verification",
+      "Petitioner / Attorney Signature",
+      "Date"
+    ],
+    "drafted_document": "IN THE COURT OF APPEAL OF THE DEMOCRATIC SOCIALIST REPUBLIC OF SRI LANKA\n\nCA (WRIT) APPLICATION NO. ____________/2024\n\nIN THE MATTER OF an Application for a Writ of Mandamus and other relief under and in terms of Article 140 of the Constitution of the Democratic Socialist Republic of Sri Lanka;\n\nAND IN THE MATTER OF the National Environmental Act, No. 47 of 1980, as amended by Act No. 56 of 1988;\n\nBETWEEN:\n\nRohan Chamara Siriwardena,\nholder of National Identity Card No. 198045601234,\nresiding at No. 11, Lorenz Road, Colombo 04.\n...Petitioner\n\nAND:\n\nSecretary, Ministry of Environment,\nMinistry of Environment,\nNo. 82, Sampathpaya, Rajamalwatta Road, Battaramulla.\n...Respondent\n\nPETITION\n\nThe Petition of the above-named Petitioner, Rohan Chamara Siriwardena, states as follows:\n\n1. The Petitioner is a citizen of the Democratic Socialist Republic of Sri Lanka, residing at No. 11, Lorenz Road, Colombo 04, in a predominantly residential neighbourhood.\n\n2. The Respondent is the Secretary to the Ministry of Environment and the chief administrative officer responsible for the enforcement of the National Environmental Act and the regulation of industrial activities causing environmental pollution.\n\n3. Since approximately August 2023, a factory engaged in the manufacture of chemical-based cleaning products has been operating at No. 15, Lorenz Road, Colombo 04, without the Environmental Protection Licence (EPL) required under Section 23A of the National Environmental Act.\n\n4. The said factory discharges noxious fumes, chemical effluents, and industrial waste into the surrounding environment on a daily basis, causing severe health hazards to the Petitioner and other residents of the area, including respiratory ailments and skin conditions.\n\n5. The Petitioner lodged formal written complaints with the Central Environmental Authority on 15th September 2023 and 20th November 2023, and with the Respondent on 10th January 2024, all of which have been ignored.\n\n6. Despite the statutory duty of the Respondent to enforce the provisions of the National Environmental Act, no action has been taken to investigate, licence, or shut down the said factory.\n\nGROUNDS OF PETITION\n\n7. The Petitioner states the following grounds:\n   (a) The operation of the said factory without an Environmental Protection Licence is a breach of Section 23A of the National Environmental Act, No. 47 of 1980;\n   (b) The Respondent has failed and neglected to discharge his statutory duty to enforce the National Environmental Act;\n   (c) The continued operation of the unlicensed factory constitutes a public nuisance and a serious health hazard to the residents of the area;\n   (d) The Petitioner and other residents have a legitimate expectation that the Respondent will enforce the law;\n   (e) The Respondent's inaction is arbitrary and in breach of his statutory obligations.\n\nRELIEF SOUGHT\n\n8. WHEREFORE, the Petitioner respectfully prays that this Honourable Court be pleased to:\n   (a) Issue a Writ of Mandamus directing the Respondent to forthwith investigate, inspect, and take all necessary enforcement action against the unlicensed factory operating at No. 15, Lorenz Road, Colombo 04, including the closure of the said factory until a valid EPL is obtained;\n   (b) Issue a Declaration that the continued operation of the said factory without an EPL is unlawful under the National Environmental Act;\n   (c) Award the Petitioner damages for the health hazards and loss of peaceful enjoyment of property suffered;\n   (d) Award costs of this Application to the Petitioner;\n   (e) Grant such other and further relief as this Honourable Court may deem just.\n\nVERIFICATION\n\nI, Rohan Chamara Siriwardena, the Petitioner herein, do verify and affirm that the contents of this Petition are true and correct to the best of my knowledge, information, and belief.\n\nSIGNED and submitted at Colombo on this 3rd day of June 2024.\n\n_________________________\nRohan Chamara Siriwardena\nPetitioner\n\n_________________________\nAttorney-at-Law for the Petitioner\nEnrolment No.:"
+  }
+]

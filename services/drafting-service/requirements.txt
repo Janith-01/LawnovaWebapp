@@ -1,0 +1,11 @@
+spacy
+langdetect
+jinja2
+python-docx
+reportlab
+google-genai
+python-dotenv
+fastapi
+uvicorn
+pytest
+httpx

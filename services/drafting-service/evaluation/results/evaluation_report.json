@@ -1,0 +1,2238 @@
+{
+  "generated_at": "2026-04-25T16:17:12.937564+00:00",
+  "missing_files": [],
+  "evaluations": {
+    "ner_extraction": {
+      "evaluation_area": "ner_extraction",
+      "metric_definition": "Field-level exact match against English NER annotations converted from span labels.",
+      "overall": {
+        "tp": 637,
+        "fp": 8,
+        "fn": 44,
+        "precision": 0.9876,
+        "recall": 0.9354,
+        "f1": 0.9608
+      },
+      "per_field": {
+        "contract_purpose": {
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "court_name": {
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "date": {
+          "tp": 55,
+          "fp": 0,
+          "fn": 5,
+          "precision": 1.0,
+          "recall": 0.9167,
+          "f1": 0.9565
+        },
+        "deponent_address": {
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "deponent_name": {
+          "tp": 29,
+          "fp": 1,
+          "fn": 1,
+          "precision": 0.9667,
+          "recall": 0.9667,
+          "f1": 0.9667
+        },
+        "deponent_nic": {
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "end_date": {
+          "tp": 15,
+          "fp": 0,
+          "fn": 10,
+          "precision": 1.0,
+          "recall": 0.6,
+          "f1": 0.75
+        },
+        "jurisdiction": {
+          "tp": 43,
+          "fp": 0,
+          "fn": 17,
+          "precision": 1.0,
+          "recall": 0.7167,
+          "f1": 0.835
+        },
+        "obligations_a": {
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "obligations_b": {
+          "tp": 28,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "party_a": {
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "party_b": {
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "payment_terms": {
+          "tp": 28,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "petitioner_address": {
+          "tp": 27,
+          "fp": 3,
+          "fn": 3,
+          "precision": 0.9,
+          "recall": 0.9,
+          "f1": 0.9
+        },
+        "petitioner_name": {
+          "tp": 27,
+          "fp": 3,
+          "fn": 3,
+          "precision": 0.9,
+          "recall": 0.9,
+          "f1": 0.9
+        },
+        "petitioner_nic": {
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "relief_sought": {
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "respondent_name": {
+          "tp": 29,
+          "fp": 1,
+          "fn": 1,
+          "precision": 0.9667,
+          "recall": 0.9667,
+          "f1": 0.9667
+        },
+        "start_date": {
+          "tp": 26,
+          "fp": 0,
+          "fn": 4,
+          "precision": 1.0,
+          "recall": 0.8667,
+          "f1": 0.9286
+        },
+        "statement_facts": {
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "subject_matter": {
+          "tp": 30,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      },
+      "per_document_type": {
+        "AFFIDAVIT": {
+          "tp": 179,
+          "fp": 1,
+          "fn": 1,
+          "precision": 0.9944,
+          "recall": 0.9944,
+          "f1": 0.9944
+        },
+        "CONTRACT": {
+          "tp": 230,
+          "fp": 0,
+          "fn": 31,
+          "precision": 1.0,
+          "recall": 0.8812,
+          "f1": 0.9369
+        },
+        "PETITION": {
+          "tp": 228,
+          "fp": 7,
+          "fn": 12,
+          "precision": 0.9702,
+          "recall": 0.95,
+          "f1": 0.96
+        }
+      },
+      "samples_evaluated": 90,
+      "sample_breakdown": [
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 1,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 2,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 3,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 4,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 5,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 6,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 7,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 8,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 9,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 10,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 11,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 12,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 13,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 14,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 15,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 16,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 17,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 18,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 19,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 20,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 21,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 22,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 23,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 24,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 25,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 26,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 27,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 28,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 29,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 30,
+          "field_match_rate": 0.8333
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 1,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 2,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 3,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 4,
+          "field_match_rate": 0.8889
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 5,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 6,
+          "field_match_rate": 0.7778
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 7,
+          "field_match_rate": 0.7778
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 8,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 9,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 10,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 11,
+          "field_match_rate": 0.6667
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 12,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 13,
+          "field_match_rate": 0.7778
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 14,
+          "field_match_rate": 0.6667
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 15,
+          "field_match_rate": 0.8889
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 16,
+          "field_match_rate": 0.7778
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 17,
+          "field_match_rate": 0.8889
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 18,
+          "field_match_rate": 0.7778
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 19,
+          "field_match_rate": 0.8889
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 20,
+          "field_match_rate": 0.6667
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 21,
+          "field_match_rate": 0.8889
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 22,
+          "field_match_rate": 0.8889
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 23,
+          "field_match_rate": 0.8889
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 24,
+          "field_match_rate": 0.8889
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 25,
+          "field_match_rate": 0.7778
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 26,
+          "field_match_rate": 0.7778
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 27,
+          "field_match_rate": 0.7778
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 28,
+          "field_match_rate": 0.6667
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 29,
+          "field_match_rate": 0.7778
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 30,
+          "field_match_rate": 0.7778
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 1,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 2,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 3,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 4,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 5,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 6,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 7,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 8,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 9,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 10,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 11,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 12,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 13,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 14,
+          "field_match_rate": 0.75
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 15,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 16,
+          "field_match_rate": 0.875
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 17,
+          "field_match_rate": 0.875
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 18,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 19,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 20,
+          "field_match_rate": 0.875
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 21,
+          "field_match_rate": 0.75
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 22,
+          "field_match_rate": 0.875
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 23,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 24,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 25,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 26,
+          "field_match_rate": 0.875
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 27,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 28,
+          "field_match_rate": 0.875
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 29,
+          "field_match_rate": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 30,
+          "field_match_rate": 0.75
+        }
+      ]
+    },
+    "gemini_extraction": {
+      "evaluation_area": "gemini_extraction",
+      "metric_definition": "Mocked Sinhala Gemini path evaluated as field-level exact-match accuracy using deterministic offline responses.",
+      "overall": {
+        "correct": 455,
+        "total": 460,
+        "accuracy": 0.9891
+      },
+      "per_field": {
+        "contract_purpose": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "court_name": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "date": {
+          "correct": 40,
+          "total": 40,
+          "accuracy": 1.0
+        },
+        "deponent_address": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "deponent_name": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "deponent_nic": {
+          "correct": 15,
+          "total": 20,
+          "accuracy": 0.75
+        },
+        "end_date": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "jurisdiction": {
+          "correct": 40,
+          "total": 40,
+          "accuracy": 1.0
+        },
+        "obligations_a": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "obligations_b": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "party_a": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "party_b": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "payment_terms": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "petitioner_address": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "petitioner_name": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "petitioner_nic": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "relief_sought": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "respondent_name": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "start_date": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "statement_facts": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        },
+        "subject_matter": {
+          "correct": 20,
+          "total": 20,
+          "accuracy": 1.0
+        }
+      },
+      "per_document_type": {
+        "AFFIDAVIT": {
+          "correct": 115,
+          "total": 120,
+          "accuracy": 0.9583
+        },
+        "CONTRACT": {
+          "correct": 180,
+          "total": 180,
+          "accuracy": 1.0
+        },
+        "PETITION": {
+          "correct": 160,
+          "total": 160,
+          "accuracy": 1.0
+        }
+      },
+      "samples_evaluated": 60,
+      "sample_breakdown": [
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 1,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 2,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 3,
+          "field_accuracy": 0.8333
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 4,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 5,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 6,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 7,
+          "field_accuracy": 0.8333
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 8,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 9,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 10,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 11,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 12,
+          "field_accuracy": 0.8333
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 13,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 14,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 15,
+          "field_accuracy": 0.8333
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 16,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 17,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 18,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 19,
+          "field_accuracy": 0.8333
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 20,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 1,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 2,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 3,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 4,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 5,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 6,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 7,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 8,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 9,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 10,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 11,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 12,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 13,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 14,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 15,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 16,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 17,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 18,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 19,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 20,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 1,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 2,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 3,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 4,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 5,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 6,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 7,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 8,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 9,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 10,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 11,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 12,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 13,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 14,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 15,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 16,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 17,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 18,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 19,
+          "field_accuracy": 1.0
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 20,
+          "field_accuracy": 1.0
+        }
+      ],
+      "note": "This evaluation mocks Gemini responses and therefore measures extraction-path parsing and normalization behavior, not live model quality."
+    },
+    "validation": {
+      "evaluation_area": "validation",
+      "metric_definition": "Validation accuracy against expected complete/incomplete outcomes and expected missing-fields sets.",
+      "overall": {
+        "status_accuracy": {
+          "correct": 59,
+          "total": 62,
+          "accuracy": 0.9516
+        },
+        "missing_fields_exact_accuracy": {
+          "correct": 54,
+          "total": 62,
+          "accuracy": 0.871
+        },
+        "incomplete_detection": {
+          "tp": 31,
+          "fp": 3,
+          "fn": 0,
+          "precision": 0.9118,
+          "recall": 1.0,
+          "f1": 0.9538
+        }
+      },
+      "per_document_type": {
+        "AFFIDAVIT": {
+          "status_accuracy": {
+            "correct": 19,
+            "total": 20,
+            "accuracy": 0.95
+          },
+          "missing_fields_exact_accuracy": {
+            "correct": 16,
+            "total": 20,
+            "accuracy": 0.8
+          },
+          "incomplete_detection": {
+            "tp": 10,
+            "fp": 1,
+            "fn": 0,
+            "precision": 0.9091,
+            "recall": 1.0,
+            "f1": 0.9524
+          }
+        },
+        "CONTRACT": {
+          "status_accuracy": {
+            "correct": 20,
+            "total": 20,
+            "accuracy": 1.0
+          },
+          "missing_fields_exact_accuracy": {
+            "correct": 20,
+            "total": 20,
+            "accuracy": 1.0
+          },
+          "incomplete_detection": {
+            "tp": 10,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        },
+        "PETITION": {
+          "status_accuracy": {
+            "correct": 20,
+            "total": 22,
+            "accuracy": 0.9091
+          },
+          "missing_fields_exact_accuracy": {
+            "correct": 18,
+            "total": 22,
+            "accuracy": 0.8182
+          },
+          "incomplete_detection": {
+            "tp": 11,
+            "fp": 2,
+            "fn": 0,
+            "precision": 0.8462,
+            "recall": 1.0,
+            "f1": 0.9167
+          }
+        }
+      },
+      "samples_evaluated": 62,
+      "sample_breakdown": [
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 1,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 2,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 3,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 4,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 5,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 6,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 7,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": false
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 8,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 9,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 10,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 11,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 12,
+          "predicted_status": "incomplete",
+          "expected_status": "complete",
+          "missing_fields_match": false
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 13,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 14,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 15,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": false
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 16,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 17,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 18,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 19,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": false
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 20,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 1,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 2,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 3,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 4,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 5,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 6,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 7,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 8,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 9,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 10,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 11,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 12,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 13,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 14,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 15,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 16,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 17,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 18,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 19,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 20,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 21,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 1,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 2,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 3,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 4,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 5,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 6,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 7,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 8,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 9,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": false
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 10,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 11,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": false
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 12,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 13,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 14,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 15,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 16,
+          "predicted_status": "incomplete",
+          "expected_status": "complete",
+          "missing_fields_match": false
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 17,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 18,
+          "predicted_status": "incomplete",
+          "expected_status": "complete",
+          "missing_fields_match": false
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 19,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 20,
+          "predicted_status": "complete",
+          "expected_status": "complete",
+          "missing_fields_match": true
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 21,
+          "predicted_status": "incomplete",
+          "expected_status": "incomplete",
+          "missing_fields_match": true
+        }
+      ]
+    },
+    "drafting_quality": {
+      "evaluation_area": "drafting_quality",
+      "metric_definition": "Section coverage based on whether expected structural sections appear in drafted output produced by the pipeline with patched extraction and offline drafting.",
+      "overall": {
+        "average_section_coverage": 0.8856,
+        "samples": 30
+      },
+      "per_document_type": {
+        "AFFIDAVIT": {
+          "average_section_coverage": 1.0,
+          "samples": 10
+        },
+        "CONTRACT": {
+          "average_section_coverage": 0.8567,
+          "samples": 10
+        },
+        "PETITION": {
+          "average_section_coverage": 0.8,
+          "samples": 10
+        }
+      },
+      "samples_evaluated": 30,
+      "sample_breakdown": [
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 1,
+          "pipeline_status": "complete",
+          "coverage_score": 1.0,
+          "matched_sections": [
+            "Title / Heading",
+            "Court and Case Reference",
+            "Deponent Identification",
+            "Oath / Affirmation Statement",
+            "Numbered Statement of Facts",
+            "Verification Clause",
+            "Deponent Signature",
+            "Commissioner for Oaths / Notary Attestation"
+          ],
+          "missing_sections": []
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 2,
+          "pipeline_status": "complete",
+          "coverage_score": 1.0,
+          "matched_sections": [
+            "Title / Heading",
+            "Court and Case Reference",
+            "Deponent Identification",
+            "Oath / Affirmation Statement",
+            "Numbered Statement of Facts",
+            "Verification Clause",
+            "Deponent Signature",
+            "Commissioner for Oaths / Notary Attestation"
+          ],
+          "missing_sections": []
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 3,
+          "pipeline_status": "complete",
+          "coverage_score": 1.0,
+          "matched_sections": [
+            "Title / Heading",
+            "Court and Case Reference",
+            "Deponent Identification",
+            "Oath / Affirmation Statement",
+            "Numbered Statement of Facts",
+            "Verification Clause",
+            "Deponent Signature",
+            "Commissioner for Oaths / Notary Attestation"
+          ],
+          "missing_sections": []
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 4,
+          "pipeline_status": "complete",
+          "coverage_score": 1.0,
+          "matched_sections": [
+            "Title / Heading",
+            "Court and Case Reference",
+            "Deponent Identification",
+            "Oath / Affirmation Statement",
+            "Numbered Statement of Facts",
+            "Verification Clause",
+            "Deponent Signature",
+            "Commissioner for Oaths / Notary Attestation"
+          ],
+          "missing_sections": []
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 5,
+          "pipeline_status": "complete",
+          "coverage_score": 1.0,
+          "matched_sections": [
+            "Title / Heading",
+            "Court and Case Reference",
+            "Deponent Identification",
+            "Oath / Affirmation Statement",
+            "Numbered Statement of Facts",
+            "Verification Clause",
+            "Deponent Signature",
+            "Commissioner for Oaths / Notary Attestation"
+          ],
+          "missing_sections": []
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 6,
+          "pipeline_status": "complete",
+          "coverage_score": 1.0,
+          "matched_sections": [
+            "Title / Heading",
+            "Court and Case Reference",
+            "Deponent Identification",
+            "Oath / Affirmation Statement",
+            "Numbered Statement of Facts",
+            "Verification Clause",
+            "Deponent Signature",
+            "Commissioner for Oaths / Notary Attestation"
+          ],
+          "missing_sections": []
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 7,
+          "pipeline_status": "complete",
+          "coverage_score": 1.0,
+          "matched_sections": [
+            "Title / Heading",
+            "Court and Case Reference",
+            "Deponent Identification",
+            "Oath / Affirmation Statement",
+            "Numbered Statement of Facts",
+            "Verification Clause",
+            "Deponent Signature",
+            "Commissioner for Oaths / Notary Attestation"
+          ],
+          "missing_sections": []
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 8,
+          "pipeline_status": "complete",
+          "coverage_score": 1.0,
+          "matched_sections": [
+            "Title / Heading",
+            "Court and Case Reference",
+            "Deponent Identification",
+            "Oath / Affirmation Statement",
+            "Numbered Statement of Facts",
+            "Verification Clause",
+            "Deponent Signature",
+            "Commissioner for Oaths / Notary Attestation"
+          ],
+          "missing_sections": []
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 9,
+          "pipeline_status": "complete",
+          "coverage_score": 1.0,
+          "matched_sections": [
+            "Title / Heading",
+            "Court and Case Reference",
+            "Deponent Identification",
+            "Oath / Affirmation Statement",
+            "Numbered Statement of Facts",
+            "Verification Clause",
+            "Deponent Signature",
+            "Commissioner for Oaths / Notary Attestation"
+          ],
+          "missing_sections": []
+        },
+        {
+          "doc_type": "AFFIDAVIT",
+          "sample_index": 10,
+          "pipeline_status": "complete",
+          "coverage_score": 1.0,
+          "matched_sections": [
+            "Title / Heading",
+            "Court and Case Reference",
+            "Deponent Identification",
+            "Oath / Affirmation Statement",
+            "Numbered Statement of Facts",
+            "Verification Clause",
+            "Deponent Signature",
+            "Commissioner for Oaths / Notary Attestation"
+          ],
+          "missing_sections": []
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 1,
+          "pipeline_status": "complete",
+          "coverage_score": 1.0,
+          "matched_sections": [
+            "Title and Parties",
+            "Recitals / Background",
+            "Definitions",
+            "Scope of Work",
+            "Obligations of Party A",
+            "Obligations of Party B",
+            "Payment Terms",
+            "Completion and Acceptance",
+            "Warranty",
+            "Termination",
+            "Dispute Resolution",
+            "Governing Law and Jurisdiction",
+            "Signatures and Date"
+          ],
+          "missing_sections": []
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 2,
+          "pipeline_status": "complete",
+          "coverage_score": 1.0,
+          "matched_sections": [
+            "Title and Parties",
+            "Recitals / Background",
+            "Definitions",
+            "Scope of Supply",
+            "Obligations of Party A",
+            "Obligations of Party B",
+            "Price and Payment Terms",
+            "Quality Standards",
+            "Delivery",
+            "Termination",
+            "Dispute Resolution",
+            "Governing Law and Jurisdiction",
+            "Signatures and Date"
+          ],
+          "missing_sections": []
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 3,
+          "pipeline_status": "complete",
+          "coverage_score": 1.0,
+          "matched_sections": [
+            "Title and Parties",
+            "Appointment and Duration",
+            "Duties and Responsibilities",
+            "Obligations of Employer",
+            "Obligations of Employee",
+            "Remuneration and Benefits",
+            "Confidentiality",
+            "Termination",
+            "Governing Law",
+            "Signatures and Date"
+          ],
+          "missing_sections": []
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 4,
+          "pipeline_status": "complete",
+          "coverage_score": 1.0,
+          "matched_sections": [
+            "Title and Parties",
+            "Recitals / Background",
+            "Scope of Services",
+            "Obligations of Party A",
+            "Obligations of Party B",
+            "Payment Terms",
+            "Cancellation Policy",
+            "Liability",
+            "Termination",
+            "Governing Law and Jurisdiction",
+            "Signatures and Date"
+          ],
+          "missing_sections": []
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 5,
+          "pipeline_status": "complete",
+          "coverage_score": 0.5455,
+          "matched_sections": [
+            "Title and Parties",
+            "Term of Lease",
+            "Rent and Security Deposit",
+            "Termination",
+            "Governing Law and Jurisdiction",
+            "Signatures and Date"
+          ],
+          "missing_sections": [
+            "Description of Premises",
+            "Obligations of Lessor",
+            "Obligations of Lessee",
+            "Permitted Use",
+            "Maintenance and Repairs"
+          ]
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 6,
+          "pipeline_status": "complete",
+          "coverage_score": 0.9167,
+          "matched_sections": [
+            "Title and Parties",
+            "Recitals / Background",
+            "Definitions",
+            "Scope of Supply",
+            "Obligations of Party A",
+            "Obligations of Party B",
+            "Price and Payment",
+            "Delivery",
+            "Termination",
+            "Governing Law and Jurisdiction",
+            "Signatures and Date"
+          ],
+          "missing_sections": [
+            "Quality and Compliance"
+          ]
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 7,
+          "pipeline_status": "complete",
+          "coverage_score": 0.9,
+          "matched_sections": [
+            "Title and Parties",
+            "Appointment and Duration",
+            "Duties and Responsibilities",
+            "Obligations of Employer",
+            "Obligations of Employee",
+            "Remuneration and Benefits",
+            "Termination",
+            "Governing Law",
+            "Signatures and Date"
+          ],
+          "missing_sections": [
+            "Code of Conduct"
+          ]
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 8,
+          "pipeline_status": "complete",
+          "coverage_score": 0.4545,
+          "matched_sections": [
+            "Title and Parties",
+            "Loan Amount and Purpose",
+            "Security",
+            "Governing Law and Jurisdiction",
+            "Signatures and Date"
+          ],
+          "missing_sections": [
+            "Disbursement",
+            "Interest Rate",
+            "Repayment Terms",
+            "Obligations of Lender",
+            "Obligations of Borrower",
+            "Events of Default"
+          ]
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 9,
+          "pipeline_status": "complete",
+          "coverage_score": 0.8333,
+          "matched_sections": [
+            "Title and Parties",
+            "Recitals / Background",
+            "Scope of Services",
+            "Obligations of Party A",
+            "Obligations of Party B",
+            "Payment Terms",
+            "Confidentiality",
+            "Termination",
+            "Governing Law and Jurisdiction",
+            "Signatures and Date"
+          ],
+          "missing_sections": [
+            "Deliverables and Milestones",
+            "Intellectual Property"
+          ]
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 1,
+          "pipeline_status": "complete",
+          "coverage_score": 0.8,
+          "matched_sections": [
+            "Court Heading",
+            "Petition Title and Case Reference",
+            "Jurisdiction",
+            "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
+            "Petitioner / Attorney Signature"
+          ],
+          "missing_sections": [
+            "Parties",
+            "Date"
+          ]
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 2,
+          "pipeline_status": "complete",
+          "coverage_score": 0.8,
+          "matched_sections": [
+            "Court Heading",
+            "Petition Title and Case Reference",
+            "Jurisdiction",
+            "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
+            "Petitioner / Attorney Signature"
+          ],
+          "missing_sections": [
+            "Parties",
+            "Date"
+          ]
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 3,
+          "pipeline_status": "complete",
+          "coverage_score": 0.8,
+          "matched_sections": [
+            "Court Heading",
+            "Petition Title and Case Reference",
+            "Jurisdiction",
+            "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
+            "Petitioner / Attorney Signature"
+          ],
+          "missing_sections": [
+            "Parties",
+            "Date"
+          ]
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 4,
+          "pipeline_status": "complete",
+          "coverage_score": 0.8,
+          "matched_sections": [
+            "Court Heading",
+            "Petition Title and Case Reference",
+            "Jurisdiction",
+            "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
+            "Petitioner / Attorney Signature"
+          ],
+          "missing_sections": [
+            "Parties",
+            "Date"
+          ]
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 5,
+          "pipeline_status": "complete",
+          "coverage_score": 0.8,
+          "matched_sections": [
+            "Court Heading",
+            "Petition Title and Case Reference",
+            "Jurisdiction",
+            "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
+            "Petitioner / Attorney Signature"
+          ],
+          "missing_sections": [
+            "Parties",
+            "Date"
+          ]
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 6,
+          "pipeline_status": "complete",
+          "coverage_score": 0.8,
+          "matched_sections": [
+            "Court Heading",
+            "Petition Title and Case Reference",
+            "Jurisdiction",
+            "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
+            "Petitioner / Attorney Signature"
+          ],
+          "missing_sections": [
+            "Parties",
+            "Date"
+          ]
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 7,
+          "pipeline_status": "complete",
+          "coverage_score": 0.8,
+          "matched_sections": [
+            "Court Heading",
+            "Petition Title and Case Reference",
+            "Jurisdiction",
+            "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
+            "Petitioner / Attorney Signature"
+          ],
+          "missing_sections": [
+            "Parties",
+            "Date"
+          ]
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 8,
+          "pipeline_status": "complete",
+          "coverage_score": 0.8,
+          "matched_sections": [
+            "Court Heading",
+            "Petition Title and Case Reference",
+            "Jurisdiction",
+            "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
+            "Petitioner / Attorney Signature"
+          ],
+          "missing_sections": [
+            "Parties",
+            "Date"
+          ]
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 9,
+          "pipeline_status": "complete",
+          "coverage_score": 0.8,
+          "matched_sections": [
+            "Court Heading",
+            "Petition Title and Case Reference",
+            "Jurisdiction",
+            "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
+            "Petitioner / Attorney Signature"
+          ],
+          "missing_sections": [
+            "Parties",
+            "Date"
+          ]
+        },
+        {
+          "doc_type": "CONTRACT",
+          "sample_index": 10,
+          "pipeline_status": "complete",
+          "coverage_score": 0.9167,
+          "matched_sections": [
+            "Title and Parties",
+            "Recitals / Background",
+            "Scope of Supply",
+            "Obligations of Party A",
+            "Obligations of Party B",
+            "Price and Payment Terms",
+            "Delivery",
+            "Warranty",
+            "Termination",
+            "Governing Law and Jurisdiction",
+            "Signatures and Date"
+          ],
+          "missing_sections": [
+            "Quality and Specifications"
+          ]
+        },
+        {
+          "doc_type": "PETITION",
+          "sample_index": 11,
+          "pipeline_status": "complete",
+          "coverage_score": 0.8,
+          "matched_sections": [
+            "Court Heading",
+            "Petition Title and Case Reference",
+            "Jurisdiction",
+            "Statement of Facts",
+            "Grounds of Petition",
+            "Relief Sought",
+            "Verification",
+            "Petitioner / Attorney Signature"
+          ],
+          "missing_sections": [
+            "Parties",
+            "Date"
+          ]
+        }
+      ]
+    }
+  },
+  "comparison": {
+    "ner_overall_f1": 0.9608,
+    "gemini_overall_accuracy": 0.9891,
+    "key_finding": "On the current evaluation set, the mocked Sinhala Gemini path achieved higher field-level accuracy (98.91%) than the English NER layer's overall F1 (96.08%)."
+  }
+}

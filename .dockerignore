@@ -1,0 +1,29 @@
+# Git and editor artifacts
+.git
+.gitignore
+.vscode/
+.agent/
+
+# Local dependencies and environments
+node_modules/
+.venv/
+venv/
+
+# Environment and secrets
+.env
+.env.*
+
+# Build/test artifacts
+dist/
+build/
+coverage/
+*.log
+
+# Large local assets not needed in builds
+ML MODELS/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

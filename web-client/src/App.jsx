@@ -32,6 +32,8 @@ import CaseBriefing from './pages/Roleplay/CaseBriefing';
 // Learning Materials
 import LearningMaterials from './pages/LearningMaterials';
 import JudgmentPrediction from './pages/JudgmentPrediction';
+import DraftingPage from './pages/DraftingPage';
+import HistoryPage from './pages/HistoryPage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -142,11 +144,11 @@ function App() {
                 <Route path="/mock-trials/:roomId/transcript" element={<PlaceholderPage title="Trial Transcript" />} />
 
                 {/* AI Courtroom Entry */}
-                <Route path="/history" element={<PlaceholderPage title="Role History" />} />
+                <Route path="/history" element={<HistoryPage />} />
                 <Route path="/community" element={<PlaceholderPage title="Community" />} />
                 <Route path="/messages" element={<PlaceholderPage title="Messages" />} />
                 <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
-                <Route path="/drafts" element={<PlaceholderPage title="Drafting Assistant" />} />
+                <Route path="/drafts" element={<DraftingPage />} />
                 {/* Judgment Prediction is already routed above */}
 
                 {/* AI Roleplay Setup Routes (with sidebar) */}

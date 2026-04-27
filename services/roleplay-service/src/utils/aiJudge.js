@@ -3,7 +3,8 @@ import axios from 'axios';
 // 1. Define the URL of your Python Microservice
 // We use 127.0.0.1 instead of localhost to avoid Node v17+ DNS issues
 // Pointing to the new Dual-Model AI Engine on Port 5009
-const PYTHON_SERVICE_URL = 'http://127.0.0.1:5009/predict';
+const AUDIT_BASE_URL = process.env.AUDIT_SERVICE_URL || 'http://argument-audit-service:5001';
+const PYTHON_SERVICE_URL = `${AUDIT_BASE_URL}/predict`;
 
 /**
  * Sends the user's argument to the Python AI Judge.

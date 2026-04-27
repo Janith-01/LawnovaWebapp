@@ -13,6 +13,11 @@ import RoleplaySession from '../models/RoleplaySession.js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { findRelevantLaws } from '../services/lawService.js';
 
+const isExplicitObjectionText = (text = '') =>
+    /^(objection\b|objection,\s*your honou?r\b|i object\b)/i.test((text || '').trim());
+
+const hasJudgeRulingMarkers = (text = '') => /\b(sustained|overruled)\b/i.test(text);
+
 // ============================================================
 // 1. AI LEGAL CONSULTANT (The Fixed "Bulletproof" Version)
 // ============================================================
@@ -95,6 +100,14 @@ export const processUserMessage = async (req, res) => {
             return res.status(404).json({ success: false, error: "Session not found" });
         }
 
+        const explicitObjection = isExplicitObjectionText(message);
+        if (explicitObjection && session.pendingObjection) {
+            console.log(`[OBJECTION_GATE] Duplicate objection ignored for session ${sessionId}`);
+        } else if (explicitObjection) {
+            session.pendingObjection = true;
+            console.log(`[OBJECTION_GATE] pendingObjection=true (text-trigger) for session ${sessionId}`);
+        }
+
         // Update last user interaction timestamp for heartbeat engine
         session.lastUserInteraction = new Date();
 
@@ -113,12 +126,17 @@ export const processUserMessage = async (req, res) => {
         const legalContext = await retrieveRelevantLaws(message);
 
         // 5. DIRECTOR CALL
-        const nextSpeaker = await directCourtroomScene(session.history, session.caseDetails, message);
+        const nextSpeaker = await directCourtroomScene(
+            session.history,
+            session.caseDetails,
+            message,
+            { pendingObjection: session.pendingObjection }
+        );
 
         // SAFETY CHECK: Ensure we always have a valid speaker
         const speakerRole = nextSpeaker?.nextSpeakerRole || 'Judge';
         const speakerName = nextSpeaker?.speakerName || 'Judge Dissanayake';
-        console.log("Director selected:", speakerRole, `(${speakerName})`);
+        console.log(`[TURN] session=${sessionId} pendingObjection=${session.pendingObjection} speaker=${speakerRole} (${speakerName})`);
 
         // 6. ACTOR CALL (RL-Enhanced: Best-of-N for Prosecutor/Defense)
         const turnNumber = session.history.filter(h => h.role === 'user').length + 1;
@@ -131,7 +149,8 @@ export const processUserMessage = async (req, res) => {
             session.history,
             nextSpeaker?.instruction || '',
             sessionId,
-            turnNumber
+            turnNumber,
+            { pendingObjection: session.pendingObjection }
         );
 
         // Log RL reward data
@@ -161,6 +180,17 @@ export const processUserMessage = async (req, res) => {
             session.rewardLog.push(rewardEntry);
             session.markModified('rewardLog');
         }
+
+        const shouldClearObjection =
+            session.pendingObjection &&
+            safeResponse.speakerRole === 'Judge' &&
+            hasJudgeRulingMarkers(safeResponse.text);
+        if (shouldClearObjection) {
+            session.pendingObjection = false;
+            console.log(`[OBJECTION_GATE] pendingObjection cleared after Judge ruling for session ${sessionId}`);
+        }
+
+        console.log(`[TURN] session=${sessionId} pendingObjection=${session.pendingObjection} rulingAllowed=${speakerRole === 'Judge' && explicitObjection ? 'true' : 'n/a'}`);
         await session.save();
 
         // 7.5. RESUME HEARTBEAT
@@ -251,41 +281,104 @@ export const createSession = async (req, res) => {
     }
 };
 
+const normalizeRole = (role) => ({
+    'Prosecutor': 'Prosecution',
+    'Prosecution': 'Prosecution',
+    'Defense': 'Defense',
+    'Defense Attorney': 'Defense'
+}[role] || 'Defense');
+
+const normalizeDifficulty = (difficulty) => ({
+    'Easy': 'Easy',
+    'Intermediate': 'Medium',
+    'Medium': 'Medium',
+    'Hard': 'Hard'
+}[difficulty] || 'Medium');
+
+const toStringArray = (value) => {
+    if (!Array.isArray(value)) return [];
+    return value
+        .map((item) => (typeof item === 'string' ? item.trim() : ''))
+        .filter(Boolean);
+};
+
+const normalizeCaseDetailsForSchema = (rawCaseDetails, fallbackDifficulty, fallbackTopic, fallbackRole) => {
+    const safeRole = normalizeRole(fallbackRole);
+    const opponentSide = safeRole === 'Prosecution' ? 'Defense' : 'Prosecution';
+    const input = (rawCaseDetails && typeof rawCaseDetails === 'object') ? rawCaseDetails : {};
+
+    const witnesses = Array.isArray(input.witnesses) ? input.witnesses : [];
+    const normalizedWitnesses = witnesses.map((witness, index) => {
+        const w = (witness && typeof witness === 'object') ? witness : {};
+        const safeName = (typeof w.name === 'string' && w.name.trim()) ? w.name.trim() : `Witness ${index + 1}`;
+        const safeRoleName = (typeof w.role === 'string' && w.role.trim()) ? w.role.trim() : 'Civilian Witness';
+        const safePersonality = (typeof w.personality === 'string' && w.personality.trim()) ? w.personality.trim() : 'Neutral';
+
+        const mappedAffiliation = {
+            'User': 'User',
+            'Opponent': 'Opponent',
+            'Neutral': 'Neutral',
+            [safeRole]: 'User',
+            [opponentSide]: 'Opponent',
+            'Prosecutor': safeRole === 'Prosecution' ? 'User' : 'Opponent',
+            'Prosecution': safeRole === 'Prosecution' ? 'User' : 'Opponent',
+            'Defense': safeRole === 'Defense' ? 'User' : 'Opponent',
+            'State': safeRole === 'Prosecution' ? 'User' : 'Opponent',
+            'Plaintiff': safeRole === 'Prosecution' ? 'User' : 'Opponent',
+            'Accused': safeRole === 'Defense' ? 'User' : 'Opponent',
+            'Defendant': safeRole === 'Defense' ? 'User' : 'Opponent',
+        }[w.affiliation] || 'Neutral';
+
+        return {
+            name: safeName,
+            role: safeRoleName,
+            personality: safePersonality,
+            affiliation: mappedAffiliation
+        };
+    });
+
+    if (normalizedWitnesses.length === 0) {
+        normalizedWitnesses.push({
+            name: 'Primary Witness',
+            role: 'Civilian Witness',
+            personality: 'Neutral',
+            affiliation: 'Neutral'
+        });
+    }
+
+    return {
+        title: (typeof input.title === 'string' && input.title.trim()) ? input.title.trim() : 'State v. Unknown',
+        summary: (typeof input.summary === 'string' && input.summary.trim()) ? input.summary.trim() : 'A generated legal scenario for courtroom simulation.',
+        difficulty: normalizeDifficulty(input.difficulty || fallbackDifficulty),
+        caseStage: (typeof input.caseStage === 'string' && input.caseStage.trim()) ? input.caseStage.trim() : 'Opening Statements',
+        relevantLaw: (typeof input.relevantLaw === 'string' && input.relevantLaw.trim()) ? input.relevantLaw.trim() : 'Applicable Sri Lankan Penal Code provisions.',
+        topic: (typeof input.topic === 'string' && input.topic.trim()) ? input.topic.trim() : (fallbackTopic || 'Random'),
+        userRole: normalizeRole(input.userRole || fallbackRole),
+        facts: toStringArray(input.facts),
+        userEvidence: toStringArray(input.userEvidence),
+        opponentEvidence: toStringArray(input.opponentEvidence),
+        witnesses: normalizedWitnesses,
+        openingHint: (typeof input.openingHint === 'string' && input.openingHint.trim())
+            ? input.openingHint.trim()
+            : 'Build a clear timeline and challenge unsupported assertions early.'
+    };
+};
+
 export const generateCase = async (req, res) => {
     try {
-        let { difficulty, topic, userRole, userId } = req.body;
+        const payload = (req.body && typeof req.body === 'object') ? req.body : {};
+        let { difficulty, topic, userRole, userId } = payload;
 
         // Normalize input for Mongoose enum validation
-        const normalizedDifficulty = {
-            'Easy': 'Easy',
-            'Intermediate': 'Medium',
-            'Medium': 'Medium',
-            'Hard': 'Hard'
-        }[difficulty] || 'Medium';
-
-        const normalizedRole = {
-            'Prosecutor': 'Prosecution',
-            'Prosecution': 'Prosecution',
-            'Defense': 'Defense',
-            'Defense Attorney': 'Defense'
-        }[userRole] || 'Defense';
-
-        const caseDetails = await generateCaseScenario(normalizedDifficulty, topic, normalizedRole);
-
-        // Post-generation normalization to satisfy Mongoose enums
-        caseDetails.difficulty = {
-            'Easy': 'Easy',
-            'Intermediate': 'Medium',
-            'Medium': 'Medium',
-            'Hard': 'Hard'
-        }[caseDetails.difficulty] || normalizedDifficulty;
-
-        caseDetails.userRole = {
-            'Prosecutor': 'Prosecution',
-            'Prosecution': 'Prosecution',
-            'Defense': 'Defense',
-            'Defense Attorney': 'Defense'
-        }[caseDetails.userRole] || normalizedRole;
+        const normalizedDifficulty = normalizeDifficulty(difficulty);
+        const normalizedRole = normalizeRole(userRole);
+        const caseDetailsRaw = await generateCaseScenario(normalizedDifficulty, topic, normalizedRole);
+        const caseDetails = normalizeCaseDetailsForSchema(
+            caseDetailsRaw,
+            normalizedDifficulty,
+            topic,
+            normalizedRole
+        );
 
         console.log("Final Normalized Case Details:", {
             title: caseDetails.title,
@@ -304,8 +397,16 @@ export const generateCase = async (req, res) => {
         await session.save();
         res.status(201).json({ success: true, data: session });
     } catch (error) {
-        console.error("Generate Case Error:", error);
-        res.status(500).json({ success: false, error: "Failed to generate case" });
+        console.error("[GENERATE-CASE] Error:", {
+            message: error?.message,
+            stack: error?.stack,
+            bodyType: typeof req.body
+        });
+        res.status(500).json({
+            success: false,
+            error: "Failed to generate case",
+            details: error?.message
+        });
     }
 };
 
@@ -393,7 +494,8 @@ export const completeSession = async (req, res) => {
         try {
             if (session.history.length > 0) {
                 console.log("[COMPLETE] Auditing User Arguments via Port 5009...");
-                const auditUrl = 'http://127.0.0.1:5009/audit';
+                const auditBaseUrl = process.env.AUDIT_SERVICE_URL || 'http://argument-audit-service:5001';
+                const auditUrl = `${auditBaseUrl}/api/audit-transcript`;
                 const auditResponse = await axios.post(auditUrl, { history: session.history }, { timeout: 120000 });
 
                 if (auditResponse.data?.success) {

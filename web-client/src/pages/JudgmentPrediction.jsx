@@ -33,6 +33,7 @@ const JudgmentPrediction = () => {
     const [error, setError] = useState(null);
     const [result, setResult] = useState(null);
     const [showExplanation, setShowExplanation] = useState(true);
+    const [retryingExplanation, setRetryingExplanation] = useState(false);
 
     const resultRef = useRef(null);
 
@@ -95,8 +96,35 @@ const JudgmentPrediction = () => {
         setError(null);
     };
 
+    const handleRetryExplanation = async () => {
+        if (!result || result.mode !== 'freetext' || !inputText.trim()) return;
+
+        setRetryingExplanation(true);
+        setError(null);
+
+        try {
+            const data = await judgmentService.predictWithExplanation(inputText.trim());
+            setResult(prev => ({
+                ...prev,
+                ...data,
+                mode: prev?.mode || 'freetext',
+            }));
+        } catch (e) {
+            const msg =
+                e.response?.data?.detail ||
+                e.response?.data?.message ||
+                e.message ||
+                'Retry failed. Please try again.';
+            setError(msg);
+        } finally {
+            setRetryingExplanation(false);
+        }
+    };
+
     // Confidence percentage
     const getConfPercent = (val) => Math.round((val || 0) * 100);
+    const explanationStatus = result?.explanation_status || 'generated';
+    const explanationIsGenerated = explanationStatus === 'generated';
 
     return (
         <div className="space-y-8 animate-in fade-in duration-300">
@@ -737,6 +765,42 @@ const JudgmentPrediction = () => {
 
                             {showExplanation && (
                                 <div className="p-6">
+                                    {!explanationIsGenerated && (
+                                        <div
+                                            className={cn(
+                                                'mb-4 p-3 rounded-xl border text-sm',
+                                                isDarkMode
+                                                    ? 'bg-amber-900/20 border-amber-700/40 text-amber-300'
+                                                    : 'bg-amber-50 border-amber-200 text-amber-700'
+                                            )}
+                                        >
+                                            <p className="font-medium">Explanation is temporarily degraded.</p>
+                                            <p className="mt-1 opacity-90">
+                                                {result.explanation_message || 'The prediction result is still valid.'}
+                                            </p>
+                                            {result.can_retry && result.mode === 'freetext' && (
+                                                <button
+                                                    onClick={handleRetryExplanation}
+                                                    disabled={retryingExplanation}
+                                                    className={cn(
+                                                        'mt-3 inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all',
+                                                        isDarkMode
+                                                            ? 'bg-slate-700 hover:bg-slate-600 text-slate-100'
+                                                            : 'bg-white border border-amber-200 hover:bg-amber-100 text-amber-800',
+                                                        retryingExplanation && 'opacity-60 cursor-not-allowed'
+                                                    )}
+                                                >
+                                                    {retryingExplanation ? (
+                                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                    ) : (
+                                                        <RotateCcw className="w-3.5 h-3.5" />
+                                                    )}
+                                                    {retryingExplanation ? 'Retrying...' : 'Retry explanation'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+
                                     <div
                                         className={cn(
                                             'text-sm leading-relaxed whitespace-pre-wrap',
