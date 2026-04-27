@@ -125,8 +125,16 @@ app.post('/auth/login', async (req, res) => {
       return res.status(upstream.status).json({ message });
     }
 
-    const upstreamUser = upstreamBody?.data?.user;
-    if (!upstreamUser?._id || !upstreamUser?.role) {
+    const upstreamUser = upstreamBody?.data?.user || upstreamBody?.user || null;
+    const upstreamUserId = upstreamUser?._id || upstreamUser?.id || upstreamUser?.userId || null;
+    if (!upstreamUserId || !upstreamUser?.role) {
+      console.error('[Gateway] Invalid login response from user service', {
+        status: upstream.status,
+        hasBody: !!upstreamBody,
+        hasUser: !!upstreamUser,
+        hasUserId: !!upstreamUserId,
+        hasRole: !!upstreamUser?.role,
+      });
       return res.status(502).json({ message: 'Invalid login response from user service' });
     }
 
@@ -138,14 +146,14 @@ app.post('/auth/login', async (req, res) => {
     // Production-grade practice: mint a gateway token with an explicit 24h lifetime
     // to match the cookie maxAge for localhost persistence.
     const accessToken = jwt.sign(
-      { sub: upstreamUser._id, role: upstreamUser.role, email: upstreamUser.email },
+      { sub: upstreamUserId, role: upstreamUser.role, email: upstreamUser.email },
       secret,
       { expiresIn: '24h', algorithm: 'HS256' }
     );
 
     // Create a refresh token with longer expiry
     const refreshToken = jwt.sign(
-      { sub: upstreamUser._id, type: 'refresh' },
+      { sub: upstreamUserId, type: 'refresh' },
       secret,
       { expiresIn: '7d', algorithm: 'HS256' }
     );
@@ -171,8 +179,8 @@ app.post('/auth/login', async (req, res) => {
         accessToken,
         refreshToken,
         user: {
-          _id: upstreamUser._id,
-          id: upstreamUser._id,
+          _id: upstreamUserId,
+          id: upstreamUserId,
           email: upstreamUser.email,
           fullName: name,
           firstName: upstreamUser.firstName,
