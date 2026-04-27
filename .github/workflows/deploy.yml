@@ -22,7 +22,8 @@ jobs:
       mocktrial-service: ${{ steps.filter.outputs.mocktrial-service }}
       roleplay-service: ${{ steps.filter.outputs.roleplay-service }}
       judgment-prediction-service: ${{ steps.filter.outputs.judgment-prediction-service }}
-      any-changed: ${{ steps.filter.outputs.web-client == 'true' || steps.filter.outputs.api-gateway == 'true' || steps.filter.outputs.user-service == 'true' || steps.filter.outputs.ai-service == 'true' || steps.filter.outputs.argument-audit-service == 'true' || steps.filter.outputs.mocktrial-service == 'true' || steps.filter.outputs.roleplay-service == 'true' || steps.filter.outputs.judgment-prediction-service == 'true' }}
+      drafting-service: ${{ steps.filter.outputs.drafting-service }}
+      any-changed: ${{ steps.filter.outputs.web-client == 'true' || steps.filter.outputs.api-gateway == 'true' || steps.filter.outputs.user-service == 'true' || steps.filter.outputs.ai-service == 'true' || steps.filter.outputs.argument-audit-service == 'true' || steps.filter.outputs.mocktrial-service == 'true' || steps.filter.outputs.roleplay-service == 'true' || steps.filter.outputs.judgment-prediction-service == 'true' || steps.filter.outputs.drafting-service == 'true' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -53,6 +54,8 @@ jobs:
               - '!services/roleplay-service/python_backend/**'
             judgment-prediction-service:
               - 'services/judgment-prediction-service/**'
+            drafting-service:
+              - 'services/drafting-service/**'
 
   build-and-push:
     name: Build & Push Images
@@ -150,6 +153,16 @@ jobs:
           context: ./services/judgment-prediction-service
           push: true
           tags: ${{ env.DOCKERHUB_USERNAME }}/lawnova-judgment-prediction-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & push drafting-service
+        if: ${{ needs.detect-changes.outputs.drafting-service == 'true' || github.event_name == 'workflow_dispatch' }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/drafting-service
+          push: true
+          tags: ${{ env.DOCKERHUB_USERNAME }}/lawnova-drafting-service:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

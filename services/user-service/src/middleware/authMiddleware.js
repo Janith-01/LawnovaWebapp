@@ -47,7 +47,7 @@ export const requireAuth = async (req, res, next) => {
     }
 
     // Check if token was issued before password change
-    if (user.security.passwordChangedAt) {
+    if (user.security?.passwordChangedAt) {
       const tokenIssuedAt = new Date(decoded.iat * 1000);
       if (tokenIssuedAt < user.security.passwordChangedAt) {
         logger.warn('Token issued before password change', { userId: user._id });

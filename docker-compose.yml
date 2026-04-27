@@ -22,6 +22,7 @@ services:
       MOCKTRIAL_SERVICE_URL: http://mocktrial-service:10004
       ROLEPLAY_SERVICE_URL: http://roleplay-service:10005
       JUDGMENT_SERVICE_URL: http://judgment-prediction-service:5006
+      DRAFTING_SERVICE_URL: http://drafting-service:8001
     depends_on:
       - user-service
       - ai-service
@@ -29,6 +30,7 @@ services:
       - mocktrial-service
       - roleplay-service
       - judgment-prediction-service
+      - drafting-service
     restart: unless-stopped
  
   user-service:
@@ -116,6 +118,17 @@ services:
       GEMINI_API_KEY1: ${GEMINI_API_KEY}
     volumes:
       - /home/ubuntu/lawnova/ml-models/judgment_predictor:/app/models/judgment_predictor:ro
+    restart: unless-stopped
+
+  drafting-service:
+    build:
+      context: ./services/drafting-service
+      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME}/lawnova-drafting-service:latest
+    container_name: lawnova-drafting-service
+    environment:
+      PORT: 8001
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
     restart: unless-stopped
  
 networks:

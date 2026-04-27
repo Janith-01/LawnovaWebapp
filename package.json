@@ -7,8 +7,8 @@
   "scripts": {
     "start": "node api-gateway/server.js",
     "dev": "nodemon api-gateway/server.js",
-    "start-all": "concurrently --delay 2000 -p \"[{name}]\" -n \"Frontend,Gateway,User,Roleplay,MockTrial,AINode,AIPython\" -c \"cyan,yellow,green,blue,magenta,red,white\" --kill-others \"npm run start:web\" \"npm run start:gateway\" \"npm run dev:user\" \"npm run dev:roleplay\" \"npm run dev:mocktrial\" \"npm run dev:ai\" \"npm run start:aipython\"",
-    "kill-ports": "npx kill-port 3000 5000 5001 5002 5003 5004 5005 5006 5007 5008 5009 10004 10005 8000",
+    "start-all": "concurrently --delay 2000 -p \"[{name}]\" -n \"Frontend,Gateway,User,Roleplay,MockTrial,AINode,AIPython,Drafting\" -c \"cyan,yellow,green,blue,magenta,red,white,gray\" --kill-others \"npm run start:web\" \"npm run start:gateway\" \"npm run dev:user\" \"npm run dev:roleplay\" \"npm run dev:mocktrial\" \"npm run dev:ai\" \"npm run start:aipython\" \"npm run start:drafting\"",
+    "kill-ports": "npx kill-port 3000 5000 5001 5002 5003 5004 5005 5006 5007 5008 5009 10004 10005 8000 8001",
     "start:web": "cd web-client && npm run dev",
     "start:gateway": "cd api-gateway && npm run dev",
     "dev:user": "cd services/user-service && npm run dev",
@@ -19,7 +19,8 @@
     "start:roleplay": "cd services/roleplay-service && npm start",
     "start:mocktrial": "cd services/mocktrial-service && npm start",
     "start:ai": "cd services/ai-service && npm start",
-    "start:aipython": "cd services/ai-service && scripts\\.venv\\Scripts\\python app.py"
+    "start:aipython": "cd services/ai-service && scripts\\.venv\\Scripts\\python app.py",
+    "start:drafting": "cd services/drafting-service && python -m uvicorn src.api:app --reload --host 0.0.0.0 --port 8001"
   },
   "nodemonConfig": {
     "ignore": [

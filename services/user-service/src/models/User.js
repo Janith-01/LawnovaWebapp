@@ -133,6 +133,13 @@ userSchema.index({ email: 1, isActive: 1 });
  * Check if account is locked
  */
 userSchema.methods.isLocked = function () {
+  if (!this.security) {
+    this.security = {
+      failedLoginAttempts: 0,
+      lockUntil: null,
+      passwordChangedAt: null,
+    };
+  }
   return this.security.lockUntil && this.security.lockUntil > new Date();
 };
 
@@ -140,6 +147,14 @@ userSchema.methods.isLocked = function () {
  * Increment failed login attempts
  */
 userSchema.methods.incFailedLoginAttempts = function (lockoutDuration) {
+  if (!this.security) {
+    this.security = {
+      failedLoginAttempts: 0,
+      lockUntil: null,
+      passwordChangedAt: null,
+    };
+  }
+
   this.security.failedLoginAttempts += 1;
   if (this.security.failedLoginAttempts >= 5) {
     this.security.lockUntil = new Date(Date.now() + lockoutDuration * 60 * 1000);
@@ -151,6 +166,14 @@ userSchema.methods.incFailedLoginAttempts = function (lockoutDuration) {
  * Reset failed login attempts
  */
 userSchema.methods.resetFailedLoginAttempts = function () {
+  if (!this.security) {
+    this.security = {
+      failedLoginAttempts: 0,
+      lockUntil: null,
+      passwordChangedAt: null,
+    };
+  }
+
   this.security.failedLoginAttempts = 0;
   this.security.lockUntil = null;
   this.lastLoginAt = new Date();
@@ -162,9 +185,12 @@ userSchema.methods.resetFailedLoginAttempts = function () {
  */
 userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
+    if (!this.passwordHash || typeof this.passwordHash !== 'string') {
+      return false;
+    }
     return await bcrypt.compare(candidatePassword, this.passwordHash);
   } catch (error) {
-    throw new Error(`Password comparison failed: ${error.message}`);
+    return false;
   }
 };
 

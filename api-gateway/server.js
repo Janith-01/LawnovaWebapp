@@ -54,6 +54,7 @@ const MOCKTRIAL_SERVICE_URL = process.env.MOCKTRIAL_SERVICE_URL || 'http://mockt
 const ROLEPLAY_SERVICE_URL = process.env.ROLEPLAY_SERVICE_URL || 'http://roleplay-service:10005';
 const JUDGMENT_SERVICE_URL = process.env.JUDGMENT_SERVICE_URL || 'http://judgment-prediction-service:5006';
 const AUDIT_SERVICE_URL = process.env.AUDIT_SERVICE_URL || 'http://argument-audit-service:5001';
+const DRAFTING_SERVICE_URL = process.env.DRAFTING_SERVICE_URL || 'http://localhost:8001';
 
 // Decode access token and attach user to req for downstream header injection.
 // Token payload is expected to include: { sub: userId, role: 'student'|'admin', email: '...' }
@@ -577,7 +578,7 @@ const judgmentServiceProxy = createProxyMiddleware({
 
 app.use('/api/judgment', judgmentServiceProxy);
 const draftingServiceProxy = createProxyMiddleware({
-  target: 'http://localhost:8001',
+  target: DRAFTING_SERVICE_URL,
   changeOrigin: true,
   pathRewrite: (path, req) => {
     const original = req.originalUrl || path;
@@ -601,7 +602,7 @@ const draftingServiceProxy = createProxyMiddleware({
     }
 
     forwardJsonBodyToProxy(proxyReq, req);
-    logProxyRequest(req, 'drafting-service', 8001);
+    logProxyRequest(req, 'drafting-service', new URL(DRAFTING_SERVICE_URL).port || 80);
   },
   onProxyRes: (proxyRes, req, res) => {
     if (proxyRes.statusCode >= 400) {
@@ -629,7 +630,8 @@ app.get('/health', (req, res) => {
       'ai-service': AI_SERVICE_URL,
       'roleplay-service': ROLEPLAY_SERVICE_URL,
       'audit-service': AUDIT_SERVICE_URL,
-      'judgment-prediction-service': JUDGMENT_SERVICE_URL
+      'judgment-prediction-service': JUDGMENT_SERVICE_URL,
+      'drafting-service': DRAFTING_SERVICE_URL
     }
   });
 });
@@ -644,7 +646,8 @@ app.get('/health/services', (req, res) => {
       'ai-service': { url: AI_SERVICE_URL, status: 'configured' },
       'roleplay-service': { url: ROLEPLAY_SERVICE_URL, status: 'configured' },
       'audit-service': { url: AUDIT_SERVICE_URL, status: 'configured' },
-      'judgment-prediction-service': { url: JUDGMENT_SERVICE_URL, status: 'configured' }
+      'judgment-prediction-service': { url: JUDGMENT_SERVICE_URL, status: 'configured' },
+      'drafting-service': { url: DRAFTING_SERVICE_URL, status: 'configured' }
     },
     routing: {
       '/api/auth/*': 'user-service',
@@ -655,7 +658,8 @@ app.get('/health/services', (req, res) => {
       '/api/sessions/*': 'mocktrial-service (10004)',
       '/api/ai/*': 'ai-service (5008)',
       '/api/roleplay/*': 'roleplay-service (10005)',
-      '/api/judgment/*': 'judgment-prediction-service (5006)'
+      '/api/judgment/*': 'judgment-prediction-service (5006)',
+      '/api/drafting/*': 'drafting-service (8001)'
     }
   });
 });

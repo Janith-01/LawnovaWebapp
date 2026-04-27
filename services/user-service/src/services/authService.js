@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import RefreshToken from '../models/RefreshToken.js';
 import PasswordResetToken from '../models/PasswordResetToken.js';
 import AuditLog from '../models/AuditLog.js';
+import mongoose from 'mongoose';
 import { generateAccessToken, generateRefreshToken, hashToken, decodeToken } from '../utils/tokenUtils.js';
 import { validate, registerSchema, loginSchema } from '../utils/validators.js';
 import { ERROR_CODES } from '../utils/responses.js';
@@ -68,6 +69,14 @@ export const login = async (loginData, ipAddress, userAgent) => {
   // Find user
   const user = await User.findOne({ email: validated.email }).select('+passwordHash');
   if (!user) {
+    throw {
+      code: ERROR_CODES.INVALID_CREDENTIALS,
+      message: 'Invalid email or password',
+    };
+  }
+
+  // Backward compatibility: some legacy records may miss passwordHash.
+  if (!user.passwordHash || typeof user.passwordHash !== 'string') {
     throw {
       code: ERROR_CODES.INVALID_CREDENTIALS,
       message: 'Invalid email or password',
@@ -150,7 +159,7 @@ export const refresh = async (refreshToken, ipAddress, userAgent) => {
 
   // Decode token to get user ID
   const decodedToken = decodeToken(refreshToken);
-  if (!decodedToken) {
+  if (!decodedToken || !decodedToken.sub || !decodedToken.exp) {
     throw {
       code: ERROR_CODES.INVALID_TOKEN,
       message: 'Invalid refresh token',
@@ -158,6 +167,12 @@ export const refresh = async (refreshToken, ipAddress, userAgent) => {
   }
 
   const userId = decodedToken.sub;
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw {
+      code: ERROR_CODES.INVALID_TOKEN,
+      message: 'Invalid refresh token',
+    };
+  }
 
   // Find refresh token record
   const refreshTokenDoc = await RefreshToken.findOne({
