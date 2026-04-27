@@ -1,0 +1,317 @@
+[
+    {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Nimalka Fernando",
+      "petitioner_nic": "198956789012",
+      "petitioner_address": "34 Peradeniya Road, Kandy",
+      "respondent_name": "Director General of Customs",
+      "court_name": "Court of Appeal of Sri Lanka",
+      "subject_matter": "Unlawful seizure of imported textile machinery without due process",
+      "relief_sought": null,
+      "date": "2024-01-20"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["relief_sought"]
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Sandya Jayawardena",
+      "petitioner_nic": "199012345678",
+      "petitioner_address": "78 Galle Road, Matara",
+      "respondent_name": "Roshan Jayawardena",
+      "court_name": "Magistrate's Court of Matara",
+      "subject_matter": "Failure to pay maintenance for two minor children since January 2023",
+      "relief_sought": "Order for Rs. 25,000 monthly maintenance per child",
+      "date": "2024-03-10"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Anura Dissanayake",
+      "petitioner_nic": null,
+      "petitioner_address": "No. 5 Temple Road, Anuradhapura",
+      "respondent_name": "Provincial Land Commissioner, North Central Province",
+      "court_name": "High Court of Anuradhapura",
+      "subject_matter": "Cancellation of land permit No. 4521/B without proper inquiry or hearing",
+      "relief_sought": "Set aside the cancellation order and restore the land permit",
+      "date": "2023-11-25"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["petitioner_nic"]
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Priyanka Wijesekara",
+      "petitioner_nic": "200134567890",
+      "petitioner_address": "23 Negombo Road, Wattala",
+      "respondent_name": "ABC Garments Pvt Ltd",
+      "court_name": "Labour Tribunal Colombo",
+      "subject_matter": "Termination without notice or gratuity after 8 years of service",
+      "relief_sought": "Reinstatement or compensation of Rs. 450,000 as terminal benefits",
+      "date": "2024-04-05"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Tharanga Rathnayake",
+      "petitioner_nic": "197845678901",
+      "petitioner_address": "67 Kandy Road, Kurunegala",
+      "respondent_name": "Inspector General of Police",
+      "court_name": null,
+      "subject_matter": "Police raided home without a valid warrant and caused property damage of Rs. 180,000",
+      "relief_sought": "Declaration of fundamental rights violation under Article 12 and damages",
+      "date": "2024-02-28"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["court_name"]
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Ravi Shankar",
+      "petitioner_nic": "197534512679",
+      "petitioner_address": "18 Jaffna Road, Vavuniya",
+      "respondent_name": "Secretary, Ministry of Education",
+      "court_name": "Court of Appeal of Sri Lanka",
+      "subject_matter": "Transfer application refused without giving reasons",
+      "relief_sought": "Writ of mandamus directing the Ministry to consider the transfer application fairly",
+      "date": "2023-12-15"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Shanthi Mendis",
+      "petitioner_nic": "196878901234",
+      "petitioner_address": null,
+      "respondent_name": "Piyal de Alwis",
+      "court_name": "District Court of Galle",
+      "subject_matter": "Encroachment on land by constructing a wall beyond the survey boundary",
+      "relief_sought": "Injunction to demolish the wall and restore the boundary",
+      "date": "2024-01-08"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["petitioner_address"]
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Chamara Bandara",
+      "petitioner_nic": "199267890123",
+      "petitioner_address": "45 Colombo Road, Badulla",
+      "respondent_name": "Municipal Commissioner of Badulla",
+      "court_name": "High Court of Badulla",
+      "subject_matter": "Demolition of lawfully constructed shop without prior notice",
+      "relief_sought": "Compensation of Rs. 2,500,000 and stay order on further demolition",
+      "date": "2024-03-20"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Kumudini Samarasinghe",
+      "petitioner_nic": "197012345679V",
+      "petitioner_address": "89 Havelock Road, Colombo 05",
+      "respondent_name": "Dinesh Samarasinghe",
+      "court_name": "Family Court of Colombo",
+      "subject_matter": null,
+      "relief_sought": "Divorce on grounds of malicious desertion and custody of daughter born in 2019",
+      "date": "2024-02-12"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["subject_matter"]
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Nalika de Silva",
+      "petitioner_nic": "198890123456",
+      "petitioner_address": "12 Bauddhaloka Mawatha, Colombo 04",
+      "respondent_name": "Warden, Welikade Prison",
+      "court_name": "Supreme Court of Sri Lanka",
+      "subject_matter": "Denial of access to legal counsel for three days after remand",
+      "relief_sought": "Inquiry into the violation and immediate access to counsel going forward",
+      "date": "2024-01-30"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Saman Kumara",
+      "petitioner_nic": "197356789013V",
+      "petitioner_address": "101 Main Street, Chilaw",
+      "respondent_name": "Divisional Secretariat, Chilaw",
+      "court_name": "High Court of Puttalam",
+      "subject_matter": "Rejection of national identity card application without valid reason",
+      "relief_sought": null,
+      "date": null
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["relief_sought", "date"]
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Amara Gunaratne",
+      "petitioner_nic": "197612378902",
+      "petitioner_address": "45 Katugastota Road, Kandy",
+      "respondent_name": "Sri Lanka Railways",
+      "court_name": "Magistrate's Court of Kandy",
+      "subject_matter": "Injury on railway platform due to a defective barrier maintained by Sri Lanka Railways",
+      "relief_sought": "Compensation of Rs. 750,000 for medical expenses and loss of income",
+      "date": "2024-04-15"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Fathima Rizka",
+      "petitioner_nic": "200034501789",
+      "petitioner_address": "18 Masjid Road, Beruwala",
+      "respondent_name": null,
+      "court_name": "Court of Appeal of Sri Lanka",
+      "subject_matter": "Arbitrary tax assessment notice issued without proper legal basis",
+      "relief_sought": "Writ of certiorari quashing the assessment and declaration that it was issued without jurisdiction",
+      "date": "2024-03-08"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["respondent_name"]
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Lasith Malinga Perera",
+      "petitioner_nic": "198534523457",
+      "petitioner_address": "23 Esplanade Road, Trincomalee",
+      "respondent_name": "Eastern Province Provincial Council",
+      "court_name": "District Court of Trincomalee",
+      "subject_matter": "Termination from post of development officer without a departmental inquiry",
+      "relief_sought": "Reinstatement with back pay",
+      "date": "2023-09-22"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Vijitha Bandara",
+      "petitioner_nic": "196812379901",
+      "petitioner_address": "No. 9 Peradeniya Road, Kandy",
+      "respondent_name": "Director General of Immigration",
+      "court_name": "Supreme Court of Sri Lanka",
+      "subject_matter": "Cancellation of dual citizenship without a proper hearing",
+      "relief_sought": null,
+      "date": "2024-01-14"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["relief_sought"]
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Dilrukshi Rathnayake",
+      "petitioner_nic": "199234501456V",
+      "petitioner_address": "91 Negombo Road, Wattala",
+      "respondent_name": "Thilak Rathnayake",
+      "court_name": "Family Court of Colombo",
+      "subject_matter": "Ex-husband preventing visitation despite interim order granting visitation rights",
+      "relief_sought": "Enforcement of visitation order and primary custody",
+      "date": "2024-02-20"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Nalin Herath",
+      "petitioner_nic": "198134524456",
+      "petitioner_address": null,
+      "respondent_name": "Urban Development Authority",
+      "court_name": "High Court of Kandy",
+      "subject_matter": "Demolition notice issued without a proper inspection",
+      "relief_sought": "Injunction restraining demolition pending proper inquiry",
+      "date": null
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["petitioner_address", "date"]
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Rohan de Mel",
+      "petitioner_nic": "196945678902V",
+      "petitioner_address": "200 Galle Road, Hikkaduwa",
+      "respondent_name": "Sunil de Mel",
+      "court_name": "District Court of Galle",
+      "subject_matter": "Co-heir refusing to agree to partition of jointly inherited land at Hikkaduwa",
+      "relief_sought": "Partition order dividing the property equally",
+      "date": "2024-01-25"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Anoma Jayasuriya",
+      "petitioner_nic": "197823457890",
+      "petitioner_address": "56 Dutugemunu Street, Kelaniya",
+      "respondent_name": "Secretary, Ministry of Health",
+      "court_name": null,
+      "subject_matter": "Ministry failed to pay approved medical reimbursement claim of Rs. 320,000 for over 18 months",
+      "relief_sought": "Mandamus order compelling payment within 14 days",
+      "date": "2023-12-01"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["court_name"]
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Sewwandi Fernando",
+      "petitioner_nic": "199812391456",
+      "petitioner_address": "28 Hospital Road, Badulla",
+      "respondent_name": "Chamara Fernando",
+      "court_name": "Magistrate's Court of Badulla",
+      "subject_matter": "Husband abandoned petitioner and three children in 2022 and has paid no maintenance",
+      "relief_sought": "Maintenance of Rs. 15,000 per month per child and Rs. 20,000 for petitioner",
+      "date": "2024-04-01"
+    },
+    "expected_outcome": "complete",
+    "missing_fields": []
+  },
+  {
+    "doc_type": "PETITION",
+    "extracted_params": {
+      "petitioner_name": "Gayan Pathirana",
+      "petitioner_nic": "199134568790",
+      "petitioner_address": "78 Weligama Road, Matara",
+      "respondent_name": "Director, Sri Lanka Land Reclamation and Development Corporation",
+      "court_name": "Supreme Court of Sri Lanka",
+      "subject_matter": "Corporation unlawfully filled land parcel without compensation claiming it was a public waterway",
+      "relief_sought": null,
+      "date": "2024-02-05"
+    },
+    "expected_outcome": "incomplete",
+    "missing_fields": ["relief_sought"]
+  }
+]
