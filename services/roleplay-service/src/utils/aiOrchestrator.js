@@ -7,11 +7,15 @@ import {
 } from './rewardEngine.js';
 
 
-const genAI = process.env.GEMINI_API_KEY
-    ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-    : null;
+// Lazily initialize so dotenv has time to load before first use
+function getGenAI() {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY1;
+    if (!apiKey) return null;
+    return new GoogleGenerativeAI(apiKey);
+}
 
-const GEMINI_MODEL = 'gemini-flash-latest'; // Fast and cheaper model
+// Use env var first, then fall back to a known-good model name
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash-latest';
 
 const HEARTBEAT_INTERVAL_MS = 30000; // *   - Every 30 seconds of user silence → Director picks next speaker → Actor generates dialogue
 
@@ -202,6 +206,7 @@ export async function directCourtroomScene(history, caseDetails, userMessage, ru
         instruction: 'Address the counsel and move the trial forward.'
     };
 
+    const genAI = getGenAI();
     if (!genAI) {
         console.error('❌ Gemini API key not configured');
         return DEFAULT_RESPONSE;
@@ -388,6 +393,7 @@ export async function generateActorDialogue(
 
     console.log(`🎭 ACTOR: Generating dialogue for ${safeRole} (${safeName})`);
 
+    const genAI = getGenAI();
     if (!genAI) {
         console.error('❌ Gemini API key not configured');
         return getFallbackResponse(safeRole, safeName);
@@ -728,6 +734,7 @@ export async function generateVerdict(history, caseDetails) {
         formal_judgment: generateFallbackJudgment(caseDetails)
     };
 
+    const genAI = getGenAI();
     if (!genAI) {
         console.error('❌ Gemini API key not configured for verdict');
         return fallbackVerdict;
@@ -869,8 +876,9 @@ High Court of Sri Lanka
 // ============================================================
 
 export async function generateCaseScenario(difficulty, topic, userRole) {
+    const genAI = getGenAI();
     if (!genAI) {
-        throw new Error('Gemini API key not configured');
+        throw new Error('Gemini API key not configured. Set GEMINI_API_KEY in environment.');
     }
 
     const prompt = `Generate a Sri Lankan legal case scenario for a courtroom simulation.
