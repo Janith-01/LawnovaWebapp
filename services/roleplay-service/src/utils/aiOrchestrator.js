@@ -15,7 +15,7 @@ function getGenAI() {
 }
 
 // Use env var first, then fall back to a known-good model name
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash-latest';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash-preview-04-17';
 
 const HEARTBEAT_INTERVAL_MS = 30000; // *   - Every 30 seconds of user silence → Director picks next speaker → Actor generates dialogue
 

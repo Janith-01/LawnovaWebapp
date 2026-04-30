@@ -49,9 +49,10 @@ export const consultLaw = async (req, res) => {
         // Check API Key before trying to use it
         if (!apiKey) throw new Error("API Key not found in .env");
 
+        const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash-preview-04-17';
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({
-            model: "gemini-flash-latest"
+            model: modelName
         }, { apiVersion: "v1beta" });
 
         const prompt = `
