@@ -2,6 +2,7 @@ import express from 'express';
 import {
   registerController,
   loginController,
+  googleLoginController,
   refreshController,
   logoutController,
   forgotPasswordController,
@@ -31,6 +32,12 @@ router.post('/register', authLimiter, validate(registerSchema), registerControll
  * Authenticate user and return tokens
  */
 router.post('/login', authLimiter, validate(loginSchema), loginController);
+
+/**
+ * POST /auth/google
+ * Authenticate user via Google OAuth and return tokens
+ */
+router.post('/google', authLimiter, googleLoginController);
 
 /**
  * POST /auth/refresh

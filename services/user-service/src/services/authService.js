@@ -8,6 +8,9 @@ import { validate, registerSchema, loginSchema } from '../utils/validators.js';
 import { ERROR_CODES } from '../utils/responses.js';
 import logger from '../utils/logger.js';
 import config from '../config/index.js';
+import { OAuth2Client } from 'google-auth-library';
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 /**
  * Register a new user
@@ -138,6 +141,123 @@ export const login = async (loginData, ipAddress, userAgent) => {
   });
 
   logger.info('User logged in', { userId: user._id, email: user.email });
+
+  return {
+    accessToken,
+    refreshToken,
+    user: user.toJSON(),
+  };
+};
+
+/**
+ * Google Login (OAuth)
+ */
+export const googleLogin = async (credential, ipAddress, userAgent) => {
+  if (!credential) {
+    throw {
+      code: ERROR_CODES.INVALID_CREDENTIALS,
+      message: 'Google credential missing',
+    };
+  }
+
+  // Verify Google Token
+  let payload;
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    payload = ticket.getPayload();
+  } catch (error) {
+    logger.error('Google token verification failed', { error: error.message });
+    throw {
+      code: ERROR_CODES.INVALID_CREDENTIALS,
+      message: 'Invalid Google token',
+    };
+  }
+
+  const { email, sub: googleId, name: fullName, picture: avatarUrl } = payload;
+
+  // Find user by email or googleId
+  let user = await User.findOne({ $or: [{ email }, { googleId }] });
+
+  if (!user) {
+    // Just-In-Time Provisioning
+    user = new User({
+      email,
+      googleId,
+      authProvider: 'google',
+      fullName,
+      role: 'student',
+      isActive: true,
+      isEmailVerified: true, // Trusted from Google
+      profile: {
+        avatarUrl,
+      },
+    });
+    await user.save();
+
+    await AuditLog.create({
+      actorUserId: user._id,
+      action: 'user_registered_google',
+      targetUserId: user._id,
+      meta: { email: user.email },
+      ip: ipAddress,
+      userAgent,
+    });
+    logger.info('User registered via Google', { userId: user._id, email: user.email });
+  } else {
+    // If user exists but no googleId (migrating from local to google)
+    if (!user.googleId) {
+      user.googleId = googleId;
+      user.authProvider = 'google';
+      user.isEmailVerified = true;
+      if (!user.profile.avatarUrl && avatarUrl) {
+        user.profile.avatarUrl = avatarUrl;
+      }
+      await user.save();
+    }
+    
+    if (user.isLocked()) {
+      throw {
+        code: ERROR_CODES.USER_LOCKED,
+        message: 'Account is temporarily locked',
+      };
+    }
+    if (!user.isActive) {
+      throw {
+        code: ERROR_CODES.USER_INACTIVE,
+        message: 'User account is inactive',
+      };
+    }
+    await user.resetFailedLoginAttempts();
+  }
+
+  // Generate tokens
+  const accessToken = generateAccessToken(user._id, user.role, user.email);
+  const refreshToken = generateRefreshToken(user._id);
+
+  // Store refresh token
+  const refreshTokenHash = hashToken(refreshToken);
+  const decodedToken = decodeToken(refreshToken);
+  const refreshTokenDoc = new RefreshToken({
+    userId: user._id,
+    tokenHash: refreshTokenHash,
+    expiresAt: new Date(decodedToken.exp * 1000),
+    ip: ipAddress,
+    userAgent,
+  });
+  await refreshTokenDoc.save();
+
+  await AuditLog.create({
+    actorUserId: user._id,
+    action: 'user_login_google',
+    targetUserId: user._id,
+    ip: ipAddress,
+    userAgent,
+  });
+
+  logger.info('User logged in via Google', { userId: user._id, email: user.email });
 
   return {
     accessToken,

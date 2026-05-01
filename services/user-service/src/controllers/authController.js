@@ -1,5 +1,5 @@
 import { successResponse, errorResponse, ERROR_CODES } from '../utils/responses.js';
-import { register, login, refresh, logout } from '../services/authService.js';
+import { register, login, googleLogin, refresh, logout } from '../services/authService.js';
 import { requestPasswordReset, resetPassword } from '../services/userService.js';
 import logger from '../utils/logger.js';
 
@@ -38,6 +38,27 @@ export const loginController = async (req, res, next) => {
     return res.status(200).json(
       successResponse(result, {
         message: 'Login successful',
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /auth/google
+ */
+export const googleLoginController = async (req, res, next) => {
+  try {
+    const result = await googleLogin(
+      req.body.credential,
+      req.ip,
+      req.get('user-agent')
+    );
+
+    return res.status(200).json(
+      successResponse(result, {
+        message: 'Google login successful',
       })
     );
   } catch (error) {

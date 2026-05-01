@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, Building, Globe } from 'lucide-react';
 import { toast } from 'sonner';
+import { GoogleLogin } from '@react-oauth/google';
 
 import AuthLayout from '../../components/layout/AuthLayout';
 import { Button, Input, Label, Select } from '../../components/ui';
@@ -33,7 +34,7 @@ const registerSchema = z.object({
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, googleLogin } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -88,6 +89,40 @@ const RegisterPage = () => {
       title="Create your account"
       subtitle="Join Lawnova and start your legal learning journey"
     >
+      <div className="mb-6 flex justify-center">
+        <GoogleLogin
+          onSuccess={async (credentialResponse) => {
+            setIsLoading(true);
+            try {
+              await googleLogin(credentialResponse.credential);
+              navigate('/dashboard', { replace: true });
+            } catch (error) {
+              const errorMessage = error.response?.data?.error?.message || error.response?.data?.message || 'Google Registration failed';
+              toast.error(errorMessage);
+            } finally {
+              setIsLoading(false);
+            }
+          }}
+          onError={() => {
+            toast.error('Google Registration failed');
+          }}
+          theme="filled_black"
+          shape="circle"
+          text="signup_with"
+        />
+      </div>
+
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-slate-200 dark:border-slate-700" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white dark:bg-[#0B0E14] px-2 text-slate-500">
+            Or register with email
+          </span>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Full Name */}
         <div className="space-y-2">

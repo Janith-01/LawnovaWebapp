@@ -195,6 +195,102 @@ app.post('/auth/login', async (req, res) => {
 });
 
 /**
+ * POST /auth/google
+ * Verifies Google credential via user-service, then issues a gateway access JWT in an HttpOnly cookie.
+ */
+app.post('/auth/google', async (req, res) => {
+  try {
+    const { credential } = req.body || {};
+    if (!credential) {
+      return res.status(400).json({ message: 'Google credential is required' });
+    }
+
+    const userServiceUrl = `${USER_SERVICE_URL}/auth/google`;
+    const upstream = await fetch(userServiceUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': req.get('user-agent') || 'api-gateway',
+      },
+      body: JSON.stringify({ credential }),
+    });
+
+    const upstreamBody = await upstream.json().catch(() => null);
+    if (!upstream.ok) {
+      const message = upstreamBody?.error?.message || upstreamBody?.message || 'Google Login failed';
+      return res.status(upstream.status).json({ message });
+    }
+
+    const upstreamUser = upstreamBody?.data?.user || upstreamBody?.user || null;
+    const upstreamUserId = upstreamUser?._id || upstreamUser?.id || upstreamUser?.userId || null;
+    if (!upstreamUserId || !upstreamUser?.role) {
+      console.error('[Gateway] Invalid google login response from user service', {
+        status: upstream.status,
+        hasBody: !!upstreamBody,
+        hasUser: !!upstreamUser,
+        hasUserId: !!upstreamUserId,
+        hasRole: !!upstreamUser?.role,
+      });
+      return res.status(502).json({ message: 'Invalid google login response from user service' });
+    }
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return res.status(500).json({ message: 'JWT_SECRET not configured' });
+    }
+
+    // Production-grade practice: mint a gateway token with an explicit 24h lifetime
+    // to match the cookie maxAge for localhost persistence.
+    const accessToken = jwt.sign(
+      { sub: upstreamUserId, role: upstreamUser.role, email: upstreamUser.email },
+      secret,
+      { expiresIn: '24h', algorithm: 'HS256' }
+    );
+
+    // Create a refresh token with longer expiry
+    const refreshToken = jwt.sign(
+      { sub: upstreamUserId, type: 'refresh' },
+      secret,
+      { expiresIn: '7d', algorithm: 'HS256' }
+    );
+
+    // Also set HttpOnly cookie as backup auth method
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false,
+      maxAge: 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+
+    const name =
+      upstreamUser.fullName ||
+      [upstreamUser.firstName, upstreamUser.lastName].filter(Boolean).join(' ') ||
+      upstreamUser.email ||
+      'User';
+
+    // Return in the format expected by frontend: { data: { accessToken, refreshToken, user } }
+    return res.status(200).json({
+      data: {
+        accessToken,
+        refreshToken,
+        user: {
+          _id: upstreamUserId,
+          id: upstreamUserId,
+          email: upstreamUser.email,
+          fullName: name,
+          firstName: upstreamUser.firstName,
+          lastName: upstreamUser.lastName,
+          role: upstreamUser.role,
+        }
+      }
+    });
+  } catch (err) {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+/**
  * GET /auth/me
  * Restores session from HttpOnly cookie and returns authenticated user info.
  */

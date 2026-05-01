@@ -59,6 +59,15 @@ export const AuthProvider = ({ children }) => {
     
     TokenManager.setTokens(accessToken, refreshToken);
     setUser(userData);
+    return userData;
+  }, []);
+
+  const googleLogin = useCallback(async (credential) => {
+    const response = await api.post('/api/auth/google', { credential });
+    const { accessToken, refreshToken, user: userData } = response.data.data;
+    
+    TokenManager.setTokens(accessToken, refreshToken);
+    setUser(userData);
     toast.success('Welcome back!');
     return userData;
   }, []);
@@ -92,6 +101,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     login,
+    googleLogin,
     register,
     logout,
     updateUser,

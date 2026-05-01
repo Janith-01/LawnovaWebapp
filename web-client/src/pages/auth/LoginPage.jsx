@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { GoogleLogin } from '@react-oauth/google';
 
 import AuthLayout from '../../components/layout/AuthLayout';
 import { Button, Input, Label, Alert, AlertTitle, AlertDescription } from '../../components/ui';
@@ -18,7 +19,7 @@ const loginSchema = z.object({
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -103,6 +104,40 @@ const LoginPage = () => {
           </AlertDescription>
         </Alert>
       )}
+
+      <div className="mb-6 flex justify-center">
+        <GoogleLogin
+          onSuccess={async (credentialResponse) => {
+            setIsLoading(true);
+            try {
+              await googleLogin(credentialResponse.credential);
+              navigate(from, { replace: true });
+            } catch (error) {
+              const errorMessage = error.response?.data?.error?.message || error.response?.data?.message || 'Google Login failed';
+              toast.error(errorMessage);
+            } finally {
+              setIsLoading(false);
+            }
+          }}
+          onError={() => {
+            toast.error('Google Login failed');
+          }}
+          theme="filled_black"
+          shape="circle"
+          text="continue_with"
+        />
+      </div>
+
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-slate-200 dark:border-slate-700" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white dark:bg-[#0B0E14] px-2 text-slate-500">
+            Or continue with email
+          </span>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-2">
