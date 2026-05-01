@@ -1,5 +1,5 @@
 import { successResponse, errorResponse, ERROR_CODES } from '../utils/responses.js';
-import { register, login, googleLogin, refresh, logout } from '../services/authService.js';
+import { register, login, googleLogin, refresh, logout, verifyEmailOTP, resendVerificationOTP } from '../services/authService.js';
 import { requestPasswordReset, resetPassword } from '../services/userService.js';
 import logger from '../utils/logger.js';
 
@@ -95,6 +95,49 @@ export const logoutController = async (req, res, next) => {
     const result = await logout(
       req.body.refreshToken,
       req.user.id,
+      req.ip,
+      req.get('user-agent')
+    );
+
+    return res.status(200).json(
+      successResponse(null, {
+        message: result.message,
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /auth/verify-otp
+ */
+export const verifyOTPController = async (req, res, next) => {
+  try {
+    const result = await verifyEmailOTP(
+      req.body.email,
+      req.body.otp,
+      req.ip,
+      req.get('user-agent')
+    );
+
+    return res.status(200).json(
+      successResponse(null, {
+        message: result.message,
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /auth/resend-otp
+ */
+export const resendOTPController = async (req, res, next) => {
+  try {
+    const result = await resendVerificationOTP(
+      req.body.email,
       req.ip,
       req.get('user-agent')
     );

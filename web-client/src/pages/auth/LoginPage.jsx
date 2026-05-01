@@ -58,6 +58,11 @@ const LoginPage = () => {
           message: errorMessage,
           lockUntil: lockUntil ? new Date(lockUntil) : null,
         });
+      } else if (errorCode === 'EMAIL_NOT_VERIFIED') {
+        toast.error('Please verify your email first.');
+        navigate('/auth/verify-email', {
+          state: { email: data.email },
+        });
       } else if (errorCode === 'INVALID_CREDENTIALS') {
         const remainingAttempts = errorData?.remainingAttempts;
         if (remainingAttempts !== undefined && remainingAttempts <= 2) {

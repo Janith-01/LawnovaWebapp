@@ -64,8 +64,9 @@ const RegisterPage = () => {
       const { confirmPassword, ...registrationData } = data;
 
       await registerUser(registrationData);
-      navigate('/auth/login', {
-        state: { message: 'Registration successful! Please sign in.' }
+      navigate('/auth/verify-email', {
+        state: { email: data.email },
+        replace: true,
       });
     } catch (error) {
       const errorData = error.response?.data?.error;

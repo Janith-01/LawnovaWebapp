@@ -11,6 +11,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
+import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 
 // Student Pages
 import ProfilePage from './pages/student/ProfilePage';
@@ -110,6 +111,14 @@ function App() {
                 element={
                   <GuestRoute>
                     <ResetPasswordPage />
+                  </GuestRoute>
+                }
+              />
+              <Route
+                path="/auth/verify-email"
+                element={
+                  <GuestRoute>
+                    <VerifyEmailPage />
                   </GuestRoute>
                 }
               />

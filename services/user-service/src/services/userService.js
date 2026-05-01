@@ -6,6 +6,8 @@ import { generateRandomToken, hashToken, decodeToken } from '../utils/tokenUtils
 import { validate, changePasswordSchema, updateProfileSchema } from '../utils/validators.js';
 import { ERROR_CODES } from '../utils/responses.js';
 import logger from '../utils/logger.js';
+import config from '../config/index.js';
+import { sendPasswordResetEmail } from '../utils/emailService.js';
 
 /**
  * Get user profile
@@ -133,6 +135,16 @@ export const requestPasswordReset = async (email, ipAddress, userAgent) => {
 
     await passwordResetToken.save();
 
+    // Build reset link and send email
+    const resetLink = `${config.frontendUrl}/auth/reset-password?token=${resetToken}`;
+
+    try {
+      await sendPasswordResetEmail(user.email, resetLink);
+      logger.info('Password reset email sent', { userId: user._id, email });
+    } catch (error) {
+      logger.error('Failed to send password reset email', { userId: user._id, error: error.message });
+    }
+
     // Log action
     await AuditLog.create({
       actorUserId: user._id,
@@ -144,14 +156,6 @@ export const requestPasswordReset = async (email, ipAddress, userAgent) => {
     });
 
     logger.info('Password reset requested', { userId: user._id, email });
-
-    // In production, send email with reset link
-    // email body should contain: ${FRONTEND_URL}/auth/reset-password?token=${resetToken}
-    // For now, just return token for development
-    return {
-      message: 'If an account exists with this email, a password reset link will be sent.',
-      resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined,
-    };
   }
 
   // Always return success

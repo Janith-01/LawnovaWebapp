@@ -94,6 +94,28 @@ export const resetPasswordSchema = Joi.object({
 }).unknown(false);
 
 /**
+ * Verify OTP validation schema
+ */
+export const verifyOTPSchema = Joi.object({
+  email: emailSchema,
+  otp: Joi.string()
+    .length(6)
+    .pattern(/^\d{6}$/)
+    .required()
+    .messages({
+      'string.length': 'OTP must be exactly 6 digits',
+      'string.pattern.base': 'OTP must contain only digits',
+    }),
+}).unknown(false);
+
+/**
+ * Resend OTP validation schema
+ */
+export const resendOTPSchema = Joi.object({
+  email: emailSchema,
+}).unknown(false);
+
+/**
  * Admin update user validation schema
  */
 export const adminUpdateUserSchema = Joi.object({

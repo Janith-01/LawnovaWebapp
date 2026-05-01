@@ -7,6 +7,8 @@ import {
   logoutController,
   forgotPasswordController,
   resetPasswordController,
+  verifyOTPController,
+  resendOTPController,
 } from '../controllers/authController.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 import { authLimiter, passwordResetLimiter } from '../middleware/rateLimiter.js';
@@ -17,6 +19,8 @@ import {
   refreshSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  verifyOTPSchema,
+  resendOTPSchema,
 } from '../utils/validators.js';
 
 const router = express.Router();
@@ -38,6 +42,18 @@ router.post('/login', authLimiter, validate(loginSchema), loginController);
  * Authenticate user via Google OAuth and return tokens
  */
 router.post('/google', authLimiter, googleLoginController);
+
+/**
+ * POST /auth/verify-otp
+ * Verify email with 6-digit OTP code
+ */
+router.post('/verify-otp', authLimiter, validate(verifyOTPSchema), verifyOTPController);
+
+/**
+ * POST /auth/resend-otp
+ * Resend verification OTP email
+ */
+router.post('/resend-otp', authLimiter, validate(resendOTPSchema), resendOTPController);
 
 /**
  * POST /auth/refresh
