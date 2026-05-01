@@ -1,5 +1,5 @@
-/* Google Fonts - Inter (high-legibility sans-serif) */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/* Google Fonts - Open Sans (high-legibility sans-serif) */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -29,9 +29,9 @@
 
   /* Dark mode by default for high-end look */
   body {
-    @apply bg-white text-slate-900 antialiased;
+    @apply bg-white text-slate-900 antialiased font-sans;
     @apply dark:bg-[#0B0E14] dark:text-[#E2E8F0];
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Open Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
     font-feature-settings: "rlig" 1, "calt" 1;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
@@ -44,7 +44,7 @@
   h5,
   h6 {
     @apply font-bold tracking-tight;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Open Sans', sans-serif;
   }
 
   /* Smooth scrolling & Global Custom Scrollbar */

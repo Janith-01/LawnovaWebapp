@@ -100,7 +100,7 @@ export default {
       },
       fontFamily: {
         sans: [
-          'Inter',
+          '"Open Sans"',
           'system-ui',
           '-apple-system',
           'BlinkMacSystemFont',
@@ -111,7 +111,7 @@ export default {
           'sans-serif',
         ],
         display: [
-          'Inter',
+          '"Open Sans"',
           'system-ui',
           'sans-serif',
         ],
