@@ -85,8 +85,17 @@ const LoginPage = () => {
 
   return (
     <AuthLayout
-      title="Welcome back"
-      subtitle="Sign in to continue to your account"
+      title="Welcome Back!"
+      subtitle={
+        <span>
+          Don't have an account?{' '}
+          <Link to="/auth/register" className="font-bold underline text-slate-900 dark:text-white hover:text-blue-600">
+            Create a new account now
+          </Link>
+          <br />
+          it's FREE! Takes less than a minute.
+        </span>
+      }
     >
       {accountLocked && (
         <Alert variant="destructive" className="mb-6">
@@ -105,50 +114,14 @@ const LoginPage = () => {
         </Alert>
       )}
 
-      <div className="mb-6 flex justify-center">
-        <GoogleLogin
-          onSuccess={async (credentialResponse) => {
-            setIsLoading(true);
-            try {
-              await googleLogin(credentialResponse.credential);
-              navigate(from, { replace: true });
-            } catch (error) {
-              const errorMessage = error.response?.data?.error?.message || error.response?.data?.message || 'Google Login failed';
-              toast.error(errorMessage);
-            } finally {
-              setIsLoading(false);
-            }
-          }}
-          onError={() => {
-            toast.error('Google Login failed');
-          }}
-          theme="filled_black"
-          shape="circle"
-          text="continue_with"
-        />
-      </div>
-
-      <div className="relative mb-6">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-slate-200 dark:border-slate-700" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white dark:bg-[#0B0E14] px-2 text-slate-500">
-            Or continue with email
-          </span>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="email">Email Address</Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               id="email"
               type="email"
-              placeholder="name@example.com"
-              className="pl-10 dark:bg-white dark:text-slate-900 dark:border-slate-200"
+              placeholder="Email address"
+              className="px-0 border-0 border-b-2 border-slate-200 dark:border-slate-800 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 dark:focus-visible:border-white bg-transparent text-lg placeholder:text-slate-400"
               {...register('email')}
               error={errors.email?.message}
             />
@@ -156,34 +129,24 @@ const LoginPage = () => {
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
-            <Link
-              to="/auth/forgot-password"
-              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
-            >
-              Forgot password?
-            </Link>
-          </div>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Enter your password"
-              className="pl-10 pr-10 dark:bg-white dark:text-slate-900 dark:border-slate-200"
+              placeholder="Password"
+              className="px-0 pr-10 border-0 border-b-2 border-slate-200 dark:border-slate-800 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 dark:focus-visible:border-white bg-transparent text-lg placeholder:text-slate-400"
               {...register('password')}
               error={errors.password?.message}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
             >
               {showPassword ? (
-                <EyeOff className="h-4 w-4" />
+                <EyeOff className="h-5 w-5" />
               ) : (
-                <Eye className="h-4 w-4" />
+                <Eye className="h-5 w-5" />
               )}
             </button>
           </div>
@@ -191,25 +154,47 @@ const LoginPage = () => {
 
         <Button
           type="submit"
-          className="w-full"
+          className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-lg h-12 text-base font-semibold transition-all mt-4"
           size="lg"
           isLoading={isLoading}
           disabled={!!accountLocked}
         >
-          Sign In
+          Login Now
         </Button>
+
+        <div className="flex justify-center mt-4">
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              setIsLoading(true);
+              try {
+                await googleLogin(credentialResponse.credential);
+                navigate(from, { replace: true });
+              } catch (error) {
+                const errorMessage = error.response?.data?.error?.message || error.response?.data?.message || 'Google Login failed';
+                toast.error(errorMessage);
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            onError={() => {
+              toast.error('Google Login failed');
+            }}
+            theme="outline"
+            shape="rectangular"
+            size="large"
+            width="100%"
+            text="signin_with"
+          />
+        </div>
       </form>
 
-      <div className="mt-6 text-center">
-        <p className="text-sm text-slate-600">
-          Don't have an account?{' '}
-          <Link
-            to="/auth/register"
-            className="font-semibold text-slate-900 hover:underline"
-          >
-            Create one now
-          </Link>
-        </p>
+      <div className="mt-8 flex flex-col items-center gap-4">
+        <Link
+          to="/auth/forgot-password"
+          className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+        >
+          Forget password? <span className="font-bold underline">Click here</span>
+        </Link>
       </div>
     </AuthLayout>
   );
