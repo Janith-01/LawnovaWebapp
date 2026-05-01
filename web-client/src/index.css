@@ -99,17 +99,32 @@
 @layer components {
   /* Auth Input Overrides */
   .auth-input {
-    @apply px-3 border-0 border-b-2 border-slate-200 rounded-none bg-slate-50 text-lg text-slate-900 placeholder-slate-400;
-    outline: none !important;
+    background-color: #f8fafc !important; /* bg-slate-50 */
+    color: #0f172a !important; /* text-slate-900 */
+    border-bottom: 2px solid #e2e8f0 !important; /* border-b-2 border-slate-200 */
+    border-top: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-radius: 0 !important; /* rounded-none */
     box-shadow: none !important;
+    outline: none !important;
+    font-size: 1.125rem !important; /* text-lg */
+    padding-left: 0.75rem !important; /* px-3 */
+    padding-right: 0.75rem !important; /* px-3 */
   }
+  
+  .auth-input.pr-10 {
+    padding-right: 2.5rem !important;
+  }
+
+  .auth-input::placeholder {
+    color: #94a3b8 !important; /* placeholder-slate-400 */
+  }
+
   .auth-input:focus, .auth-input:focus-visible {
-    @apply border-slate-900;
+    border-bottom-color: #0f172a !important; /* border-slate-900 */
     outline: none !important;
     box-shadow: none !important;
-    border-top-width: 0 !important;
-    border-left-width: 0 !important;
-    border-right-width: 0 !important;
   }
 
   /* LAWNOVA Card Styles */
