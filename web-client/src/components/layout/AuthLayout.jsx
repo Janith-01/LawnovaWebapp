@@ -47,9 +47,9 @@ const AuthLayout = ({ children, title, subtitle }) => {
         <div className="w-full max-w-md relative">
           
           <div className="absolute -top-32 left-0 hidden lg:block">
-            <div className="flex items-center gap-2">
-              <Scale className="w-6 h-6 text-slate-900" />
-              <span className="text-xl font-bold text-slate-900">Lawnova</span>
+            <div className="flex items-center gap-3">
+              <Scale className="w-8 h-8 text-slate-900" />
+              <span className="text-2xl font-extrabold text-slate-900 tracking-tight">Lawnova</span>
             </div>
           </div>
 

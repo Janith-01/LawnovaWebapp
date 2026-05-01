@@ -105,7 +105,7 @@ const RegisterPage = () => {
               id="fullName"
               type="text"
               placeholder="Full Name"
-              className="px-0 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 bg-transparent text-lg placeholder:text-slate-400 text-slate-900"
+              className="px-3 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
               {...register('fullName')}
               error={errors.fullName?.message}
             />
@@ -119,7 +119,7 @@ const RegisterPage = () => {
               id="email"
               type="email"
               placeholder="Email address"
-              className="px-0 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 bg-transparent text-lg placeholder:text-slate-400 text-slate-900"
+              className="px-3 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
               {...register('email')}
               error={errors.email?.message}
             />
@@ -133,7 +133,7 @@ const RegisterPage = () => {
               id="password"
               type={showPassword ? 'text' : 'password'}
               placeholder="Password"
-              className="px-0 pr-10 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 bg-transparent text-lg placeholder:text-slate-400 text-slate-900"
+              className="px-3 pr-10 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
               {...register('password')}
               error={errors.password?.message}
             />
@@ -154,7 +154,7 @@ const RegisterPage = () => {
               id="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirm Password"
-              className="px-0 pr-10 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 bg-transparent text-lg placeholder:text-slate-400 text-slate-900"
+              className="px-3 pr-10 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
               {...register('confirmPassword')}
               error={errors.confirmPassword?.message}
             />
@@ -175,7 +175,7 @@ const RegisterPage = () => {
               id="institution"
               type="text"
               placeholder="Institution (Optional)"
-              className="px-0 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 bg-transparent text-lg placeholder:text-slate-400 text-slate-900"
+              className="px-3 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
               {...register('institution')}
               error={errors.institution?.message}
             />
@@ -187,7 +187,7 @@ const RegisterPage = () => {
           <div className="relative">
             <Select
               id="languagePreference"
-              className="px-0 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 bg-transparent text-lg text-slate-900"
+              className="px-3 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 !bg-slate-50 text-lg !text-slate-900"
               {...register('languagePreference')}
               error={errors.languagePreference?.message}
             >

@@ -164,23 +164,21 @@ const ResetPasswordPage = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* Password */}
         <div className="space-y-2">
-          <Label htmlFor="password">New Password</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
               placeholder="Create a strong password"
-              className="pl-10 pr-10"
+              className="px-3 pr-10 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
               {...register('password')}
               error={errors.password?.message}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
 
@@ -212,30 +210,28 @@ const ResetPasswordPage = () => {
 
         {/* Confirm Password */}
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm New Password</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               id="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirm your password"
-              className="pl-10 pr-10"
+              className="px-3 pr-10 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
               {...register('confirmPassword')}
               error={errors.confirmPassword?.message}
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
             >
-              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
         </div>
 
         <Button
           type="submit"
-          className="w-full"
+          className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-lg h-12 text-base font-semibold transition-all mt-4"
           size="lg"
           isLoading={isLoading}
         >
