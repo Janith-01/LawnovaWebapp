@@ -89,7 +89,7 @@ const LoginPage = () => {
       subtitle={
         <span>
           Don't have an account?{' '}
-          <Link to="/auth/register" className="font-bold underline text-slate-900 dark:text-white hover:text-blue-600">
+          <Link to="/auth/register" className="font-bold underline text-slate-900 hover:text-blue-600">
             Create a new account now
           </Link>
           <br />
@@ -121,7 +121,7 @@ const LoginPage = () => {
               id="email"
               type="email"
               placeholder="Email address"
-              className="px-0 border-0 border-b-2 border-slate-200 dark:border-slate-800 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 dark:focus-visible:border-white bg-transparent text-lg placeholder:text-slate-400"
+              className="px-0 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 bg-transparent text-lg placeholder:text-slate-400 text-slate-900"
               {...register('email')}
               error={errors.email?.message}
             />
@@ -134,7 +134,7 @@ const LoginPage = () => {
               id="password"
               type={showPassword ? 'text' : 'password'}
               placeholder="Password"
-              className="px-0 pr-10 border-0 border-b-2 border-slate-200 dark:border-slate-800 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 dark:focus-visible:border-white bg-transparent text-lg placeholder:text-slate-400"
+              className="px-0 pr-10 border-0 border-b-2 border-slate-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 bg-transparent text-lg placeholder:text-slate-400 text-slate-900"
               {...register('password')}
               error={errors.password?.message}
             />
@@ -191,9 +191,9 @@ const LoginPage = () => {
       <div className="mt-8 flex flex-col items-center gap-4">
         <Link
           to="/auth/forgot-password"
-          className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+          className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
         >
-          Forget password? <span className="font-bold underline">Click here</span>
+          Forget password? <span className="font-bold underline text-slate-900">Click here</span>
         </Link>
       </div>
     </AuthLayout>

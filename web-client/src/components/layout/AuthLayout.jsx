@@ -43,24 +43,24 @@ const AuthLayout = ({ children, title, subtitle }) => {
       </div>
 
       {/* Right Panel - Auth Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-white dark:bg-[#0B0E14]">
+      <div className="flex-1 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md relative">
           
           <div className="absolute -top-32 left-0 hidden lg:block">
             <div className="flex items-center gap-2">
-              <Scale className="w-6 h-6 text-slate-900 dark:text-white" />
-              <span className="text-xl font-bold text-slate-900 dark:text-white">Lawnova</span>
+              <Scale className="w-6 h-6 text-slate-900" />
+              <span className="text-xl font-bold text-slate-900">Lawnova</span>
             </div>
           </div>
 
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center gap-2 mb-12">
-            <Scale className="w-8 h-8 text-slate-900 dark:text-white" />
-            <span className="text-2xl font-bold text-slate-900 dark:text-white">Lawnova</span>
+            <Scale className="w-8 h-8 text-slate-900" />
+            <span className="text-2xl font-bold text-slate-900">Lawnova</span>
           </div>
 
           <div className="mb-10">
-            <h2 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">{title}</h2>
+            <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">{title}</h2>
             {subtitle && (
               <p className="text-slate-500 font-medium text-sm mt-3">{subtitle}</p>
             )}
