@@ -13,7 +13,9 @@ const auditLogSchema = new mongoose.Schema(
       required: true,
       enum: [
         'user_registered',
+        'user_registered_google',
         'user_login',
+        'user_login_google',
         'user_logout',
         'password_changed',
         'password_reset_requested',
