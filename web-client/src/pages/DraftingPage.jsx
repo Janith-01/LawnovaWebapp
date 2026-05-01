@@ -424,65 +424,30 @@ const DraftingPage = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      {/* Header */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between pb-6 border-b border-slate-800">
         <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <div
-              className={cn(
-                'flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br shadow-lg',
-                isDarkMode
-                  ? 'from-blue-600 to-sky-500 shadow-blue-900/40'
-                  : 'from-blue-500 to-sky-400 shadow-blue-200/80'
-              )}
-            >
-              <ScrollText className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className={cn('text-2xl font-bold tracking-tight sm:text-3xl', isDarkMode ? 'text-white' : 'text-gray-900')}>
-                Drafting Assistant
-              </h1>
-              <p className={cn('text-sm', isDarkMode ? 'text-slate-400' : 'text-gray-500')}>
-                Generate bilingual Sri Lankan legal drafts for affidavits, contracts, and petitions.
-              </p>
-            </div>
+          <div className="flex items-center gap-2 text-indigo-500 font-semibold text-sm tracking-widest uppercase">
+            <FileText className="w-4 h-4" /> AI TOOL
           </div>
-          <div
-            className={cn(
-              'max-w-3xl rounded-2xl border px-4 py-3 text-sm leading-relaxed',
-              isDarkMode ? 'border-slate-700 bg-slate-800 text-slate-300' : 'border-gray-200 bg-white text-gray-600'
-            )}
-          >
-            Describe the legal document in natural language. The service will validate the prompt first, then generate DOCX and PDF outputs when all required details are present.
-          </div>
+          <h1 className={cn('text-3xl font-bold tracking-tight', isDarkMode ? 'text-white' : 'text-gray-900')} style={{ fontFamily: 'Georgia, serif' }}>
+            Drafting Assistant
+          </h1>
+          <p className={cn('text-sm max-w-2xl', isDarkMode ? 'text-slate-400' : 'text-gray-500')}>
+            Generate bilingual Sri Lankan legal drafts for affidavits, contracts, and petitions. The service will validate the prompt first, then generate DOCX and PDF outputs.
+          </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleGenerate}
-          disabled={isGenerating}
-          className={cn(
-            'inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60',
-            isDarkMode
-              ? 'bg-blue-600 text-white hover:bg-blue-500'
-              : 'bg-blue-600 text-white hover:bg-blue-700'
-          )}
-        >
-          {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {isGenerating ? 'Generating...' : 'Generate Document'}
-        </button>
-      </div>
-
-      <div className="flex justify-end">
         <Link
           to="/history"
           className={cn(
-            'inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-all',
-            isDarkMode ? 'bg-slate-800 text-slate-100 hover:bg-slate-700' : 'bg-white text-gray-900 hover:bg-gray-100',
+            'inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all',
+            isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white' : 'bg-white text-gray-700 hover:bg-gray-50',
             isDarkMode ? 'border border-slate-700' : 'border border-gray-200'
           )}
         >
           <History className="h-4 w-4" />
-          View Draft History
+          History
         </Link>
       </div>
 
@@ -505,78 +470,23 @@ const DraftingPage = () => {
         </section>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <section
-          className={cn(
-            'rounded-3xl border p-5 sm:p-6',
-            isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-gray-200 bg-white'
-          )}
-        >
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <h2 className={cn('text-lg font-semibold', isDarkMode ? 'text-white' : 'text-gray-900')}>
-                Describe the document
-              </h2>
-              <p className={cn('text-sm', isDarkMode ? 'text-slate-400' : 'text-gray-500')}>
-                Include names, NIC numbers, addresses, dates, jurisdiction, and the core legal facts.
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              {selectedExampleKey && (
-                <span
-                  className={cn(
-                    'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]',
-                    isDarkMode ? 'bg-blue-900/50 text-blue-200' : 'bg-blue-100 text-blue-700'
-                  )}
-                >
-                  Selected: {selectedExampleKey}
-                </span>
-              )}
-              <span className={cn('text-xs font-medium', isDarkMode ? 'text-slate-500' : 'text-gray-400')}>
-                {prompt.trim().length}/3000
-              </span>
-            </div>
+      <div className="grid gap-8 lg:grid-cols-[1fr_1.5fr] pt-4">
+        {/* Left Column: Templates & Examples */}
+        <section className="space-y-4">
+          <div>
+            <h2 className={cn('text-base font-semibold', isDarkMode ? 'text-white' : 'text-gray-900')}>
+              Templates & Examples
+            </h2>
+            <p className={cn('text-sm mt-1', isDarkMode ? 'text-slate-400' : 'text-gray-500')}>
+              Click any example to quickly auto-fill the drafting prompt area.
+            </p>
           </div>
 
-          <textarea
-            ref={textareaRef}
-            value={prompt}
-            onChange={(event) => {
-              setPrompt(event.target.value);
-              setSelectedExampleKey(null);
-              resetRefinement();
-              if (validationResult || draftResult) {
-                resetResults();
-              }
-            }}
-            placeholder="Type your affidavit, contract, or petition request here..."
-            className={cn(
-              'min-h-[280px] w-full resize-none rounded-2xl border p-4 text-sm leading-6 outline-none transition-all',
-              isDarkMode
-                ? 'border-slate-600 bg-slate-900 text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30'
-                : 'border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
-            )}
-          />
-        </section>
-
-        <section className="space-y-6">
-          <div
-            className={cn(
-              'rounded-3xl border p-5 sm:p-6',
-              isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-gray-200 bg-white'
-            )}
-          >
-            <div className="mb-4">
-              <h2 className={cn('text-lg font-semibold', isDarkMode ? 'text-white' : 'text-gray-900')}>
-                Example prompts
-              </h2>
-              <p className={cn('text-sm', isDarkMode ? 'text-slate-400' : 'text-gray-500')}>
-                Click an example to auto-fill the drafting prompt.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              {EXAMPLE_PROMPTS.map((example) => (
+          <div className="space-y-3">
+            {EXAMPLE_PROMPTS.map((example) => {
+              const dotColor = example.key === 'AFFIDAVIT' ? 'bg-blue-500' : example.key === 'CONTRACT' ? 'bg-emerald-500' : 'bg-purple-500';
+              
+              return (
                 <button
                   key={example.key}
                   type="button"
@@ -585,34 +495,87 @@ const DraftingPage = () => {
                     'w-full rounded-2xl border p-4 text-left transition-all',
                     selectedExampleKey === example.key
                       ? isDarkMode
-                        ? 'border-blue-500 bg-slate-900 ring-2 ring-blue-500/40'
-                        : 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                        ? 'border-indigo-500 bg-slate-800/50'
+                        : 'border-indigo-500 bg-indigo-50'
                       : isDarkMode
-                      ? 'border-slate-700 bg-slate-900 hover:border-slate-500 hover:bg-slate-900/70'
-                      : 'border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-white'
+                      ? 'border-slate-800 bg-transparent hover:border-slate-700 hover:bg-slate-800/50'
+                      : 'border-gray-200 bg-transparent hover:border-gray-300 hover:bg-gray-50'
                   )}
                 >
-                  <div className="mb-2 flex items-center gap-3">
-                    <div className={cn('h-9 w-9 rounded-xl bg-gradient-to-br', example.accent)} />
-                    <div>
-                      <div className={cn('text-sm font-semibold', isDarkMode ? 'text-white' : 'text-gray-900')}>
-                        {example.title}
-                      </div>
-                      <div className={cn('text-xs uppercase tracking-[0.18em]', isDarkMode ? 'text-slate-500' : 'text-gray-400')}>
-                        {example.key}
-                      </div>
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className={cn('h-2 w-2 rounded-full', dotColor)} />
+                    <div className={cn('text-sm font-semibold', isDarkMode ? 'text-white' : 'text-gray-900')}>
+                      {example.title}
                     </div>
                   </div>
-                  <p className={cn('line-clamp-4 text-sm leading-6', isDarkMode ? 'text-slate-400' : 'text-gray-600')}>
+                  <p className={cn('line-clamp-4 text-sm leading-relaxed', isDarkMode ? 'text-slate-400' : 'text-gray-600')}>
                     {example.prompt}
                   </p>
                 </button>
-              ))}
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Right Column: Document Description */}
+        <section className="flex flex-col h-full space-y-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className={cn('text-base font-semibold', isDarkMode ? 'text-white' : 'text-gray-900')}>
+                Document Description
+              </h2>
+              <p className={cn('text-sm mt-1', isDarkMode ? 'text-slate-400' : 'text-gray-500')}>
+                Include names, NIC numbers, addresses, dates, jurisdiction, and the core legal facts.
+              </p>
+            </div>
+            <div className={cn('text-xs font-medium rounded-full px-3 py-1 whitespace-nowrap self-start sm:self-auto', isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-gray-100 text-gray-500')}>
+              {prompt.trim().length} / 3000 chars
+            </div>
+          </div>
+
+          <div className={cn(
+            'flex flex-col flex-1 rounded-2xl border p-1 relative min-h-[400px]',
+            isDarkMode ? 'border-slate-700 bg-slate-900/50' : 'border-gray-200 bg-white'
+          )}>
+            <textarea
+              ref={textareaRef}
+              value={prompt}
+              onChange={(event) => {
+                setPrompt(event.target.value);
+                setSelectedExampleKey(null);
+                resetRefinement();
+                if (validationResult || draftResult) {
+                  resetResults();
+                }
+              }}
+              placeholder="Type your affidavit, contract, or petition request here... E.g., 'I want to draft a petition for...'"
+              className={cn(
+                'flex-1 w-full resize-none bg-transparent p-4 text-sm leading-6 outline-none transition-all',
+                isDarkMode
+                  ? 'text-slate-100 placeholder:text-slate-600'
+                  : 'text-gray-900 placeholder:text-gray-400'
+              )}
+            />
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 mt-auto gap-3">
+              <div className="flex items-center gap-2 text-xs text-slate-500 pl-2">
+                <AlertCircle className="w-3.5 h-3.5" />
+                Supports English, Sinhala, and Tamil.
+              </div>
+              <button
+                type="button"
+                onClick={handleGenerate}
+                disabled={isGenerating}
+                className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                {isGenerating ? 'Generating...' : 'Generate Document'}
+              </button>
             </div>
           </div>
 
           {activeFeedback && activeFeedback.status !== 'complete' && (
-            <div className={cn('space-y-4 rounded-3xl border p-5 sm:p-6', statusToneClasses(isDarkMode, feedbackConfig?.tone || 'warning'))}>
+            <div className={cn('space-y-4 rounded-3xl border p-5 sm:p-6 mt-4', statusToneClasses(isDarkMode, feedbackConfig?.tone || 'warning'))}>
               <div className="flex items-start gap-3">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                 <div>
