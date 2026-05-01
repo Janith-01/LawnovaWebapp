@@ -104,6 +104,7 @@ services:
       MONGODB_URI: ${MONGODB_URI}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       GEMINI_MODEL: gemini-2.5-flash
+      CORS_ORIGIN: "*"
       AUDIT_SERVICE_URL: http://argument-audit-service:5001
       JWT_SECRET: ${JWT_SECRET}
     depends_on:

@@ -204,7 +204,7 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/trials', trialRoutes);
-app.use('/roleplay', chatRoutes);
+app.use('/api/roleplay', chatRoutes);
 
 // API info endpoint
 app.get('/api', (req, res) => {
