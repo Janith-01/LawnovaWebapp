@@ -99,22 +99,20 @@
 @layer components {
   /* Auth Input Overrides */
   .auth-input {
-    background-color: #f8fafc !important; /* bg-slate-50 */
+    background-color: #ffffff !important; /* bg-white */
     color: #0f172a !important; /* text-slate-900 */
-    border-bottom: 2px solid #e2e8f0 !important; /* border-b-2 border-slate-200 */
-    border-top: 0 !important;
-    border-left: 0 !important;
-    border-right: 0 !important;
-    border-radius: 0.75rem !important; /* rounded-xl */
+    border: 1px solid #e2e8f0 !important; /* full border */
+    border-radius: 9999px !important; /* rounded-full pill shape */
     box-shadow: none !important;
     outline: none !important;
-    font-size: 1.125rem !important; /* text-lg */
-    padding-left: 0.75rem !important; /* px-3 */
-    padding-right: 0.75rem !important; /* px-3 */
+    font-size: 1rem !important; /* text-base for better proportion in pills */
+    padding-left: 1.25rem !important; /* px-5 */
+    padding-right: 1.25rem !important; /* px-5 */
+    height: 3rem !important; /* h-12 */
   }
   
   .auth-input.pr-10 {
-    padding-right: 2.5rem !important;
+    padding-right: 3rem !important;
   }
 
   .auth-input::placeholder {
@@ -122,9 +120,9 @@
   }
 
   .auth-input:focus, .auth-input:focus-visible {
-    border-bottom-color: #0f172a !important; /* border-slate-900 */
+    border-color: #4f46e5 !important; /* border-indigo-600 */
     outline: none !important;
-    box-shadow: none !important;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1) !important; /* subtle indigo ring */
   }
 
   /* LAWNOVA Card Styles */

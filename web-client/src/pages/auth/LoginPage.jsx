@@ -87,14 +87,14 @@ const LoginPage = () => {
     <AuthLayout
       title="Welcome Back!"
       subtitle={
-        <span>
+        <div className="text-slate-500 mb-8">
           Don't have an account?{' '}
-          <Link to="/auth/register" className="font-bold underline text-slate-900 hover:text-blue-600">
+          <Link to="/auth/register" className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline">
             Create a new account now
           </Link>
           <br />
-          it's FREE! Takes less than a minute.
-        </span>
+          <span className="text-sm">it's FREE! Takes less than a minute.</span>
+        </div>
       }
     >
       {accountLocked && (
@@ -154,7 +154,7 @@ const LoginPage = () => {
 
         <Button
           type="submit"
-          className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl h-12 text-base font-semibold transition-all mt-4"
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-full h-12 text-base font-semibold transition-all mt-4"
           size="lg"
           isLoading={isLoading}
           disabled={!!accountLocked}
@@ -180,7 +180,7 @@ const LoginPage = () => {
               toast.error('Google Login failed');
             }}
             theme="outline"
-            shape="rectangular"
+            shape="pill"
             size="large"
             width="100%"
             text="signin_with"
@@ -191,9 +191,9 @@ const LoginPage = () => {
       <div className="mt-8 flex flex-col items-center gap-4">
         <Link
           to="/auth/forgot-password"
-          className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+          className="text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors"
         >
-          Forget password? <span className="font-bold underline text-slate-900">Click here</span>
+          Forget password? <span className="font-semibold underline text-indigo-600 hover:text-indigo-700">Click here</span>
         </Link>
       </div>
     </AuthLayout>

@@ -88,12 +88,12 @@ const RegisterPage = () => {
     <AuthLayout
       title="Create your account"
       subtitle={
-        <span>
+        <div className="text-slate-500 mb-8">
           Already have an account?{' '}
-          <Link to="/auth/login" className="font-bold underline text-slate-900 hover:text-blue-600">
+          <Link to="/auth/login" className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline">
             Sign in now
           </Link>
-        </span>
+        </div>
       }
     >
 
@@ -186,7 +186,7 @@ const RegisterPage = () => {
 
         <Button
           type="submit"
-          className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl h-12 text-base font-semibold transition-all mt-4"
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-full h-12 text-base font-semibold transition-all mt-4"
           size="lg"
           isLoading={isLoading}
         >
@@ -211,7 +211,7 @@ const RegisterPage = () => {
               toast.error('Google Registration failed');
             }}
             theme="outline"
-            shape="rectangular"
+            shape="pill"
             size="large"
             width="100%"
             text="signup_with"

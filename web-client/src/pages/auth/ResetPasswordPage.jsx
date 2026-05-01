@@ -231,7 +231,7 @@ const ResetPasswordPage = () => {
 
         <Button
           type="submit"
-          className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl h-12 text-base font-semibold transition-all mt-4"
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-full h-12 text-base font-semibold transition-all mt-4"
           size="lg"
           isLoading={isLoading}
         >
@@ -242,7 +242,7 @@ const ResetPasswordPage = () => {
       <div className="mt-6 text-center">
         <Link
           to="/auth/login"
-          className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+          className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
         >
           Back to Sign In
         </Link>
