@@ -114,7 +114,7 @@ const ForgotPasswordPage = () => {
               id="email"
               type="email"
               placeholder="Email address"
-              className="px-3 !border-x-0 !border-t-0 !border-b-2 border-slate-200 !rounded-none !shadow-none focus-visible:!ring-0 focus-visible:!outline-none focus-visible:!border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
+              className="auth-input"
               {...register('email')}
               error={errors.email?.message}
             />

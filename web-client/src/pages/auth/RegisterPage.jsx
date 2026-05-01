@@ -105,7 +105,7 @@ const RegisterPage = () => {
               id="fullName"
               type="text"
               placeholder="Full Name"
-              className="px-3 !border-x-0 !border-t-0 !border-b-2 border-slate-200 !rounded-none !shadow-none focus-visible:!ring-0 focus-visible:!outline-none focus-visible:!border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
+              className="auth-input"
               {...register('fullName')}
               error={errors.fullName?.message}
             />
@@ -119,7 +119,7 @@ const RegisterPage = () => {
               id="email"
               type="email"
               placeholder="Email address"
-              className="px-3 !border-x-0 !border-t-0 !border-b-2 border-slate-200 !rounded-none !shadow-none focus-visible:!ring-0 focus-visible:!outline-none focus-visible:!border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
+              className="auth-input"
               {...register('email')}
               error={errors.email?.message}
             />
@@ -133,7 +133,7 @@ const RegisterPage = () => {
               id="password"
               type={showPassword ? 'text' : 'password'}
               placeholder="Password"
-              className="px-3 pr-10 !border-x-0 !border-t-0 !border-b-2 border-slate-200 !rounded-none !shadow-none focus-visible:!ring-0 focus-visible:!outline-none focus-visible:!border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
+              className="auth-input pr-10"
               {...register('password')}
               error={errors.password?.message}
             />
@@ -154,7 +154,7 @@ const RegisterPage = () => {
               id="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirm Password"
-              className="px-3 pr-10 !border-x-0 !border-t-0 !border-b-2 border-slate-200 !rounded-none !shadow-none focus-visible:!ring-0 focus-visible:!outline-none focus-visible:!border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
+              className="auth-input pr-10"
               {...register('confirmPassword')}
               error={errors.confirmPassword?.message}
             />
@@ -175,28 +175,14 @@ const RegisterPage = () => {
               id="institution"
               type="text"
               placeholder="Institution (Optional)"
-              className="px-3 !border-x-0 !border-t-0 !border-b-2 border-slate-200 !rounded-none !shadow-none focus-visible:!ring-0 focus-visible:!outline-none focus-visible:!border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
+              className="auth-input"
               {...register('institution')}
               error={errors.institution?.message}
             />
           </div>
         </div>
 
-        {/* Language Preference */}
-        <div className="space-y-2">
-          <div className="relative">
-            <Select
-              id="languagePreference"
-              className="px-3 !border-x-0 !border-t-0 !border-b-2 border-slate-200 !rounded-none !shadow-none focus-visible:!ring-0 focus-visible:!outline-none focus-visible:!border-slate-900 !bg-slate-50 text-lg !text-slate-900"
-              {...register('languagePreference')}
-              error={errors.languagePreference?.message}
-            >
-              <option value="en">English Language</option>
-              <option value="hi">Hindi Language</option>
-              <option value="bn">Bengali Language</option>
-            </Select>
-          </div>
-        </div>
+
 
         <Button
           type="submit"

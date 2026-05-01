@@ -97,6 +97,20 @@
 }
 
 @layer components {
+  /* Auth Input Overrides */
+  .auth-input {
+    @apply px-3 border-0 border-b-2 border-slate-200 rounded-none bg-slate-50 text-lg text-slate-900 placeholder-slate-400;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  .auth-input:focus, .auth-input:focus-visible {
+    @apply border-slate-900;
+    outline: none !important;
+    box-shadow: none !important;
+    border-top-width: 0 !important;
+    border-left-width: 0 !important;
+    border-right-width: 0 !important;
+  }
 
   /* LAWNOVA Card Styles */
   .card {

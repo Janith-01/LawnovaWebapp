@@ -169,7 +169,7 @@ const ResetPasswordPage = () => {
               id="password"
               type={showPassword ? 'text' : 'password'}
               placeholder="Create a strong password"
-              className="px-3 pr-10 !border-x-0 !border-t-0 !border-b-2 border-slate-200 !rounded-none !shadow-none focus-visible:!ring-0 focus-visible:!outline-none focus-visible:!border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
+              className="auth-input pr-10"
               {...register('password')}
               error={errors.password?.message}
             />
@@ -215,7 +215,7 @@ const ResetPasswordPage = () => {
               id="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirm your password"
-              className="px-3 pr-10 !border-x-0 !border-t-0 !border-b-2 border-slate-200 !rounded-none !shadow-none focus-visible:!ring-0 focus-visible:!outline-none focus-visible:!border-slate-900 !bg-slate-50 text-lg placeholder:text-slate-400 !text-slate-900"
+              className="auth-input pr-10"
               {...register('confirmPassword')}
               error={errors.confirmPassword?.message}
             />
