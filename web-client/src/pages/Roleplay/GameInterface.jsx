@@ -887,20 +887,7 @@ const GameInterface = () => {
                             </div>
                         </div>
 
-                        {/* Win Probability Bar */}
-                        <div className="mt-3 flex items-center gap-3">
-                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Legal Merit</span>
-                            <div className="flex-1 h-2 rounded-full overflow-hidden bg-slate-800/80 backdrop-blur">
-                                <div
-                                    className={`h-full bg-gradient-to-r ${getProbabilityColor()} transition-all duration-700 shadow-lg`}
-                                    style={{ width: `${winProbability}%` }}
-                                />
-                            </div>
-                            <span className={`text-sm font-black font-mono ${winProbability >= 70 ? 'text-green-400' : winProbability >= 40 ? 'text-amber-400' : 'text-red-400'
-                                }`}>
-                                {winProbability.toFixed(0)}%
-                            </span>
-                        </div>
+
                     </div>
                 </div>
             </header>
