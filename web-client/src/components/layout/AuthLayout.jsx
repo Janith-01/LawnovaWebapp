@@ -12,7 +12,9 @@ const AuthLayout = ({ children, title, subtitle }) => {
         
         <div className="relative z-10 flex flex-col justify-center items-center w-full px-12">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-full bg-indigo-600 opacity-90 shadow-[0_0_15px_rgba(79,70,229,0.5)]"></div>
+            <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center opacity-90 shadow-[0_0_15px_rgba(79,70,229,0.5)]">
+              <Scale className="w-6 h-6 text-white" />
+            </div>
             <span className="text-4xl font-bold text-white tracking-tight">Lawnova</span>
           </div>
           
@@ -46,14 +48,18 @@ const AuthLayout = ({ children, title, subtitle }) => {
           
           <div className="absolute -top-16 left-0 hidden lg:block">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-indigo-600"></div>
+              <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
+                <Scale className="w-4 h-4 text-white" />
+              </div>
               <span className="text-2xl font-extrabold text-slate-900 tracking-tight">Lawnova</span>
             </div>
           </div>
 
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center gap-2 mb-12">
-            <div className="w-8 h-8 rounded-full bg-indigo-600"></div>
+            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
+              <Scale className="w-4 h-4 text-white" />
+            </div>
             <span className="text-2xl font-bold text-slate-900">Lawnova</span>
           </div>
 
