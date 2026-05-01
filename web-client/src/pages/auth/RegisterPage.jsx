@@ -87,53 +87,25 @@ const RegisterPage = () => {
   return (
     <AuthLayout
       title="Create your account"
-      subtitle="Join Lawnova and start your legal learning journey"
+      subtitle={
+        <span>
+          Already have an account?{' '}
+          <Link to="/auth/login" className="font-bold underline text-slate-900 dark:text-white hover:text-blue-600">
+            Sign in now
+          </Link>
+        </span>
+      }
     >
-      <div className="mb-6 flex justify-center">
-        <GoogleLogin
-          onSuccess={async (credentialResponse) => {
-            setIsLoading(true);
-            try {
-              await googleLogin(credentialResponse.credential);
-              navigate('/dashboard', { replace: true });
-            } catch (error) {
-              const errorMessage = error.response?.data?.error?.message || error.response?.data?.message || 'Google Registration failed';
-              toast.error(errorMessage);
-            } finally {
-              setIsLoading(false);
-            }
-          }}
-          onError={() => {
-            toast.error('Google Registration failed');
-          }}
-          theme="filled_black"
-          shape="circle"
-          text="signup_with"
-        />
-      </div>
 
-      <div className="relative mb-6">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-slate-200 dark:border-slate-700" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white dark:bg-[#0B0E14] px-2 text-slate-500">
-            Or register with email
-          </span>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Full Name */}
         <div className="space-y-2">
-          <Label htmlFor="fullName">Full Name</Label>
           <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               id="fullName"
               type="text"
-              placeholder="John Doe"
-              className="pl-10 dark:bg-white dark:text-slate-900 dark:border-slate-200"
+              placeholder="Full Name"
+              className="px-0 border-0 border-b-2 border-slate-200 dark:border-slate-800 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 dark:focus-visible:border-white bg-transparent text-lg placeholder:text-slate-400"
               {...register('fullName')}
               error={errors.fullName?.message}
             />
@@ -142,14 +114,12 @@ const RegisterPage = () => {
 
         {/* Email */}
         <div className="space-y-2">
-          <Label htmlFor="email">Email Address</Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               id="email"
               type="email"
-              placeholder="name@example.com"
-              className="pl-10 dark:bg-white dark:text-slate-900 dark:border-slate-200"
+              placeholder="Email address"
+              className="px-0 border-0 border-b-2 border-slate-200 dark:border-slate-800 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 dark:focus-visible:border-white bg-transparent text-lg placeholder:text-slate-400"
               {...register('email')}
               error={errors.email?.message}
             />
@@ -158,62 +128,54 @@ const RegisterPage = () => {
 
         {/* Password */}
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Create a strong password"
-              className="pl-10 pr-10 dark:bg-white dark:text-slate-900 dark:border-slate-200"
+              placeholder="Password"
+              className="px-0 pr-10 border-0 border-b-2 border-slate-200 dark:border-slate-800 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 dark:focus-visible:border-white bg-transparent text-lg placeholder:text-slate-400"
               {...register('password')}
               error={errors.password?.message}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
         </div>
 
         {/* Confirm Password */}
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm Password</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               id="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
-              placeholder="Confirm your password"
-              className="pl-10 pr-10 dark:bg-white dark:text-slate-900 dark:border-slate-200"
+              placeholder="Confirm Password"
+              className="px-0 pr-10 border-0 border-b-2 border-slate-200 dark:border-slate-800 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 dark:focus-visible:border-white bg-transparent text-lg placeholder:text-slate-400"
               {...register('confirmPassword')}
               error={errors.confirmPassword?.message}
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
             >
-              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
         </div>
 
         {/* Institution (Optional) */}
         <div className="space-y-2">
-          <Label htmlFor="institution">
-            Institution <span className="text-slate-400 font-normal">(Optional)</span>
-          </Label>
           <div className="relative">
-            <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               id="institution"
               type="text"
-              placeholder="University or Law School"
-              className="pl-10 dark:bg-white dark:text-slate-900 dark:border-slate-200"
+              placeholder="Institution (Optional)"
+              className="px-0 border-0 border-b-2 border-slate-200 dark:border-slate-800 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 dark:focus-visible:border-white bg-transparent text-lg placeholder:text-slate-400"
               {...register('institution')}
               error={errors.institution?.message}
             />
@@ -222,45 +184,56 @@ const RegisterPage = () => {
 
         {/* Language Preference */}
         <div className="space-y-2">
-          <Label htmlFor="languagePreference">Language Preference</Label>
           <div className="relative">
-            <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
             <Select
               id="languagePreference"
-              className="pl-10 dark:bg-white dark:text-slate-900 dark:border-slate-200"
+              className="px-0 border-0 border-b-2 border-slate-200 dark:border-slate-800 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-slate-900 dark:focus-visible:border-white bg-transparent text-lg text-slate-500"
               {...register('languagePreference')}
               error={errors.languagePreference?.message}
             >
-              <option value="en">English</option>
-              <option value="hi">Hindi</option>
-              <option value="bn">Bengali</option>
+              <option value="en">English Language</option>
+              <option value="hi">Hindi Language</option>
+              <option value="bn">Bengali Language</option>
             </Select>
           </div>
         </div>
 
         <Button
           type="submit"
-          className="w-full mt-6"
+          className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-lg h-12 text-base font-semibold transition-all mt-4"
           size="lg"
           isLoading={isLoading}
         >
           Create Account
         </Button>
+
+        <div className="flex justify-center mt-4">
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              setIsLoading(true);
+              try {
+                await googleLogin(credentialResponse.credential);
+                navigate('/dashboard', { replace: true });
+              } catch (error) {
+                const errorMessage = error.response?.data?.error?.message || error.response?.data?.message || 'Google Registration failed';
+                toast.error(errorMessage);
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            onError={() => {
+              toast.error('Google Registration failed');
+            }}
+            theme="outline"
+            shape="rectangular"
+            size="large"
+            width="100%"
+            text="signup_with"
+          />
+        </div>
       </form>
 
-      <div className="mt-6 text-center">
-        <p className="text-sm text-slate-600">
-          Already have an account?{' '}
-          <Link
-            to="/auth/login"
-            className="font-semibold text-slate-900 hover:underline"
-          >
-            Sign in
-          </Link>
-        </p>
-      </div>
-
-      <p className="mt-4 text-xs text-center text-slate-400">
+      <p className="mt-8 text-xs text-center text-slate-400">
         By creating an account, you agree to our{' '}
         <Link to="/terms" className="underline hover:text-slate-600">Terms of Service</Link>
         {' '}and{' '}
