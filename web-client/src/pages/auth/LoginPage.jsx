@@ -154,7 +154,7 @@ const LoginPage = () => {
 
         <Button
           type="submit"
-          className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-lg h-12 text-base font-semibold transition-all mt-4"
+          className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl h-12 text-base font-semibold transition-all mt-4"
           size="lg"
           isLoading={isLoading}
           disabled={!!accountLocked}

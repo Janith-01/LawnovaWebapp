@@ -105,7 +105,7 @@
     border-top: 0 !important;
     border-left: 0 !important;
     border-right: 0 !important;
-    border-radius: 0 !important; /* rounded-none */
+    border-radius: 0.75rem !important; /* rounded-xl */
     box-shadow: none !important;
     outline: none !important;
     font-size: 1.125rem !important; /* text-lg */
