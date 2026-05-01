@@ -179,7 +179,7 @@ verify_roleplay.py
 verify_v22.py
 evaluate_model.py
 test_murder_transcript.txt
-scripts/smoke_accept_invite.mjs
+scripts/
 
 # Gemini / Antigravity agent data
 .gemini/

@@ -49,6 +49,10 @@ export const consultLaw = async (req, res) => {
         // Check API Key before trying to use it
         if (!apiKey) throw new Error("API Key not found in .env");
 
+<<<<<<< Updated upstream
+=======
+        const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+>>>>>>> Stashed changes
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({
             model: "gemini-flash-latest"
@@ -397,17 +401,60 @@ export const generateCase = async (req, res) => {
         await session.save();
         res.status(201).json({ success: true, data: session });
     } catch (error) {
+        const msg = error?.message || '';
+        const status = error?.status || error?.httpErrorCode?.status || null;
+
+        // Log with enough detail to diagnose from container logs
         console.error("[GENERATE-CASE] Error:", {
-            message: error?.message,
-            stack: error?.stack,
-            bodyType: typeof req.body
+            message: msg,
+            status,
+            name: error?.name,
+            stack: error?.stack?.split('\n').slice(0, 5).join(' | ')
         });
+
+        // Quota / rate-limit from Google AI (HTTP 429)
+        if (status === 429 || msg.includes('429') || msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('rate limit')) {
+            return res.status(429).json({
+                success: false,
+                error: "AI quota exceeded",
+                details: "The Gemini API rate limit has been reached. Please try again in a few minutes."
+            });
+        }
+
+        // Invalid model name / bad request from Google AI (HTTP 400)
+        if (status === 400 || msg.includes('400') || msg.toLowerCase().includes('model') || msg.toLowerCase().includes('not found')) {
+            return res.status(502).json({
+                success: false,
+                error: "AI model configuration error",
+                details: msg
+            });
+        }
+
+        // API key missing/invalid
+        if (msg.toLowerCase().includes('api key') || msg.toLowerCase().includes('api_key') || status === 401 || status === 403) {
+            return res.status(502).json({
+                success: false,
+                error: "AI service authentication failed",
+                details: "GEMINI_API_KEY is missing or invalid."
+            });
+        }
+
+        // Mongoose validation error
+        if (error?.name === 'ValidationError') {
+            return res.status(422).json({
+                success: false,
+                error: "Case data validation failed",
+                details: msg
+            });
+        }
+
         res.status(500).json({
             success: false,
             error: "Failed to generate case",
-            details: error?.message
+            details: msg
         });
     }
+
 };
 
 export const advanceDay = async (req, res) => {

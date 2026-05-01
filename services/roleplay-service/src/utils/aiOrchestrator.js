@@ -11,7 +11,12 @@ const genAI = process.env.GEMINI_API_KEY
     ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
     : null;
 
+<<<<<<< Updated upstream
 const GEMINI_MODEL = 'gemini-flash-latest'; // Fast and cheaper model
+=======
+// Use env var first, then fall back to a known-good model name
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+>>>>>>> Stashed changes
 
 const HEARTBEAT_INTERVAL_MS = 30000; // *   - Every 30 seconds of user silence → Director picks next speaker → Actor generates dialogue
 

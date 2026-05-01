@@ -1,5 +1,4 @@
-﻿[dotenv@17.2.3] injecting env (13) from .env -- tip: ΓÜÖ∩╕Å  load multiple .env files with { path: ['.env.local', '.env'] }
-Available Models: {
+{
   "models": [
     {
       "name": "models/gemini-2.5-flash",
