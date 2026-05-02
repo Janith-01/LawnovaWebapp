@@ -23,6 +23,9 @@ import Overview from './views/Overview';
 
 const API_BASE = '/api/judgment';
 
+// Legacy admin console (judgment analytics) kept for reference only.
+// Canonical admin routes are under `src/pages/admin/*` via `/admin/*` in App.jsx.
+
 // --- Components ---
 
 function MetricCard({ title, value, icon: Icon, color }) {

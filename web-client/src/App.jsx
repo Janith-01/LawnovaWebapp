@@ -174,6 +174,7 @@ function App() {
 
               {/* Admin Routes */}
               <Route element={<ProtectedRoute adminOnly><DashboardLayout /></ProtectedRoute>}>
+                <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/users" element={<UserManagement />} />
               </Route>

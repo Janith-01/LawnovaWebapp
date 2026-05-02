@@ -60,8 +60,8 @@ const AdminRoute = ({ children }) => {
 /**
  * GuestRoute - Routes only accessible when NOT logged in
  */
-const GuestRoute = ({ children, redirectTo = '/dashboard' }) => {
-  const { user, loading } = useAuth();
+const GuestRoute = ({ children, redirectTo }) => {
+  const { user, loading, isAdmin } = useAuth();
 
   if (loading) {
     return (
@@ -75,7 +75,7 @@ const GuestRoute = ({ children, redirectTo = '/dashboard' }) => {
   }
 
   if (user) {
-    return <Navigate to={redirectTo} replace />;
+    return <Navigate to={redirectTo || (isAdmin ? '/admin/dashboard' : '/dashboard')} replace />;
   }
 
   return children;

@@ -19,15 +19,15 @@ import {
   ChevronUp,
   Loader2,
   Brain,
-  FileText
+  FileText,
+  Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import mockTrialService from '@/services/mockTrialService';
 
-// Top navigation items
-const navItems = [
+const studentNavItems = [
   { name: 'Home', href: '/dashboard', icon: LayoutDashboard, color: 'purple' },
   { name: 'New Trial', href: '/mock-trials/create', icon: Plus, color: 'green' },
   { name: 'AI Courtroom', href: '/roleplay', icon: Sparkles, color: 'amber' },
@@ -36,10 +36,16 @@ const navItems = [
 ];
 
 const Sidebar = ({ isOpen, onClose }) => {
-  const { logout } = useAuth();
+  const { logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useTheme();
   const [showRecentSessions, setShowRecentSessions] = useState(true);
+  const navItems = isAdmin
+    ? [
+      { name: 'Admin Home', href: '/admin/dashboard', icon: LayoutDashboard, color: 'purple' },
+      { name: 'User Management', href: '/admin/users', icon: Users, color: 'indigo' },
+    ]
+    : studentNavItems;
 
   // Fetch recent sessions
   const { data, isLoading } = useQuery({
@@ -56,7 +62,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate('/auth/login');
   };
 
   const formatDate = (date) => {
@@ -246,7 +252,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* Bottom Actions */}
         <div className={cn("p-4 border-t shrink-0", isDarkMode ? "border-slate-700" : "border-gray-200")}>
           <NavLink
-            to="/settings"
+            to={isAdmin ? '/admin/dashboard' : '/settings'}
             className={cn(
               "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors",
               isDarkMode
@@ -255,7 +261,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             )}
           >
             <Settings className={cn("w-5 h-5 mr-3", isDarkMode ? "text-slate-400" : "text-gray-500")} />
-            Settings
+            {isAdmin ? 'Admin Dashboard' : 'Settings'}
           </NavLink>
           <button
             className={cn(
