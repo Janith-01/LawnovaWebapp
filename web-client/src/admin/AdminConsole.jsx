@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
     LayoutDashboard,
@@ -20,11 +21,11 @@ import Acts from './views/Acts';
 import OCRPipeline from './views/OCRPipeline';
 import SegmentationPipeline from './views/SegmentationPipeline';
 import Overview from './views/Overview';
+import UserManagement from '../pages/admin/UserManagement';
 
 const API_BASE = '/api/judgment';
 
-// Legacy admin console (judgment analytics) kept for reference only.
-// Canonical admin routes are under `src/pages/admin/*` via `/admin/*` in App.jsx.
+// Canonical admin console used by `/admin/*` routes in App.jsx.
 
 // --- Components ---
 
@@ -169,11 +170,42 @@ const BookIcon = (props) => (
 // --- Layout ---
 
 export default function AdminConsole() {
-    const [view, setView] = useState('overview');
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const routeToView = useMemo(() => ({
+        '/admin/dashboard': 'overview',
+        '/admin/users': 'users',
+    }), []);
+
+    const viewToRoute = useMemo(() => ({
+        overview: '/admin/dashboard',
+        users: '/admin/users',
+        supremecourt: '/admin/dashboard',
+        appealcourt: '/admin/dashboard',
+        acts: '/admin/dashboard',
+        ocr: '/admin/dashboard',
+        segmentation: '/admin/dashboard',
+        playground: '/admin/dashboard',
+    }), []);
+
+    const [view, setView] = useState(routeToView[location.pathname] || 'overview');
+
+    useEffect(() => {
+        setView(routeToView[location.pathname] || 'overview');
+    }, [location.pathname, routeToView]);
+
+    const handleNavChange = (id) => {
+        setView(id);
+        const targetRoute = viewToRoute[id] || '/admin/dashboard';
+        if (location.pathname !== targetRoute) {
+            navigate(targetRoute);
+        }
+    };
 
     const NavItem = ({ id, label, icon: Icon }) => (
         <button
-            onClick={() => setView(id)}
+            onClick={() => handleNavChange(id)}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${view === id ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'
                 }`}
         >
@@ -195,6 +227,7 @@ export default function AdminConsole() {
 
                 <nav className="flex-1 p-4 space-y-2">
                     <NavItem id="overview" label="Overview" icon={LayoutDashboard} />
+                    <NavItem id="users" label="User Management" icon={Users} />
                     <NavItem id="supremecourt" label="Supreme Court" icon={Scale} />
                     <NavItem id="appealcourt" label="Appeal Court" icon={Scale} />
                     <NavItem id="acts" label="Government Acts" icon={BookIcon} />
@@ -220,6 +253,7 @@ export default function AdminConsole() {
 
                 <div className="p-8 max-w-7xl mx-auto">
                     {view === 'overview' && <Overview />}
+                    {view === 'users' && <UserManagement />}
                     {view === 'supremecourt' && <SupremeCourt />}
                     {view === 'appealcourt' && <AppealCourt />}
                     {view === 'acts' && <Acts />}

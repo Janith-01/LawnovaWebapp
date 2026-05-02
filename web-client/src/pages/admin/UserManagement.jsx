@@ -21,6 +21,9 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
+// Deprecated as a standalone route page: retained for rollback/reference only.
+// Canonical admin UI is `src/admin/AdminConsole.jsx` mounted on `/admin/*`.
+
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);

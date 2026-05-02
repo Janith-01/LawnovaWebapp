@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Users, UserCheck, UserX, Activity } from 'lucide-react';
 import api from '@/services/api';
 
+// Deprecated from active routing: retained for rollback/reference only.
+// Canonical admin UI is `src/admin/AdminConsole.jsx` mounted on `/admin/*`.
+
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalUsers: 0,

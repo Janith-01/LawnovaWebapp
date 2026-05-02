@@ -36,9 +36,8 @@ import JudgmentPrediction from './pages/JudgmentPrediction';
 import DraftingPage from './pages/DraftingPage';
 import HistoryPage from './pages/HistoryPage';
 
-// Admin Pages
-import AdminDashboard from './pages/admin/AdminDashboard';
-import UserManagement from './pages/admin/UserManagement';
+// Canonical Admin Console
+import AdminConsole from './admin/AdminConsole';
 
 // Layouts & Route Guards
 import { ProtectedRoute, GuestRoute } from './routes/ProtectedRoute';
@@ -175,8 +174,8 @@ function App() {
               {/* Admin Routes */}
               <Route element={<ProtectedRoute adminOnly><DashboardLayout /></ProtectedRoute>}>
                 <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                <Route path="/admin/users" element={<UserManagement />} />
+                <Route path="/admin/dashboard" element={<AdminConsole />} />
+                <Route path="/admin/users" element={<AdminConsole />} />
               </Route>
 
               {/* Root redirect */}
