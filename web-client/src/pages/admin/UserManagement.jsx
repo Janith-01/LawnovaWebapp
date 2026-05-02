@@ -39,7 +39,9 @@ const UserManagement = () => {
     setLoading(true);
     try {
       const response = await api.get('/api/admin/users');
-      setUsers(response.data.data.users || []);
+      const payload = response?.data?.data;
+      const users = Array.isArray(payload) ? payload : (payload?.users || []);
+      setUsers(users);
       toast.success('Users loaded successfully');
     } catch (error) {
       toast.error(error.response?.data?.error?.message || 'Failed to fetch users');

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '@/context/AuthContext';
 import {
     LayoutDashboard,
     Users,
@@ -173,6 +174,7 @@ const BookIcon = (props) => (
 export default function AdminConsole() {
     const location = useLocation();
     const navigate = useNavigate();
+    const { logout } = useAuth();
 
     const routeToView = useMemo(() => ({
         '/admin/dashboard': 'overview',
@@ -202,6 +204,11 @@ export default function AdminConsole() {
         if (location.pathname !== targetRoute) {
             navigate(targetRoute);
         }
+    };
+
+    const handleLogout = async () => {
+        await logout();
+        navigate('/auth/login');
     };
 
     const NavItem = ({ id, label, icon: Icon }) => (
@@ -238,6 +245,12 @@ export default function AdminConsole() {
                 </nav>
 
                 <div className="p-4 border-t border-slate-100">
+                    <button
+                        onClick={handleLogout}
+                        className="w-full mb-3 flex items-center justify-center rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                        Logout
+                    </button>
                     <div className="flex items-center space-x-3 text-slate-400 text-xs">
                         <Server className="w-4 h-4" />
                         <span>v1.0.0-beta</span>

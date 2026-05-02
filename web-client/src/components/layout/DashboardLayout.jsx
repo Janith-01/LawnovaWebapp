@@ -13,10 +13,12 @@ const DashboardLayout = () => {
   return (
     <div className={`flex min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
       {/* Sidebar */}
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
+      {!isAdminRoute && (
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      )}
 
       {/* Main Content Container */}
       <div className="flex-1 flex flex-col min-w-0">
