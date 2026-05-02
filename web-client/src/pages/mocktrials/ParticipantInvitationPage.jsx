@@ -358,7 +358,7 @@ const ParticipantInvitationPage = () => {
     const { data: directoryData, isLoading: directoryLoading } = useQuery({
         queryKey: ['userDirectory', searchQuery, filterType, participantEmails.join(',')],
         queryFn: () => mockTrialService.searchUsers(searchQuery, filterType, 20, participantEmails),
-        enabled: searchQuery.trim().length >= 2,
+        enabled: true, // Show all users by default
         staleTime: 30000, // Cache for 30 seconds
     });
 
@@ -528,11 +528,6 @@ const ParticipantInvitationPage = () => {
                         <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
                             {directoryLoading ? (
                                 <DirectorySkeleton />
-                            ) : searchQuery.trim().length < 2 ? (
-                                <div className="text-center py-8 text-slate-500">
-                                    <Search className="w-10 h-10 mx-auto mb-2 text-slate-700" />
-                                    <p>Type at least 2 characters to search users</p>
-                                </div>
                             ) : filteredDirectory.length === 0 ? (
                                 <div className="text-center py-8 text-slate-500">
                                     <User className="w-10 h-10 mx-auto mb-2 text-slate-700" />

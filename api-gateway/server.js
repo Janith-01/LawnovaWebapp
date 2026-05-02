@@ -399,6 +399,7 @@ const userServiceProxy = createProxyMiddleware({
 
     // Inject headers from JWT (using user-id format for consistency)
     if (req.user) {
+      console.log(`[Gateway] Injecting user-id header for User Service: ${req.user.id}`);
       proxyReq.setHeader('user-id', req.user.id);
       proxyReq.setHeader('user-role', req.user.role);
     }
@@ -439,7 +440,7 @@ const mocktrialServiceProxy = createProxyMiddleware({
 
     // Inject auth headers (using lowercase without x- prefix as mocktrial-service expects)
     if (req.user) {
-      console.log(`[Gateway] Injecting auth headers for ${req.user.id} (${req.user.role})`);
+      console.log(`[Gateway] Injecting auth headers for ${req.user.id} (${req.user.role}) - Email: ${req.user.email}`);
       proxyReq.setHeader('user-id', req.user.id);
       proxyReq.setHeader('user-role', req.user.role);
       if (req.user.email) {

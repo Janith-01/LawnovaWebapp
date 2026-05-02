@@ -96,13 +96,8 @@ export const searchUsers = async (req, res, next) => {
   try {
     const { q = '', type = 'all', limit = 20, excludeEmails = '' } = req.query;
     const currentUserId = req.headers['user-id'] || req.user?.id;
-    const normalizedQuery = String(q).trim();
+    const normalizedQuery = q ? String(q).trim() : '';
     const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 50);
-
-    // Avoid returning broad user lists when no meaningful search term is provided.
-    if (normalizedQuery.length < 2) {
-      return res.status(200).json(successResponse({ users: [] }));
-    }
 
     const excludedEmailList = Array.isArray(excludeEmails)
       ? excludeEmails
@@ -121,12 +116,14 @@ export const searchUsers = async (req, res, next) => {
       searchQuery._id = { $ne: currentUserId };
     }
 
-    // Add text search
-    searchQuery.$or = [
-      { fullName: { $regex: normalizedQuery, $options: 'i' } },
-      { email: { $regex: normalizedQuery, $options: 'i' } },
-      { 'profile.department': { $regex: normalizedQuery, $options: 'i' } },
-    ];
+    // Add text search if query is provided
+    if (normalizedQuery) {
+      searchQuery.$or = [
+        { fullName: { $regex: normalizedQuery, $options: 'i' } },
+        { email: { $regex: normalizedQuery, $options: 'i' } },
+        { 'profile.department': { $regex: normalizedQuery, $options: 'i' } },
+      ];
+    }
 
     // Filter by role type
     if (type === 'student') {
