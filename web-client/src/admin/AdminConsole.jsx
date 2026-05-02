@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
     LayoutDashboard,
+    Users,
     Workflow,
     Play,
     Database,
