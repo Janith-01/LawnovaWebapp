@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   Scale,
@@ -38,9 +38,12 @@ const studentNavItems = [
 const Sidebar = ({ isOpen, onClose }) => {
   const { logout, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isDarkMode, toggleTheme } = useTheme();
   const [showRecentSessions, setShowRecentSessions] = useState(true);
-  const navItems = isAdmin
+  const inAdminRoute = location.pathname.startsWith('/admin');
+  const showAdminNav = isAdmin && inAdminRoute;
+  const navItems = showAdminNav
     ? [
       { name: 'Admin Home', href: '/admin/dashboard', icon: LayoutDashboard, color: 'purple' },
       { name: 'User Management', href: '/admin/users', icon: Users, color: 'indigo' },
@@ -252,7 +255,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* Bottom Actions */}
         <div className={cn("p-4 border-t shrink-0", isDarkMode ? "border-slate-700" : "border-gray-200")}>
           <NavLink
-            to={isAdmin ? '/admin/dashboard' : '/settings'}
+            to={showAdminNav ? '/admin/dashboard' : '/settings'}
             className={cn(
               "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors",
               isDarkMode
@@ -261,7 +264,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             )}
           >
             <Settings className={cn("w-5 h-5 mr-3", isDarkMode ? "text-slate-400" : "text-gray-500")} />
-            {isAdmin ? 'Admin Dashboard' : 'Settings'}
+            {showAdminNav ? 'Admin Dashboard' : 'Settings'}
           </NavLink>
           <button
             className={cn(
