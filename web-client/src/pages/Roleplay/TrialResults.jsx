@@ -282,7 +282,7 @@ const ArgumentCard = ({ arg, type, index }) => {
                     <SparkleIcon /> Model Reasoning
                 </h4>
                 <p className="text-sm text-slate-300 leading-relaxed print:text-gray-700">
-                    {arg.reason}
+                    {arg.reason || 'Model reasoning unavailable for this argument.'}
                 </p>
             </div>
         </motion.div>
