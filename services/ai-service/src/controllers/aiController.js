@@ -4,6 +4,7 @@ import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts
 import { createToolCallingAgent, AgentExecutor } from "@langchain/classic/agents";
 import dotenv from 'dotenv';
 import axios from 'axios';
+import fs from 'fs/promises';
 import transcriptIngestion from '../services/transcriptIngestionService.js';
 import { cleanLegalTranscript } from '../utils/cleanLegalTranscript.js';
 
@@ -287,44 +288,54 @@ export const handleVoiceInput = async (req, res) => {
             });
         }
 
-        if (!sessionId || turnNumber === '' || turnNumber === null) {
-            return res.status(400).json({
+        const groqApiKey = process.env.GROQ_API_KEY;
+        if (!groqApiKey) {
+            return res.status(503).json({
                 success: false,
-                error: 'sessionId and turnNumber are required'
+                error: 'Voice transcription service is not configured.'
             });
         }
 
-        const transcript = String(rawTranscript || '').trim();
-        const cleanedText = cleanLegalTranscript(transcript);
-        const finalText = cleanedText || transcript || '[Voice input captured: transcript unavailable]';
-
-        const roleplayUrl =
-            process.env.ROLEPLAY_CHAT_URL ||
-            'http://roleplay-service:10005/api/roleplay/chat';
-
-        let aiResponse = null;
-        let aiSpeaker = null;
-        let aiSpeakerRole = null;
+        const localTranscript = String(rawTranscript || '').trim();
+        let groqTranscript = '';
 
         try {
-            const roleplayResponse = await axios.post(
-                roleplayUrl,
-                {
-                    message: finalText,
-                    sessionId,
-                    turnNumber,
-                    source: 'voice-input'
-                },
-                { timeout: 30000 }
-            );
+            const audioBuffer = await fs.readFile(audioFile.path);
+            const formData = new FormData();
+            const audioBlob = new Blob([audioBuffer], { type: audioFile.mimetype || 'audio/webm' });
 
-            const payload = roleplayResponse?.data?.data || {};
-            aiResponse = payload.ai_reply || null;
-            aiSpeaker = payload.speaker || null;
-            aiSpeakerRole = payload.speakerRole || null;
-        } catch (roleplayError) {
-            console.error('[AI Service] voice-input roleplay handoff failed:', roleplayError.message);
+            formData.append('file', audioBlob, audioFile.originalname || 'voice.webm');
+            formData.append('model', 'whisper-large-v3');
+            formData.append('language', 'en');
+
+            const groqRes = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${groqApiKey}`
+                },
+                body: formData
+            });
+
+            const groqData = await groqRes.json().catch(() => ({}));
+            if (!groqRes.ok) {
+                const errMsg = groqData?.error?.message || `Groq transcription failed (${groqRes.status})`;
+                throw new Error(errMsg);
+            }
+
+            groqTranscript = String(groqData?.text || '').trim();
+        } catch (transcriptionError) {
+            console.error('[AI Service] voice-input transcription error:', transcriptionError.message);
+            if (!localTranscript) {
+                return res.status(502).json({
+                    success: false,
+                    error: 'Voice transcription failed. Please try again.'
+                });
+            }
         }
+
+        const transcript = groqTranscript || localTranscript;
+        const cleanedText = cleanLegalTranscript(transcript);
+        const finalText = cleanedText || transcript || '[Voice input captured: transcript unavailable]';
 
         return res.json({
             success: true,
@@ -333,20 +344,13 @@ export const handleVoiceInput = async (req, res) => {
                 cleanedText: cleanedText || finalText,
                 cleanedTranscript: cleanedText || finalText,
                 finalText,
-                rawTranscript: transcript,
+                rawTranscript: localTranscript,
                 audioLogPath: audioFile.path,
                 sessionId,
                 turnNumber,
-                aiResponse,
-                aiSpeaker,
-                aiSpeakerRole,
-                notes: aiResponse
-                    ? (cleanedText
-                        ? 'Voice input cleaned and forwarded to roleplay loop.'
-                        : 'Voice input forwarded with fallback text because transcript was unavailable.')
-                    : (cleanedText
-                        ? 'Voice input cleaned and logged; roleplay handoff unavailable.'
-                        : 'Audio logged; transcript unavailable and roleplay handoff unavailable.')
+                notes: cleanedText
+                    ? 'Audio transcribed via secure backend and cleaned for legal context.'
+                    : 'Audio captured, but transcript is unavailable.'
             }
         });
     } catch (error) {

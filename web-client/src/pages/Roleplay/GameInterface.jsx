@@ -22,14 +22,14 @@ import {
     Clock,
     Calendar,
     Mic,
-    MicOff,
     Volume2,
     FolderOpen,
     ChevronRight,
     X,
     StopCircle,
     FastForward,
-    BarChart3
+    BarChart3,
+    Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '../../context/ThemeContext';
@@ -62,12 +62,10 @@ const GameInterface = () => {
     const [currentSpeakerName, setCurrentSpeakerName] = useState('Judge Dissanayake');
     const [isObjectionPending, setIsObjectionPending] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
-    const recognitionRef = useRef(null);
+    const [micLoading, setMicLoading] = useState(false);
     const mediaRecorderRef = useRef(null);
     const mediaStreamRef = useRef(null);
     const audioChunksRef = useRef([]);
-    const liveTranscriptRef = useRef('');
-    const stopHandledRef = useRef(false);
     const socketRef = useRef(null);
     const { isDarkMode } = useTheme();
 
@@ -319,165 +317,98 @@ const GameInterface = () => {
 
         return () => clearInterval(syncInterval);
     }, [sessionId]);
-    const uploadVoiceInput = async () => {
-        const rawTranscript = liveTranscriptRef.current.trim();
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const hasAudio = audioBlob.size > 0;
-
-        if (!hasAudio && rawTranscript) {
-            setInputText(rawTranscript);
+    const handleVoiceInput = async () => {
+        if (isRecording) {
+            mediaRecorderRef.current?.stop();
+            setIsRecording(false);
             return;
         }
-        if (!rawTranscript) {
-            toast.warning('Transcript unavailable, sending audio only.');
-        }
 
-        const audioFile = new File([audioBlob], `voice-${Date.now()}.webm`, { type: 'audio/webm' });
-        const formData = new FormData();
-        formData.append('audioFile', audioFile);
-        formData.append('rawTranscript', rawTranscript);
-        formData.append('sessionId', sessionId || '');
-        formData.append('turnNumber', String((turnCount || 0) + 1));
-
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || window.location.origin}/api/ai/voice-input`, {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json().catch(() => ({}));
-
-            if (!response.ok || !data?.success) {
-                if (rawTranscript) setInputText(rawTranscript);
-                toast.error(data?.error || `Voice processing failed (${response.status}).`);
-                return;
-            }
-
-            const transcript = data?.data?.finalText || data?.data?.cleanedText || data?.data?.cleanedTranscript || data?.data?.transcript || rawTranscript;
-            if (transcript) {
-                setInputText(transcript);
-            }
-            toast.success('Voice captured. Review and send your argument.');
-        } catch (error) {
-            if (rawTranscript) setInputText(rawTranscript);
-            const apiMessage = error?.response?.data?.error || error?.message;
-            toast.error(apiMessage ? `Voice upload failed: ${apiMessage}` : 'Network error while uploading voice input.');
-        }
-    };
-
-    const finalizeRecording = async () => {
-        if (stopHandledRef.current) return;
-        stopHandledRef.current = true;
-        setIsRecording(false);
-        await uploadVoiceInput();
-    };
-
-    const stopRecording = () => {
-        if (!isRecording) return;
-
-        try {
-            if (recognitionRef.current) {
-                recognitionRef.current.onend = null;
-                recognitionRef.current.stop();
-            }
-        } catch (error) {
-            // no-op
-        }
-
-        try {
-            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-                mediaRecorderRef.current.stop();
-            }
-        } catch (error) {
-            // no-op
-        }
-    };
-
-    const startRecording = async () => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            toast.error('Speech recognition is not supported in this browser.');
-            return;
-        }
         if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
             toast.error('Audio recording is not supported in this browser.');
             return;
         }
 
-        audioChunksRef.current = [];
-        liveTranscriptRef.current = '';
-        stopHandledRef.current = false;
-        setInputText('');
-
         try {
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'en-US';
-            recognition.continuous = false;
-            recognition.interimResults = true;
-
-            recognition.onresult = (event) => {
-                const parts = [];
-                for (let i = 0; i < event.results.length; i++) {
-                    parts.push(event.results[i][0].transcript);
-                }
-                const transcript = parts.join(' ').trim();
-                liveTranscriptRef.current = transcript;
-                setInputText(transcript);
-            };
-
-            recognition.onerror = (event) => {
-                toast.error(`Mic error: ${event.error}`);
-                stopRecording();
-            };
-
-            recognition.onend = () => {
-                stopRecording();
-            };
-
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaStreamRef.current = stream;
 
-            const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-            recorder.ondataavailable = (event) => {
+            const mediaRecorder = new MediaRecorder(stream);
+            mediaRecorderRef.current = mediaRecorder;
+            audioChunksRef.current = [];
+
+            mediaRecorder.ondataavailable = (event) => {
                 if (event.data && event.data.size > 0) {
                     audioChunksRef.current.push(event.data);
                 }
             };
-            recorder.onstop = async () => {
+
+            mediaRecorder.onstop = async () => {
                 if (mediaStreamRef.current) {
                     mediaStreamRef.current.getTracks().forEach((track) => track.stop());
                     mediaStreamRef.current = null;
                 }
-                await finalizeRecording();
+
+                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                if (audioBlob.size === 0) {
+                    toast.warning('No speech detected. Please try again.');
+                    return;
+                }
+
+                setMicLoading(true);
+                toast.info('Transcribing audio...');
+
+                try {
+                    const formData = new FormData();
+                    formData.append('audioFile', audioBlob, 'voice.webm');
+                    formData.append('rawTranscript', '');
+                    formData.append('sessionId', sessionId || '');
+                    formData.append('turnNumber', String((turnCount || 0) + 1));
+
+                    const apiBase = import.meta.env.VITE_API_BASE_URL || window.location.origin;
+                    const voiceRes = await fetch(`${apiBase}/api/ai/voice-input`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const voiceData = await voiceRes.json().catch(() => ({}));
+                    if (!voiceRes.ok || !voiceData?.success) {
+                        throw new Error(voiceData?.error || `Voice transcription failed (${voiceRes.status})`);
+                    }
+
+                    const transcript = String(
+                        voiceData?.data?.finalText ||
+                        voiceData?.data?.cleanedText ||
+                        voiceData?.data?.cleanedTranscript ||
+                        voiceData?.data?.transcript ||
+                        ''
+                    ).trim();
+
+                    if (transcript) {
+                        setInputText(transcript);
+                        toast.success('Voice captured!');
+                    } else {
+                        toast.warning('No speech detected. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Voice transcription error:', error);
+                    toast.error(`Voice error: ${error.message}`);
+                } finally {
+                    setMicLoading(false);
+                }
             };
 
-            recognitionRef.current = recognition;
-            mediaRecorderRef.current = recorder;
-
+            mediaRecorder.start();
             setIsRecording(true);
-            recorder.start();
-            recognition.start();
+            toast.info('Recording... tap mic to stop.');
         } catch (error) {
-            console.error('Mic start failed:', error);
-            setIsRecording(false);
-            toast.error('Unable to start microphone recording.');
-        }
-    };
-
-    const toggleRecording = () => {
-        if (isRecording) {
-            stopRecording();
-        } else {
-            startRecording();
+            console.error('Mic access error:', error);
+            toast.error('Microphone access denied or unavailable.');
         }
     };
 
     useEffect(() => {
         return () => {
-            try {
-                if (recognitionRef.current) recognitionRef.current.stop();
-            } catch (error) {
-                // no-op
-            }
             try {
                 if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
                     mediaRecorderRef.current.stop();
@@ -1103,15 +1034,15 @@ const GameInterface = () => {
                             ) : (
                                 <div className="flex gap-3">
                                     <button
-                                        onClick={toggleRecording}
-                                        disabled={isLoading}
+                                        onClick={handleVoiceInput}
+                                        disabled={isLoading || micLoading}
                                         className={`px-4 rounded-2xl border-2 transition-all flex items-center justify-center ${isRecording
-                                            ? 'text-red-500 animate-pulse bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.5)] border-red-500/50'
+                                            ? 'text-white bg-red-500 animate-pulse border-red-500'
                                             : 'bg-slate-900/50 border-slate-700/50 text-slate-500 hover:text-purple-400 hover:bg-purple-500/10'
                                             }`}
                                         title={isRecording ? 'Stop recording' : 'Start recording'}
                                     >
-                                        {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+                                        {micLoading ? <Loader2 size={18} className="animate-spin" /> : <Mic size={18} />}
                                     </button>
                                     <div className="flex-1 relative">
                                         <input
