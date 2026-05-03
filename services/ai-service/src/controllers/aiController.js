@@ -296,13 +296,7 @@ export const handleVoiceInput = async (req, res) => {
 
         const transcript = String(rawTranscript || '').trim();
         const cleanedText = cleanLegalTranscript(transcript);
-
-        if (!cleanedText) {
-            return res.status(400).json({
-                success: false,
-                error: 'rawTranscript is required'
-            });
-        }
+        const finalText = cleanedText || transcript || '[Voice input captured: transcript unavailable]';
 
         const roleplayUrl =
             process.env.ROLEPLAY_CHAT_URL ||
@@ -316,7 +310,7 @@ export const handleVoiceInput = async (req, res) => {
             const roleplayResponse = await axios.post(
                 roleplayUrl,
                 {
-                    message: cleanedText,
+                    message: finalText,
                     sessionId,
                     turnNumber,
                     source: 'voice-input'
@@ -335,9 +329,10 @@ export const handleVoiceInput = async (req, res) => {
         return res.json({
             success: true,
             data: {
-                transcript: cleanedText,
-                cleanedText,
-                cleanedTranscript: cleanedText,
+                transcript: finalText,
+                cleanedText: cleanedText || finalText,
+                cleanedTranscript: cleanedText || finalText,
+                finalText,
                 rawTranscript: transcript,
                 audioLogPath: audioFile.path,
                 sessionId,
@@ -346,8 +341,12 @@ export const handleVoiceInput = async (req, res) => {
                 aiSpeaker,
                 aiSpeakerRole,
                 notes: aiResponse
-                    ? 'Voice input cleaned and forwarded to roleplay loop.'
-                    : 'Voice input cleaned and logged; roleplay handoff unavailable.'
+                    ? (cleanedText
+                        ? 'Voice input cleaned and forwarded to roleplay loop.'
+                        : 'Voice input forwarded with fallback text because transcript was unavailable.')
+                    : (cleanedText
+                        ? 'Voice input cleaned and logged; roleplay handoff unavailable.'
+                        : 'Audio logged; transcript unavailable and roleplay handoff unavailable.')
             }
         });
     } catch (error) {

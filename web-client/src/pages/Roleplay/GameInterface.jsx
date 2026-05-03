@@ -328,6 +328,9 @@ const GameInterface = () => {
             setInputText(rawTranscript);
             return;
         }
+        if (!rawTranscript) {
+            toast.warning('Transcript unavailable, sending audio only.');
+        }
 
         const audioFile = new File([audioBlob], `voice-${Date.now()}.webm`, { type: 'audio/webm' });
         const formData = new FormData();
@@ -341,22 +344,23 @@ const GameInterface = () => {
                 method: 'POST',
                 body: formData
             });
-            const data = await response.json();
+            const data = await response.json().catch(() => ({}));
 
-            if (!data?.success) {
+            if (!response.ok || !data?.success) {
                 if (rawTranscript) setInputText(rawTranscript);
-                toast.error(data?.error || 'Voice processing failed.');
+                toast.error(data?.error || `Voice processing failed (${response.status}).`);
                 return;
             }
 
-            const transcript = data?.data?.cleanedTranscript || data?.data?.transcript || rawTranscript;
+            const transcript = data?.data?.finalText || data?.data?.cleanedText || data?.data?.cleanedTranscript || data?.data?.transcript || rawTranscript;
             if (transcript) {
                 setInputText(transcript);
             }
             toast.success('Voice captured. Review and send your argument.');
         } catch (error) {
             if (rawTranscript) setInputText(rawTranscript);
-            toast.error('Network error while uploading voice input.');
+            const apiMessage = error?.response?.data?.error || error?.message;
+            toast.error(apiMessage ? `Voice upload failed: ${apiMessage}` : 'Network error while uploading voice input.');
         }
     };
 
