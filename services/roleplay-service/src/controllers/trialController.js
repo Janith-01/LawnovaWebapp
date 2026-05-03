@@ -601,8 +601,12 @@ export const finalizeTrial = async (req, res) => {
                 validateStatus: (status) => status < 500 // Don't throw for 4xx
             });
 
-            if (auditResponse.data && auditResponse.data.success) {
-                const results = auditResponse.data.results;
+            const auditOk =
+                auditResponse?.data?.success === true ||
+                auditResponse?.data?.status === 'success';
+
+            if (auditOk) {
+                const results = Array.isArray(auditResponse.data.results) ? auditResponse.data.results : [];
                 results.forEach((r) => {
                     auditReport.push({
                         originalText: r.argument,
@@ -613,7 +617,7 @@ export const finalizeTrial = async (req, res) => {
                 });
                 console.log(`[FINALIZE] Audit successful: ${auditReport.length} results received.`);
             } else {
-                throw new Error(auditResponse.data?.message || 'Audit failed');
+                throw new Error(auditResponse?.data?.message || auditResponse?.data?.error || 'Audit failed');
             }
         } catch (auditError) {
             console.error(`[FINALIZE] Audit Service Error: ${auditError.message}`);

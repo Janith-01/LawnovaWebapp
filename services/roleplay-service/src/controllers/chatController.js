@@ -499,8 +499,12 @@ export const completeSession = async (req, res) => {
                 const auditUrl = `${auditBaseUrl}/api/audit-transcript`;
                 const auditResponse = await axios.post(auditUrl, { history: session.history }, { timeout: 120000 });
 
-                if (auditResponse.data?.success) {
-                    const results = auditResponse.data.results;
+                const auditOk =
+                    auditResponse?.data?.success === true ||
+                    auditResponse?.data?.status === 'success';
+
+                if (auditOk) {
+                    const results = Array.isArray(auditResponse.data.results) ? auditResponse.data.results : [];
                     results.forEach((r) => {
                         auditReport.push({
                             originalText: r.argument,
@@ -511,7 +515,7 @@ export const completeSession = async (req, res) => {
                     });
                     console.log(`[COMPLETE] Dual-Model Audit completed: ${results.length} segments analyzed.`);
                 } else {
-                    throw new Error(auditResponse.data?.message || 'Audit failed');
+                    throw new Error(auditResponse?.data?.message || auditResponse?.data?.error || 'Audit failed');
                 }
             }
         } catch (auditError) {
