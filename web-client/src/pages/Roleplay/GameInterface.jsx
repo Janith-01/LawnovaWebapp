@@ -61,11 +61,13 @@ const GameInterface = () => {
     const [currentSpeakerRole, setCurrentSpeakerRole] = useState('Judge');
     const [currentSpeakerName, setCurrentSpeakerName] = useState('Judge Dissanayake');
     const [isObjectionPending, setIsObjectionPending] = useState(false);
-    const [isListening, setIsListening] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
     const recognitionRef = useRef(null);
-    const baseTextRef = useRef('');
-    const latestInputTextRef = useRef(inputText);
-    const retryCountRef = useRef(0);
+    const mediaRecorderRef = useRef(null);
+    const mediaStreamRef = useRef(null);
+    const audioChunksRef = useRef([]);
+    const liveTranscriptRef = useRef('');
+    const stopHandledRef = useRef(false);
     const socketRef = useRef(null);
     const { isDarkMode } = useTheme();
 
@@ -276,21 +278,16 @@ const GameInterface = () => {
         };
     }, [sessionId]);
 
-    // Keep latest input text in a ref to avoid stale closures in recognition handlers
-    useEffect(() => {
-        latestInputTextRef.current = inputText;
-    }, [inputText]);
-
     // Only microphone capture pauses heartbeat. Typing alone must not reset idle timeout.
     useEffect(() => {
         if (!socketRef.current || !sessionId) return;
 
-        if (isListening) {
+        if (isRecording) {
             socketRef.current.emit('pause-heartbeat', sessionId);
         } else {
             socketRef.current.emit('resume-heartbeat', sessionId);
         }
-    }, [isListening, sessionId]);
+    }, [isRecording, sessionId]);
 
     // Fallback sync for autonomous turns when websocket transport is unstable.
     useEffect(() => {
@@ -322,103 +319,174 @@ const GameInterface = () => {
 
         return () => clearInterval(syncInterval);
     }, [sessionId]);
+    const uploadVoiceInput = async () => {
+        const rawTranscript = liveTranscriptRef.current.trim();
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const hasAudio = audioBlob.size > 0;
 
-    // === SPEECH RECOGNITION INITIALIZATION ===
-    useEffect(() => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            console.warn("Speech recognition not supported in this browser.");
+        if (!hasAudio && rawTranscript) {
+            setInputText(rawTranscript);
             return;
         }
 
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
+        const audioFile = new File([audioBlob], `voice-${Date.now()}.webm`, { type: 'audio/webm' });
+        const formData = new FormData();
+        formData.append('audioFile', audioFile);
+        formData.append('rawTranscript', rawTranscript);
+        formData.append('sessionId', sessionId || '');
+        formData.append('turnNumber', String((turnCount || 0) + 1));
 
-        recognition.onstart = () => {
-            setIsListening(true);
-            baseTextRef.current = latestInputTextRef.current;
-            console.log("🎤 Voice input active...");
-        };
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || window.location.origin}/api/ai/voice-input`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
 
-        recognition.onresult = (event) => {
-            let transcript = '';
-            for (let i = 0; i < event.results.length; i++) {
-                transcript += event.results[i][0].transcript;
-            }
-            // Real-time transcript update
-            setInputText(baseTextRef.current + (baseTextRef.current ? ' ' : '') + transcript);
-        };
-
-        recognition.onerror = (event) => {
-            // "no-speech" is common and not always a failure
-            if (event.error === 'no-speech') {
-                console.debug('Speech recognition: no speech detected.');
-                setIsListening(false);
-            } else if (event.error === 'network') {
-                console.warn('Speech recognition network error. Retrying...');
-                // Try to restart if it's a network glitch
-                if (retryCountRef.current < 2) {
-                    retryCountRef.current += 1;
-                    setTimeout(() => {
-                        try {
-                            recognitionRef.current?.start();
-                        } catch (e) {
-                            console.error("Retry failed:", e);
-                            setIsListening(false);
-                        }
-                    }, 1000);
-                } else {
-                    console.error('Speech recognition: Permanent network error.');
-                    toast.error("Vocal connection unstable. Try typing your argument.");
-                    setIsListening(false);
-                }
-            } else {
-                console.error('Speech recognition error:', event.error);
-                toast.error(`Mic error: ${event.error}`);
-                setIsListening(false);
-            }
-        };
-
-        recognition.onend = () => {
-            // Reset retry count if we ended normally (no error)
-            if (isListening && !recognitionRef.current?.lastError) {
-                retryCountRef.current = 0;
+            if (!data?.success) {
+                if (rawTranscript) setInputText(rawTranscript);
+                toast.error(data?.error || 'Voice processing failed.');
+                return;
             }
 
-            setIsListening(false);
-            console.log("🎤 Voice input stopped.");
-
-            // Auto-send argument if something was captured
-            const finalInput = latestInputTextRef.current;
-            if (finalInput.trim() && finalInput !== baseTextRef.current) {
-                setTimeout(() => {
-                    handleSendMessage();
-                }, 500);
+            const transcript = data?.data?.cleanedTranscript || data?.data?.transcript || rawTranscript;
+            if (transcript) {
+                setInputText(transcript);
             }
-        };
-
-        recognitionRef.current = recognition;
-
-        return () => {
-            if (recognitionRef.current) {
-                recognitionRef.current.stop();
-            }
-        };
-    }, [sessionId]); // Removed inputText dependency
-
-    const toggleListening = () => {
-        if (isListening) {
-            recognitionRef.current?.stop();
-        } else {
-            try {
-                recognitionRef.current?.start();
-            } catch (err) {
-                console.error("Mic start failed:", err);
-            }
+            toast.success('Voice captured. Review and send your argument.');
+        } catch (error) {
+            if (rawTranscript) setInputText(rawTranscript);
+            toast.error('Network error while uploading voice input.');
         }
     };
+
+    const finalizeRecording = async () => {
+        if (stopHandledRef.current) return;
+        stopHandledRef.current = true;
+        setIsRecording(false);
+        await uploadVoiceInput();
+    };
+
+    const stopRecording = () => {
+        if (!isRecording) return;
+
+        try {
+            if (recognitionRef.current) {
+                recognitionRef.current.onend = null;
+                recognitionRef.current.stop();
+            }
+        } catch (error) {
+            // no-op
+        }
+
+        try {
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+                mediaRecorderRef.current.stop();
+            }
+        } catch (error) {
+            // no-op
+        }
+    };
+
+    const startRecording = async () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            toast.error('Speech recognition is not supported in this browser.');
+            return;
+        }
+        if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+            toast.error('Audio recording is not supported in this browser.');
+            return;
+        }
+
+        audioChunksRef.current = [];
+        liveTranscriptRef.current = '';
+        stopHandledRef.current = false;
+        setInputText('');
+
+        try {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = true;
+
+            recognition.onresult = (event) => {
+                const parts = [];
+                for (let i = 0; i < event.results.length; i++) {
+                    parts.push(event.results[i][0].transcript);
+                }
+                const transcript = parts.join(' ').trim();
+                liveTranscriptRef.current = transcript;
+                setInputText(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                toast.error(`Mic error: ${event.error}`);
+                stopRecording();
+            };
+
+            recognition.onend = () => {
+                stopRecording();
+            };
+
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaStreamRef.current = stream;
+
+            const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+            recorder.ondataavailable = (event) => {
+                if (event.data && event.data.size > 0) {
+                    audioChunksRef.current.push(event.data);
+                }
+            };
+            recorder.onstop = async () => {
+                if (mediaStreamRef.current) {
+                    mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+                    mediaStreamRef.current = null;
+                }
+                await finalizeRecording();
+            };
+
+            recognitionRef.current = recognition;
+            mediaRecorderRef.current = recorder;
+
+            setIsRecording(true);
+            recorder.start();
+            recognition.start();
+        } catch (error) {
+            console.error('Mic start failed:', error);
+            setIsRecording(false);
+            toast.error('Unable to start microphone recording.');
+        }
+    };
+
+    const toggleRecording = () => {
+        if (isRecording) {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    };
+
+    useEffect(() => {
+        return () => {
+            try {
+                if (recognitionRef.current) recognitionRef.current.stop();
+            } catch (error) {
+                // no-op
+            }
+            try {
+                if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+                    mediaRecorderRef.current.stop();
+                }
+            } catch (error) {
+                // no-op
+            }
+            if (mediaStreamRef.current) {
+                mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+                mediaStreamRef.current = null;
+            }
+        };
+    }, []);
 
     // Check if current day is complete (minimum turns requirement met)
     useEffect(() => {
@@ -1030,6 +1098,17 @@ const GameInterface = () => {
                                 </div>
                             ) : (
                                 <div className="flex gap-3">
+                                    <button
+                                        onClick={toggleRecording}
+                                        disabled={isLoading}
+                                        className={`px-4 rounded-2xl border-2 transition-all flex items-center justify-center ${isRecording
+                                            ? 'text-red-500 animate-pulse bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.5)] border-red-500/50'
+                                            : 'bg-slate-900/50 border-slate-700/50 text-slate-500 hover:text-purple-400 hover:bg-purple-500/10'
+                                            }`}
+                                        title={isRecording ? 'Stop recording' : 'Start recording'}
+                                    >
+                                        {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+                                    </button>
                                     <div className="flex-1 relative">
                                         <input
                                             ref={inputRef}
@@ -1038,23 +1117,9 @@ const GameInterface = () => {
                                             onChange={(e) => setInputText(e.target.value)}
                                             onKeyPress={handleKeyPress}
                                             placeholder="Present your argument to the court..."
-                                            disabled={isLoading}
-                                            className="w-full px-6 py-4 pr-14 rounded-2xl border-2 bg-slate-900/50 border-slate-700/50 text-white placeholder:text-slate-600 focus:border-purple-500/50 focus:ring-4 focus:ring-purple-500/10 transition-all outline-none text-sm backdrop-blur-xl"
+                                            disabled={isLoading || isRecording}
+                                            className="w-full px-6 py-4 rounded-2xl border-2 bg-slate-900/50 border-slate-700/50 text-white placeholder:text-slate-600 focus:border-purple-500/50 focus:ring-4 focus:ring-purple-500/10 transition-all outline-none text-sm backdrop-blur-xl"
                                         />
-                                        <button
-                                            onClick={toggleListening}
-                                            disabled={isLoading}
-                                            className={`absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all z-10 ${isListening
-                                                ? 'text-red-500 animate-pulse bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.5)] border border-red-500/50'
-                                                : 'text-slate-500 hover:text-purple-400 hover:bg-purple-500/10'
-                                                }`}
-                                            title={isListening ? "Stop listening" : "Speak your argument"}
-                                        >
-                                            {isListening ? <MicOff size={18} /> : <Mic size={18} />}
-                                            {isListening && (
-                                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                                            )}
-                                        </button>
                                     </div>
                                     <button
                                         onClick={handleObjection}
@@ -1069,8 +1134,8 @@ const GameInterface = () => {
                                     </button>
                                     <button
                                         onClick={handleSendMessage}
-                                        disabled={!inputText.trim() || isLoading}
-                                        className={`px-6 rounded-2xl flex items-center justify-center transition-all ${inputText.trim() && !isLoading
+                                        disabled={!inputText.trim() || isLoading || isRecording}
+                                        className={`px-6 rounded-2xl flex items-center justify-center transition-all ${inputText.trim() && !isLoading && !isRecording
                                             ? 'bg-gradient-to-br from-orange-500 to-rose-600 text-white shadow-xl shadow-orange-500/30 hover:scale-105 active:scale-95'
                                             : 'bg-slate-800 text-slate-600 cursor-not-allowed'
                                             }`}
@@ -1569,4 +1634,5 @@ const MessageBubble = ({ message, userRole }) => {
 };
 
 export default GameInterface;
+
 

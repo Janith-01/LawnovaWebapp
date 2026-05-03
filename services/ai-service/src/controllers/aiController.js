@@ -5,6 +5,7 @@ import { createToolCallingAgent, AgentExecutor } from "@langchain/classic/agents
 import dotenv from 'dotenv';
 import axios from 'axios';
 import transcriptIngestion from '../services/transcriptIngestionService.js';
+import { cleanLegalTranscript } from '../utils/cleanLegalTranscript.js';
 
 // Load environment variables
 dotenv.config();
@@ -267,5 +268,93 @@ export const generateLearningMaterials = async (req, res) => {
     } catch (error) {
         console.error('[AI Service] Proxy to Python Error:', error.message);
         res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+/**
+ * Handle courtroom voice input payloads.
+ * POST /ai/voice-input
+ */
+export const handleVoiceInput = async (req, res) => {
+    try {
+        const { rawTranscript = '', sessionId = '', turnNumber = '' } = req.body || {};
+        const audioFile = req.file;
+
+        if (!audioFile) {
+            return res.status(400).json({
+                success: false,
+                error: 'audioFile is required'
+            });
+        }
+
+        if (!sessionId || turnNumber === '' || turnNumber === null) {
+            return res.status(400).json({
+                success: false,
+                error: 'sessionId and turnNumber are required'
+            });
+        }
+
+        const transcript = String(rawTranscript || '').trim();
+        const cleanedText = cleanLegalTranscript(transcript);
+
+        if (!cleanedText) {
+            return res.status(400).json({
+                success: false,
+                error: 'rawTranscript is required'
+            });
+        }
+
+        const roleplayUrl =
+            process.env.ROLEPLAY_CHAT_URL ||
+            'http://roleplay-service:10005/api/roleplay/chat';
+
+        let aiResponse = null;
+        let aiSpeaker = null;
+        let aiSpeakerRole = null;
+
+        try {
+            const roleplayResponse = await axios.post(
+                roleplayUrl,
+                {
+                    message: cleanedText,
+                    sessionId,
+                    turnNumber,
+                    source: 'voice-input'
+                },
+                { timeout: 30000 }
+            );
+
+            const payload = roleplayResponse?.data?.data || {};
+            aiResponse = payload.ai_reply || null;
+            aiSpeaker = payload.speaker || null;
+            aiSpeakerRole = payload.speakerRole || null;
+        } catch (roleplayError) {
+            console.error('[AI Service] voice-input roleplay handoff failed:', roleplayError.message);
+        }
+
+        return res.json({
+            success: true,
+            data: {
+                transcript: cleanedText,
+                cleanedText,
+                cleanedTranscript: cleanedText,
+                rawTranscript: transcript,
+                audioLogPath: audioFile.path,
+                sessionId,
+                turnNumber,
+                aiResponse,
+                aiSpeaker,
+                aiSpeakerRole,
+                notes: aiResponse
+                    ? 'Voice input cleaned and forwarded to roleplay loop.'
+                    : 'Voice input cleaned and logged; roleplay handoff unavailable.'
+            }
+        });
+    } catch (error) {
+        console.error('[AI Service] voice-input error:', error.message);
+        return res.status(500).json({
+            success: false,
+            error: 'Failed to process voice input'
+        });
     }
 };

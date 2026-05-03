@@ -1,9 +1,29 @@
 import { Router } from 'express';
-import { streamChat, askAgent, testConnection, generateLearningMaterials } from '../controllers/aiController.js';
+import multer from 'multer';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { streamChat, askAgent, testConnection, generateLearningMaterials, handleVoiceInput } from '../controllers/aiController.js';
 import transcriptIngestion from '../services/transcriptIngestionService.js';
 import { predictJudgment, getMockCases } from '../controllers/predictionController.js';
 
 const router = Router();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const audioLogsDir = path.resolve(__dirname, '..', '..', 'logs', 'audio-sessions');
+fs.mkdirSync(audioLogsDir, { recursive: true });
+
+const voiceStorage = multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, audioLogsDir),
+    filename: (req, _file, cb) => {
+        const safeSessionId = String(req.body?.sessionId || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const safeTurnNumber = String(req.body?.turnNumber || '0').replace(/[^a-zA-Z0-9_-]/g, '_');
+        cb(null, `session_${safeSessionId}_turn_${safeTurnNumber}.webm`);
+    }
+});
+
+const upload = multer({ storage: voiceStorage });
 
 /**
  * @route   GET /ai/test
@@ -33,6 +53,7 @@ router.post('/predict-judgment', predictJudgment);
  * @access  Internal
  */
 router.post('/generate-learning', generateLearningMaterials);
+router.post('/voice-input', upload.single('audioFile'), handleVoiceInput);
 
 /**
  * @route   GET /ai/cases
