@@ -10,8 +10,6 @@ import {
   Settings,
   LogOut,
   ChevronRight,
-  Sun,
-  Moon,
   Sparkles,
   Plus,
   Clock,
@@ -39,7 +37,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const { logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode } = useTheme();
   const [showRecentSessions, setShowRecentSessions] = useState(true);
   const inAdminRoute = location.pathname.startsWith('/admin');
   const showAdminNav = isAdmin && inAdminRoute;
@@ -114,20 +112,6 @@ const Sidebar = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Theme Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            className={cn(
-              "p-2 rounded-lg transition-all",
-              isDarkMode
-                ? "bg-slate-700 hover:bg-slate-600 text-yellow-400"
-                : "bg-gray-100 hover:bg-gray-200 text-slate-700"
-            )}
-            aria-label="Toggle theme"
-            title={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
-          >
-            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
         </div>
 
         {/* Top Navigation */}
