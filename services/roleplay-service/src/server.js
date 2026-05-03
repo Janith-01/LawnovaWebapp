@@ -63,6 +63,10 @@ const io = new SocketIOServer(httpServer, {
     transports: ['websocket', 'polling']
 });
 
+// Keep heartbeat alive across transient disconnects
+const DISCONNECT_GRACE_MS = 5 * 60 * 1000;
+const pendingHeartbeatStops = new Map(); // Map<sessionId, Timeout>
+
 // Initialize heartbeat engine with Socket.IO reference
 initHeartbeatEngine(io);
 
@@ -73,6 +77,13 @@ io.on('connection', (socket) => {
     // --- JOIN SESSION ROOM ---
     socket.on('join-session', (sessionId) => {
         if (!sessionId) return;
+
+        const pendingStop = pendingHeartbeatStops.get(sessionId);
+        if (pendingStop) {
+            clearTimeout(pendingStop);
+            pendingHeartbeatStops.delete(sessionId);
+            logger.info(`[SOCKET] Cleared pending heartbeat stop for session: ${sessionId}`);
+        }
 
         socket.join(`session:${sessionId}`);
         socket.sessionId = sessionId;
@@ -87,6 +98,13 @@ io.on('connection', (socket) => {
             autonomousMode: true,
             heartbeatInterval: 30
         });
+    });
+
+    // Optional explicit leave event from client
+    socket.on('leave-session', (sessionId) => {
+        if (!sessionId) return;
+        socket.leave(`session:${sessionId}`);
+        logger.info(`[SOCKET] Client ${socket.id} left session: ${sessionId}`);
     });
 
     // --- USER MESSAGE (resets idle timer) ---
@@ -139,8 +157,14 @@ io.on('connection', (socket) => {
             // Check if any clients are still in this session room
             const room = io.sockets.adapter.rooms.get(`session:${sessionId}`);
             if (!room || room.size === 0) {
-                stopHeartbeat(sessionId);
-                logger.info(`[SOCKET] No clients left in session ${sessionId}, heartbeat stopped.`);
+                const timer = setTimeout(() => {
+                    stopHeartbeat(sessionId);
+                    pendingHeartbeatStops.delete(sessionId);
+                    logger.info(`[SOCKET] No clients rejoined within grace period. Heartbeat stopped for session ${sessionId}.`);
+                }, DISCONNECT_GRACE_MS);
+
+                pendingHeartbeatStops.set(sessionId, timer);
+                logger.info(`[SOCKET] Room empty for session ${sessionId}. Scheduled heartbeat stop in ${DISCONNECT_GRACE_MS / 1000}s.`);
             }
         }
     });
