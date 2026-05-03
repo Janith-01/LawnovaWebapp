@@ -213,8 +213,11 @@ const GameInterface = () => {
         const SOCKET_URL = import.meta.env.VITE_ROLEPLAY_WS_URL || import.meta.env.VITE_API_BASE_URL?.replace('/api/roleplay', '') || window.location.origin;
         socketRef.current = io(SOCKET_URL, {
             path: '/roleplay-socket',
-            transports: ['websocket', 'polling'],
-            withCredentials: true
+            transports: ['polling', 'websocket'],
+            withCredentials: true,
+            reconnection: true,
+            reconnectionAttempts: 20,
+            reconnectionDelay: 1000
         });
 
         const socket = socketRef.current;
@@ -222,6 +225,9 @@ const GameInterface = () => {
         socket.on('connect', () => {
             console.log('🔌 Connected to Courtroom Socket:', socket.id);
             socket.emit('join-session', sessionId);
+        });
+        socket.on('connect_error', (err) => {
+            console.warn('Courtroom socket connect_error:', err?.message || err);
         });
 
         // Listen for autonomous AI dialogue
@@ -275,21 +281,47 @@ const GameInterface = () => {
         latestInputTextRef.current = inputText;
     }, [inputText]);
 
-    // Track user activity to reset heartbeat
+    // Only microphone capture pauses heartbeat. Typing alone must not reset idle timeout.
     useEffect(() => {
         if (!socketRef.current || !sessionId) return;
 
         if (isListening) {
-            // Crucial: Pause the autonomous heartbeat while user is dictating argument
             socketRef.current.emit('pause-heartbeat', sessionId);
         } else {
-            // Resume heartbeat when mic is off
             socketRef.current.emit('resume-heartbeat', sessionId);
-            if (inputText.length > 0) {
-                socketRef.current.emit('user-active', sessionId);
-            }
         }
-    }, [isListening, inputText, sessionId]);
+    }, [isListening, sessionId]);
+
+    // Fallback sync for autonomous turns when websocket transport is unstable.
+    useEffect(() => {
+        if (!sessionId) return undefined;
+
+        const syncInterval = setInterval(async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/session/${sessionId}`);
+                const data = await response.json();
+                if (!data?.success || !data?.data?.history) return;
+
+                const mappedMessages = data.data.history.map((h, index) => ({
+                    id: h._id || `${h.timestamp || 'ts'}-${index}`,
+                    type: h.role === 'model' ? 'ai' : 'user',
+                    speaker: h.speaker,
+                    speakerRole: h.speakerRole,
+                    content: h.content,
+                    mood: h.mood,
+                    action: h.action,
+                    winProbability: h.winProbability,
+                    timestamp: h.timestamp || new Date()
+                }));
+
+                setMessages((prev) => (mappedMessages.length > prev.length ? mappedMessages : prev));
+            } catch (err) {
+                // Non-fatal: websocket may still be healthy.
+            }
+        }, 8000);
+
+        return () => clearInterval(syncInterval);
+    }, [sessionId]);
 
     // === SPEECH RECOGNITION INITIALIZATION ===
     useEffect(() => {
@@ -530,6 +562,10 @@ const GameInterface = () => {
     const handleSendMessage = async () => {
         const trimmedText = inputText.trim();
         if (!trimmedText || isLoading || gameStatus === 'finished') return;
+
+        if (socketRef.current && sessionId) {
+            socketRef.current.emit('user-active', sessionId);
+        }
 
         const userMessage = {
             id: Date.now(),
