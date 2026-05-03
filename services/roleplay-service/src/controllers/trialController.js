@@ -610,9 +610,9 @@ export const finalizeTrial = async (req, res) => {
                 results.forEach((r) => {
                     auditReport.push({
                         originalText: r.argument,
-                        score: r.score,
-                        verdict: r.verdict,
-                        reason: r.auditor_comment
+                        score: Number(r.score ?? 0),
+                        verdict: r.verdict ?? r.status ?? r.label ?? 'Weak',
+                        reason: r.auditor_comment ?? r.reason ?? 'Model reasoning unavailable for this argument.'
                     });
                 });
                 console.log(`[FINALIZE] Audit successful: ${auditReport.length} results received.`);

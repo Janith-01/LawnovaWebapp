@@ -25,6 +25,8 @@ const app = express();
 const PORT = process.env.PORT || 10005;
 const HOST = process.env.HOST || '0.0.0.0';
 
+app.set('trust proxy', 1);
+
 // Create HTTP server (shared between Express + Socket.IO)
 const httpServer = http.createServer(app);
 
@@ -96,7 +98,7 @@ io.on('connection', (socket) => {
         socket.emit('session-joined', {
             sessionId,
             autonomousMode: true,
-            heartbeatInterval: 30
+            heartbeatInterval: 40
         });
     });
 
@@ -240,7 +242,7 @@ app.get('/api', (req, res) => {
         features: {
             autonomousMode: 'Real-time AI-to-AI courtroom dialogue via Socket.IO',
             objectionSystem: 'User can raise objections to interrupt autonomous dialogue',
-            heartbeat: '15-second idle detection triggers autonomous AI turns'
+            heartbeat: '40-second idle detection triggers autonomous AI turns'
         },
         endpoints: {
             trials: {

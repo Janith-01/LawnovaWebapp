@@ -12,11 +12,18 @@ import { retrieveRelevantLaws } from '../utils/vectorSearch.js';
 import RoleplaySession from '../models/RoleplaySession.js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { findRelevantLaws } from '../services/lawService.js';
+import { startHeartbeat } from '../engines/courtroomHeartbeat.js';
 
 const isExplicitObjectionText = (text = '') =>
     /^(objection\b|objection,\s*your honou?r\b|i object\b)/i.test((text || '').trim());
 
 const hasJudgeRulingMarkers = (text = '') => /\b(sustained|overruled)\b/i.test(text);
+
+const ensureHeartbeatForActiveSession = (session) => {
+    if (!session?.sessionId) return;
+    if (session.status === 'completed' || session.status === 'finished') return;
+    startHeartbeat(session.sessionId);
+};
 
 // ============================================================
 // 1. AI LEGAL CONSULTANT (The Fixed "Bulletproof" Version)
@@ -100,6 +107,7 @@ export const processUserMessage = async (req, res) => {
         if (!session) {
             return res.status(404).json({ success: false, error: "Session not found" });
         }
+        ensureHeartbeatForActiveSession(session);
 
         const explicitObjection = isExplicitObjectionText(message);
         if (explicitObjection && session.pendingObjection) {
@@ -255,6 +263,7 @@ export const getSession = async (req, res) => {
         const { sessionId } = req.params;
         const session = await RoleplaySession.findOne({ sessionId });
         if (!session) return res.status(404).json({ success: false, error: "Session not found" });
+        ensureHeartbeatForActiveSession(session);
         res.status(200).json({ success: true, data: session });
     } catch (error) {
         res.status(500).json({ success: false, error: "Internal Server Error" });
@@ -276,6 +285,7 @@ export const createSession = async (req, res) => {
             status: 'active'
         });
         await session.save();
+        ensureHeartbeatForActiveSession(session);
         res.status(201).json({ success: true, data: session });
     } catch (error) {
         res.status(500).json({ success: false, error: "Internal Server Error" });
@@ -396,6 +406,7 @@ export const generateCase = async (req, res) => {
             gameMode: 'TimeBased'
         });
         await session.save();
+        ensureHeartbeatForActiveSession(session);
         res.status(201).json({ success: true, data: session });
     } catch (error) {
         console.error("[GENERATE-CASE] Error:", {
@@ -508,9 +519,9 @@ export const completeSession = async (req, res) => {
                     results.forEach((r) => {
                         auditReport.push({
                             originalText: r.argument,
-                            score: r.score,
-                            verdict: r.verdict,
-                            reason: r.auditor_comment
+                            score: Number(r.score ?? 0),
+                            verdict: r.verdict ?? r.status ?? r.label ?? 'Weak',
+                            reason: r.auditor_comment ?? r.reason ?? 'Model reasoning unavailable for this argument.'
                         });
                     });
                     console.log(`[COMPLETE] Dual-Model Audit completed: ${results.length} segments analyzed.`);

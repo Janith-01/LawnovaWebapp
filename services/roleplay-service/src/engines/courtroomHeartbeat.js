@@ -9,7 +9,7 @@
  * 
  * Architecture:
  *   - Each active session gets its own heartbeat timer
- *   - Every 30 seconds of user silence → Director picks next speaker → Actor generates dialogue
+ *   - Every 40 seconds of user silence → Director picks next speaker → Actor generates dialogue
  *   - User interaction resets the idle timer
  *   - Objections pause the heartbeat and trigger immediate Judge ruling
  * 
@@ -27,7 +27,7 @@ import { retrieveRelevantLaws } from '../utils/vectorSearch.js';
 const hasJudgeRulingMarkers = (text = '') => /\b(sustained|overruled)\b/i.test(text);
 
 // Configuration
-const HEARTBEAT_INTERVAL_MS = 30000;  // 30 seconds of silence before auto-dialogue
+const HEARTBEAT_INTERVAL_MS = 40000;  // 40 seconds of silence before auto-dialogue
 const MAX_CONSECUTIVE_AUTO = 25;      // Allow 25 consecutive AI turns before pausing
 const COOLDOWN_AFTER_USER_MS = 10000;  // Wait 10s after user interaction before resuming autonomous flow
 
@@ -141,7 +141,7 @@ export function resetIdleTimer(sessionId) {
 }
 
 /**
- * Core heartbeat tick — runs every 15 seconds.
+ * Core heartbeat tick — runs every configured heartbeat interval.
  * Decides if we should trigger autonomous dialogue.
  */
 async function tickHeartbeat(heartbeat) {
