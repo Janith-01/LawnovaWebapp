@@ -741,6 +741,24 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Lightweight auth diagnostics for production troubleshooting.
+// Does not expose secrets; only reports whether critical auth env is loaded.
+app.get('/health/auth', (req, res) => {
+  const jwtSecret = process.env.JWT_SECRET || '';
+  res.json({
+    status: 'OK',
+    auth: {
+      jwtSecretConfigured: jwtSecret.length > 0,
+      jwtSecretLength: jwtSecret.length,
+      hasAuthorizationHeader: !!req.headers.authorization,
+      hasAccessCookie: !!req.cookies?.access_token,
+    },
+    services: {
+      userServiceUrl: USER_SERVICE_URL,
+    },
+  });
+});
+
 app.get('/health/services', (req, res) => {
   res.json({
     status: 'API Gateway Health Check',
