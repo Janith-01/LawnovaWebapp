@@ -34,6 +34,26 @@ const isQuotaError = (error) => {
     return message.includes('429') || message.includes('too many requests') || message.includes('spending cap');
 };
 
+const extractTextContent = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (Array.isArray(value)) {
+        return value
+            .map((item) => {
+                if (typeof item === 'string') return item;
+                if (item?.text) return String(item.text);
+                if (item?.content) return extractTextContent(item.content);
+                return '';
+            })
+            .join('');
+    }
+    if (typeof value === 'object') {
+        if (value.text) return String(value.text);
+        if (value.content) return extractTextContent(value.content);
+    }
+    return '';
+};
+
 const streamWithGroq = async ({ messages, res }) => {
     const groqApiKey = process.env.GROQ_API_KEY;
     if (!groqApiKey) {
@@ -309,6 +329,8 @@ export const streamChat = async (req, res) => {
     res.flushHeaders?.();
 
     let keepAlive = null;
+    let requestClosed = false;
+    let streamTimeout = null;
 
     try {
         const lastUserMessage = messages[messages.length - 1].content;
@@ -331,10 +353,20 @@ export const streamChat = async (req, res) => {
         }, 15000);
 
         req.on('close', () => {
+            requestClosed = true;
             console.log('[AI Service] Client disconnected');
             if (keepAlive) clearInterval(keepAlive);
-            res.end();
+            if (streamTimeout) clearTimeout(streamTimeout);
+            if (!res.writableEnded) res.end();
         });
+
+        streamTimeout = setTimeout(() => {
+            if (!res.writableEnded) {
+                res.write(`data: ${JSON.stringify({ error: 'AI response timed out. Please try again.' })}\n\n`);
+                res.write('data: [DONE]\n\n');
+                res.end();
+            }
+        }, 60000);
 
         let streamedSuccessfully = false;
 
@@ -353,28 +385,41 @@ export const streamChat = async (req, res) => {
                 let emittedAnyContent = false;
 
                 for await (const event of eventStream) {
+                    if (requestClosed) break;
                     const eventType = event.event;
 
-                    if (eventType === "on_chat_model_stream") {
+                    if (eventType === "on_chat_model_stream" || eventType === "on_llm_stream") {
                         const chunk = event.data.chunk;
-                        if (chunk.content) {
+                        const chunkText = extractTextContent(chunk?.content);
+                        if (chunkText) {
                             emittedAnyContent = true;
-                            res.write(`data: ${JSON.stringify({ content: chunk.content })}\n\n`);
+                            res.write(`data: ${JSON.stringify({ content: chunkText })}\n\n`);
                         }
                     } else if (eventType === "on_tool_start") {
                         const toolName = event.name === 'search_sri_lankan_law' ? 'Legal Database' : 'Trial Transcript';
                         res.write(`data: ${JSON.stringify({ type: 'thought', content: `Searching ${toolName}...` })}\n\n`);
+                    } else if (eventType === "on_tool_end") {
+                        res.write(`data: ${JSON.stringify({ type: 'thought', content: 'Analyzing legal context...' })}\n\n`);
+                    } else if (eventType === "on_chat_model_end" || eventType === "on_llm_end") {
+                        const modelOutput = extractTextContent(event?.data?.output?.content);
+                        if (!emittedAnyContent && modelOutput) {
+                            emittedAnyContent = true;
+                            res.write(`data: ${JSON.stringify({ content: modelOutput })}\n\n`);
+                        }
                     } else if (eventType === "on_chain_end") {
                         // Some LangChain executions may not emit token-level events.
                         // In that case, flush the final output as a single content chunk.
-                        const finalOutput = event?.data?.output?.output;
+                        const finalOutput = extractTextContent(event?.data?.output?.output);
                         if (!emittedAnyContent && finalOutput) {
                             emittedAnyContent = true;
-                            res.write(`data: ${JSON.stringify({ content: String(finalOutput) })}\n\n`);
+                            res.write(`data: ${JSON.stringify({ content: finalOutput })}\n\n`);
                         }
                     }
                 }
 
+                if (!emittedAnyContent && !requestClosed) {
+                    console.warn('[AI Service] Stream completed with no content events');
+                }
                 streamedSuccessfully = true;
                 break;
             } catch (attemptError) {
@@ -389,11 +434,14 @@ export const streamChat = async (req, res) => {
         }
 
         if (keepAlive) clearInterval(keepAlive);
+        if (streamTimeout) clearTimeout(streamTimeout);
+        if (requestClosed) return;
         res.write('data: [DONE]\n\n');
         res.end();
 
     } catch (error) {
         if (keepAlive) clearInterval(keepAlive);
+        if (streamTimeout) clearTimeout(streamTimeout);
         console.error('[AI Service] LangChain Agent Error:', error.message);
 
         if (isQuotaError(error)) {
