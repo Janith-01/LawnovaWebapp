@@ -206,6 +206,23 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
         return map;
     }, [daily, roomInfo]);
 
+    const localDisplayName = useMemo(() => {
+        const fromAuth =
+            user?.fullName ||
+            [user?.firstName, user?.lastName].filter(Boolean).join(' ') ||
+            user?.name ||
+            user?.email;
+        if (fromAuth) return fromAuth;
+
+        const currentUserId = user?.id || user?._id;
+        const currentUserEmail = user?.email;
+        const me = (roomInfo?.participants || []).find((p) =>
+            (currentUserId && (p?.userId === currentUserId || p?._id === currentUserId)) ||
+            (currentUserEmail && (p?.email === currentUserEmail || p?.userEmail === currentUserEmail))
+        );
+        return me?.name || me?.fullName || [me?.firstName, me?.lastName].filter(Boolean).join(' ') || me?.email || 'Me';
+    }, [roomInfo, user]);
+
     // Join the meeting (Muted)
     const joinMeeting = useCallback(async () => {
         if (!daily || !token) return;
@@ -660,7 +677,7 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
                     </AnimatePresence>
 
                     {/* RIGHT: Video Grid (Flex 1) */}
-                    <div className="flex-1 p-4 overflow-y-auto">
+                    <div className="flex-1 p-0 overflow-y-auto">
                         <div className="w-full h-full flex flex-col gap-6">
                             {/* THE BENCH (Judge/Owner) */}
                             {sortedParticipantIds.length > 0 && (
@@ -714,6 +731,7 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
                                             participantId={id}
                                             isLocal={id === localParticipant?.session_id}
                                             fallbackName={participantNameMap.get(id)}
+                                            localDisplayName={localDisplayName}
                                         />
                                     ))}
                                 </div>
@@ -849,7 +867,7 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
     );
 };
 
-const ParticipantItem = ({ participantId, isLocal, fallbackName }) => {
+const ParticipantItem = ({ participantId, isLocal, fallbackName, localDisplayName }) => {
     const daily = useDaily();
     const userName = useParticipantProperty(participantId, 'user_name');
     const audioOn = useParticipantProperty(participantId, 'audio');
@@ -874,6 +892,10 @@ const ParticipantItem = ({ participantId, isLocal, fallbackName }) => {
     const isObjectId = /^[a-f0-9]{24}$/i.test(dispName);
     if (!dispName || dispName === 'anonymous' || isObjectId) {
         dispName = fallbackName || (isObjectId ? `User (${dispName.slice(-4)})` : role);
+    }
+
+    if (isLocal) {
+        dispName = localDisplayName || dispName || 'Me';
     }
 
     return (

@@ -10,6 +10,7 @@ const DashboardLayout = () => {
   const { isDarkMode, setTheme } = useTheme();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isCourtroomRoute = /^\/courtroom\/[^/]+$/.test(location.pathname);
 
   useEffect(() => {
     if (!isAdminRoute) {
@@ -48,8 +49,8 @@ const DashboardLayout = () => {
             </div>
           </header>
         )}
-        <main className={isAdminRoute ? 'flex-1 p-0 overflow-hidden' : 'flex-1 p-6 lg:p-10'}>
-          <div className={isAdminRoute ? 'w-full h-full' : 'max-w-6xl mx-auto w-full'}>
+        <main className={isAdminRoute || isCourtroomRoute ? 'flex-1 p-0 overflow-hidden' : 'flex-1 p-6 lg:p-10'}>
+          <div className={isAdminRoute || isCourtroomRoute ? 'w-full h-full' : 'max-w-6xl mx-auto w-full'}>
             {/* Allow nested pages to open the sidebar on mobile */}
             <Outlet context={{ openSidebar: () => setIsSidebarOpen(true) }} />
           </div>
