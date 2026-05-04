@@ -161,6 +161,51 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
         }).map(p => p.session_id);
     }, [participantIds, daily]);
 
+    const participantNameMap = useMemo(() => {
+        const map = new Map();
+        const roomParticipants = roomInfo?.participants || [];
+        const dailyParticipants = daily?.participants?.() || {};
+
+        Object.values(dailyParticipants).forEach((p) => {
+            const sessionId = p?.session_id;
+            if (!sessionId) return;
+
+            // Preferred source: Daily user_name if meaningful.
+            let displayName = p?.user_name || '';
+            if (displayName?.includes('|')) {
+                displayName = displayName.split('|')[1] || '';
+            }
+
+            const normalized = String(displayName || '').trim();
+            const looksUnknown = !normalized || normalized.toLowerCase() === 'unknown' || /^[a-f0-9]{24}$/i.test(normalized);
+
+            if (!looksUnknown) {
+                map.set(sessionId, normalized);
+                return;
+            }
+
+            // Fallback source: roomInfo participant list by email or userId.
+            const candidateEmail = p?.user_id || p?.userId || p?.user_email || p?.username;
+            const candidateId = p?.user_id || p?.userId;
+            const rp = roomParticipants.find((x) =>
+                (candidateEmail && (x?.email === candidateEmail || x?.userEmail === candidateEmail)) ||
+                (candidateId && (x?.userId === candidateId || x?._id === candidateId))
+            );
+
+            const fallbackName =
+                rp?.name ||
+                rp?.fullName ||
+                [rp?.firstName, rp?.lastName].filter(Boolean).join(' ') ||
+                rp?.email;
+
+            if (fallbackName) {
+                map.set(sessionId, fallbackName);
+            }
+        });
+
+        return map;
+    }, [daily, roomInfo]);
+
     // Join the meeting (Muted)
     const joinMeeting = useCallback(async () => {
         if (!daily || !token) return;
@@ -615,12 +660,12 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
                     </AnimatePresence>
 
                     {/* RIGHT: Video Grid (Flex 1) */}
-                    <div className="flex-1 p-6 overflow-y-auto">
-                        <div className="max-w-7xl mx-auto h-full flex flex-col gap-6">
+                    <div className="flex-1 p-4 overflow-y-auto">
+                        <div className="w-full h-full flex flex-col gap-6">
                             {/* THE BENCH (Judge/Owner) */}
                             {sortedParticipantIds.length > 0 && (
                                 <div className="flex justify-center h-[50%] min-h-[300px]">
-                                    <div className="w-full max-w-3xl">
+                                    <div className="w-full max-w-[980px]">
                                         <ParticipantView
                                             participant={{ session_id: sortedParticipantIds[0] }}
                                             isLocal={sortedParticipantIds[0] === localParticipant?.session_id}
@@ -664,7 +709,12 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
 
                                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                                     {participantIds.map(id => (
-                                        <ParticipantItem key={id} participantId={id} isLocal={id === localParticipant?.session_id} />
+                                        <ParticipantItem
+                                            key={id}
+                                            participantId={id}
+                                            isLocal={id === localParticipant?.session_id}
+                                            fallbackName={participantNameMap.get(id)}
+                                        />
                                     ))}
                                 </div>
 
@@ -799,7 +849,7 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
     );
 };
 
-const ParticipantItem = ({ participantId, isLocal }) => {
+const ParticipantItem = ({ participantId, isLocal, fallbackName }) => {
     const daily = useDaily();
     const userName = useParticipantProperty(participantId, 'user_name');
     const audioOn = useParticipantProperty(participantId, 'audio');
@@ -823,7 +873,7 @@ const ParticipantItem = ({ participantId, isLocal }) => {
     // Fallback: if dispName is still a MongoDB ObjectId (24-char hex) or empty, display a friendly label
     const isObjectId = /^[a-f0-9]{24}$/i.test(dispName);
     if (!dispName || dispName === 'anonymous' || isObjectId) {
-        dispName = isObjectId ? `User (${dispName.slice(-4)})` : role;
+        dispName = fallbackName || (isObjectId ? `User (${dispName.slice(-4)})` : role);
     }
 
     return (
