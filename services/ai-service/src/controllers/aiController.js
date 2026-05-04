@@ -353,12 +353,20 @@ export const streamChat = async (req, res) => {
             }
         }, 15000);
 
-        req.on('close', () => {
+        const markClosed = (reason) => {
+            if (requestClosed) return;
             requestClosed = true;
-            console.log(`[AI Service][${reqId}] Client disconnected`);
+            console.log(`[AI Service][${reqId}] Client disconnected (${reason})`);
             if (keepAlive) clearInterval(keepAlive);
             if (streamTimeout) clearTimeout(streamTimeout);
             if (!res.writableEnded) res.end();
+        };
+
+        // For streaming responses, avoid req.close as a disconnect signal.
+        // req.close can fire when request body input closes, which is normal.
+        req.on('aborted', () => markClosed('req.aborted'));
+        res.on('close', () => {
+            if (!res.writableEnded) markClosed('res.close');
         });
 
         streamTimeout = setTimeout(() => {
@@ -440,6 +448,11 @@ export const streamChat = async (req, res) => {
                 streamedSuccessfully = true;
                 break;
             } catch (attemptError) {
+                const isAbort = attemptError?.name === 'AbortError' || String(attemptError?.message || '').toLowerCase().includes('aborted');
+                if (requestClosed && isAbort) {
+                    console.warn(`[AI Service][${reqId}] Stream attempt ${i + 1} aborted after client disconnect`);
+                    return;
+                }
                 console.error(`[AI Service][${reqId}] Stream attempt ${i + 1} failed:`, attemptError?.message);
                 if (!isQuotaError(attemptError) || i === geminiKeys.length - 1) {
                     throw attemptError;
@@ -461,6 +474,11 @@ export const streamChat = async (req, res) => {
     } catch (error) {
         if (keepAlive) clearInterval(keepAlive);
         if (streamTimeout) clearTimeout(streamTimeout);
+        const isAbort = error?.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('aborted');
+        if (requestClosed && isAbort) {
+            console.warn(`[AI Service][${reqId}] Request closed; suppressing abort error`);
+            return;
+        }
         console.error(`[AI Service][${reqId}] LangChain Agent Error:`, error?.message);
         if (error?.stack) {
             console.error(`[AI Service][${reqId}] Stack:`, error.stack);
