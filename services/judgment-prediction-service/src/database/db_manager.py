@@ -1,10 +1,22 @@
+import os
+from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from contextlib import contextmanager
 from .models import Base, Document, ActMetadata
 
 class DatabaseManager:
-    def __init__(self, db_url="sqlite:///data/lawnowa.db"):
+    def __init__(self, db_url=None):
+        # Allow override via env while keeping current default behavior.
+        if db_url is None:
+            db_url = os.getenv("JUDGMENT_DB_URL", "sqlite:///data/lawnowa.db")
+
+        # Ensure SQLite directory exists before opening/creating DB file.
+        if db_url.startswith("sqlite:///"):
+            sqlite_path = db_url.replace("sqlite:///", "", 1)
+            db_dir = os.path.dirname(sqlite_path)
+            if db_dir:
+                os.makedirs(db_dir, exist_ok=True)
+
         self.engine = create_engine(db_url)
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)

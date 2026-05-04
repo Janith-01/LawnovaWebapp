@@ -121,7 +121,9 @@ services:
       PORT: 5006
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       GEMINI_API_KEY1: ${GEMINI_API_KEY}
+      JUDGMENT_DB_URL: sqlite:////app/data/lawnowa.db
     volumes:
+      - judgment-db-data:/app/data
       - /home/ubuntu/lawnova/ml-models/judgment_predictor:/app/models/judgment_predictor:ro
     restart: unless-stopped
 
@@ -139,3 +141,6 @@ services:
 networks:
   default:
     name: lawnova-network
+
+volumes:
+  judgment-db-data:
