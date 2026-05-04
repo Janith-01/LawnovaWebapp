@@ -418,7 +418,20 @@ export const streamChat = async (req, res) => {
                 }
 
                 if (!emittedAnyContent && !requestClosed) {
-                    console.warn('[AI Service] Stream completed with no content events');
+                    console.warn('[AI Service] Stream completed with no content events. Falling back to invoke().');
+                    const fallbackResult = await executor.invoke({
+                        input: lastUserMessage,
+                        chat_history: chatHistory
+                    });
+                    const fallbackText = extractTextContent(fallbackResult?.output);
+                    if (fallbackText) {
+                        emittedAnyContent = true;
+                        res.write(`data: ${JSON.stringify({ content: fallbackText })}\n\n`);
+                    }
+                }
+
+                if (!emittedAnyContent && !requestClosed) {
+                    throw new Error('No content produced by AI stream or fallback invoke.');
                 }
                 streamedSuccessfully = true;
                 break;
