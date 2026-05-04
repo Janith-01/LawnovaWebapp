@@ -315,7 +315,8 @@ export const streamChat = async (req, res) => {
     const { messages, sessionId, trialId } = req.body;
     const activeSessionId = sessionId || trialId;
 
-    console.log('[AI Service] LangChain Agent request - session:', activeSessionId);
+    const reqId = `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    console.log(`[AI Service][${reqId}] LangChain Agent request - session: ${activeSessionId}`);
 
     if (!messages || !Array.isArray(messages)) {
         return res.status(400).json({ error: 'Messages array is required' });
@@ -354,7 +355,7 @@ export const streamChat = async (req, res) => {
 
         req.on('close', () => {
             requestClosed = true;
-            console.log('[AI Service] Client disconnected');
+            console.log(`[AI Service][${reqId}] Client disconnected`);
             if (keepAlive) clearInterval(keepAlive);
             if (streamTimeout) clearTimeout(streamTimeout);
             if (!res.writableEnded) res.end();
@@ -362,6 +363,7 @@ export const streamChat = async (req, res) => {
 
         streamTimeout = setTimeout(() => {
             if (!res.writableEnded) {
+                console.warn(`[AI Service][${reqId}] Stream timeout reached (60s)`);
                 res.write(`data: ${JSON.stringify({ error: 'AI response timed out. Please try again.' })}\n\n`);
                 res.write('data: [DONE]\n\n');
                 res.end();
@@ -418,7 +420,7 @@ export const streamChat = async (req, res) => {
                 }
 
                 if (!emittedAnyContent && !requestClosed) {
-                    console.warn('[AI Service] Stream completed with no content events. Falling back to invoke().');
+                    console.warn(`[AI Service][${reqId}] Stream completed with no content events. Falling back to invoke().`);
                     const fallbackResult = await executor.invoke({
                         input: lastUserMessage,
                         chat_history: chatHistory
@@ -426,6 +428,7 @@ export const streamChat = async (req, res) => {
                     const fallbackText = extractTextContent(fallbackResult?.output);
                     if (fallbackText) {
                         emittedAnyContent = true;
+                        console.log(`[AI Service][${reqId}] Fallback invoke() produced content (${fallbackText.length} chars)`);
                         res.write(`data: ${JSON.stringify({ content: fallbackText })}\n\n`);
                     }
                 }
@@ -433,9 +436,11 @@ export const streamChat = async (req, res) => {
                 if (!emittedAnyContent && !requestClosed) {
                     throw new Error('No content produced by AI stream or fallback invoke.');
                 }
+                console.log(`[AI Service][${reqId}] Stream attempt ${i + 1} completed with content=${emittedAnyContent}`);
                 streamedSuccessfully = true;
                 break;
             } catch (attemptError) {
+                console.error(`[AI Service][${reqId}] Stream attempt ${i + 1} failed:`, attemptError?.message);
                 if (!isQuotaError(attemptError) || i === geminiKeys.length - 1) {
                     throw attemptError;
                 }
@@ -449,13 +454,17 @@ export const streamChat = async (req, res) => {
         if (keepAlive) clearInterval(keepAlive);
         if (streamTimeout) clearTimeout(streamTimeout);
         if (requestClosed) return;
+        console.log(`[AI Service][${reqId}] Stream finished successfully`);
         res.write('data: [DONE]\n\n');
         res.end();
 
     } catch (error) {
         if (keepAlive) clearInterval(keepAlive);
         if (streamTimeout) clearTimeout(streamTimeout);
-        console.error('[AI Service] LangChain Agent Error:', error.message);
+        console.error(`[AI Service][${reqId}] LangChain Agent Error:`, error?.message);
+        if (error?.stack) {
+            console.error(`[AI Service][${reqId}] Stack:`, error.stack);
+        }
 
         if (isQuotaError(error)) {
             try {
