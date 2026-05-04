@@ -665,7 +665,7 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
                             {/* THE BENCH (Judge/Owner) */}
                             {sortedParticipantIds.length > 0 && (
                                 <div className="flex justify-center h-[50%] min-h-[300px]">
-                                    <div className="w-full max-w-[980px]">
+                                    <div className="w-full">
                                         <ParticipantView
                                             participant={{ session_id: sortedParticipantIds[0] }}
                                             isLocal={sortedParticipantIds[0] === localParticipant?.session_id}
