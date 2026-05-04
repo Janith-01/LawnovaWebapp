@@ -350,17 +350,28 @@ export const streamChat = async (req, res) => {
                     res.write(`data: ${JSON.stringify({ type: 'warning', content: 'Primary AI key quota exceeded. Switched to backup key.' })}\n\n`);
                 }
 
+                let emittedAnyContent = false;
+
                 for await (const event of eventStream) {
                     const eventType = event.event;
 
                     if (eventType === "on_chat_model_stream") {
                         const chunk = event.data.chunk;
                         if (chunk.content) {
+                            emittedAnyContent = true;
                             res.write(`data: ${JSON.stringify({ content: chunk.content })}\n\n`);
                         }
                     } else if (eventType === "on_tool_start") {
                         const toolName = event.name === 'search_sri_lankan_law' ? 'Legal Database' : 'Trial Transcript';
                         res.write(`data: ${JSON.stringify({ type: 'thought', content: `Searching ${toolName}...` })}\n\n`);
+                    } else if (eventType === "on_chain_end") {
+                        // Some LangChain executions may not emit token-level events.
+                        // In that case, flush the final output as a single content chunk.
+                        const finalOutput = event?.data?.output?.output;
+                        if (!emittedAnyContent && finalOutput) {
+                            emittedAnyContent = true;
+                            res.write(`data: ${JSON.stringify({ content: String(finalOutput) })}\n\n`);
+                        }
                     }
                 }
 
