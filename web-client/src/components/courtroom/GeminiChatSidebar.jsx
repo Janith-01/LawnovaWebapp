@@ -56,6 +56,7 @@ const GeminiChatSidebar = ({ roomId, isOpen, onClose }) => {
             const aiMsgId = Date.now() + '-ai';
             let fullAiResponse = '';
             let buffer = '';
+            let streamErrored = false;
 
             const response = await fetch(`${API_BASE_URL}/api/ai/chat/stream`, {
                 method: 'POST',
@@ -105,41 +106,60 @@ const GeminiChatSidebar = ({ roomId, isOpen, onClose }) => {
                         const dataStr = trimmedLine.replace('data: ', '').trim();
                         if (dataStr === '[DONE]') continue;
 
+                        let data;
                         try {
-                            const data = JSON.parse(dataStr);
-                            
-                            // Handle error field if received
-                            if (data.error) {
-                                throw new Error(data.error);
-                            }
+                            data = JSON.parse(dataStr);
+                        } catch {
+                            // Fragmented JSON chunk, wait for next line.
+                            continue;
+                        }
 
-                            if (data.type === 'thought' && data.content) {
-                                setThought(data.content);
-                                setMessages(prev => {
-                                    const lastMsg = prev[prev.length - 1];
-                                    if (lastMsg && lastMsg.type === 'thought') {
-                                        return [...prev.slice(0, -1), { ...lastMsg, message: lastMsg.message + data.content }];
-                                    }
-                                    return [...prev, { 
-                                        id: `thought-${Date.now()}`,
-                                        sender: 'AI', 
-                                        userName: 'Assistant Thinking', 
-                                        message: data.content, 
-                                        type: 'thought', 
-                                        timestamp: new Date().toLocaleTimeString() 
-                                    }];
-                                });
-                            } else if (data.content) {
-                                fullAiResponse += data.content;
-                                setMessages(prev => prev.map(m =>
-                                    m.id === aiMsgId ? { ...m, message: fullAiResponse } : m
-                                ));
-                            }
-                        } catch (e) {
-                            // Fragmented JSON, skip or log
+                        if (data?.error) {
+                            streamErrored = true;
+                            throw new Error(data.error);
+                        }
+
+                        if (data?.type === 'thought' && data.content) {
+                            setThought(data.content);
+                            setMessages(prev => {
+                                const lastMsg = prev[prev.length - 1];
+                                if (lastMsg && lastMsg.type === 'thought') {
+                                    return [...prev.slice(0, -1), { ...lastMsg, message: lastMsg.message + data.content }];
+                                }
+                                return [...prev, {
+                                    id: `thought-${Date.now()}`,
+                                    sender: 'AI',
+                                    userName: 'Assistant Thinking',
+                                    message: data.content,
+                                    type: 'thought',
+                                    timestamp: new Date().toLocaleTimeString()
+                                }];
+                            });
+                            continue;
+                        }
+
+                        // Status/warning updates are progress metadata, not final assistant answer text.
+                        if ((data?.type === 'status' || data?.type === 'warning') && data.content) {
+                            setThought(data.content);
+                            continue;
+                        }
+
+                        if (data?.content) {
+                            fullAiResponse += data.content;
+                            setMessages(prev => prev.map(m =>
+                                m.id === aiMsgId ? { ...m, message: fullAiResponse } : m
+                            ));
                         }
                     }
                 }
+            }
+
+            if (!streamErrored && !fullAiResponse.trim()) {
+                setMessages(prev => prev.map(m =>
+                    m.id === aiMsgId
+                        ? { ...m, message: 'I could not generate a response this time. Please try again.' }
+                        : m
+                ));
             }
 
             // 3. Keep response entirely local (avoid shared state)
