@@ -2070,15 +2070,19 @@ async def get_dashboard_overview():
     }
 
     try:
-        # Server Stats
-        import psutil
-        mem = psutil.virtual_memory()
-        stats["server_stats"] = {
-            "cpu_usage": psutil.cpu_percent(interval=None),
-            "ram_usage": mem.percent,
-            "ram_total": round(mem.total / (1024 * 1024 * 1024), 2), # GB
-            "ram_free": round(mem.available / (1024 * 1024 * 1024), 2) # GB
-        }
+        # Server stats should not crash dashboard if unavailable.
+        try:
+            import psutil
+            mem = psutil.virtual_memory()
+            stats["server_stats"] = {
+                "cpu_usage": psutil.cpu_percent(interval=None),
+                "ram_usage": mem.percent,
+                "ram_total": round(mem.total / (1024 * 1024 * 1024), 2), # GB
+                "ram_free": round(mem.available / (1024 * 1024 * 1024), 2) # GB
+            }
+        except Exception as ps_err:
+            logger.warning(f"Dashboard server stats unavailable: {ps_err}")
+            stats["server_stats"] = None
 
         with db.session_scope() as session:
             # Document Stats
@@ -2087,21 +2091,25 @@ async def get_dashboard_overview():
             stats["documents"]["acts"] = session.query(Document).filter(Document.doc_type == "ACT").count()
 
             # Pipeline Stats
-            # OCR
-            stats["pipelines"]["ocr_pending"] = session.query(Document).filter(
-                Document.raw_text == None, 
-                Document.is_ocr_completed == False
-            ).count()
-            stats["pipelines"]["ocr_completed"] = session.query(Document).filter(Document.is_ocr_completed == True).count()
-            
+            # Prefer explicit OCR flag; fallback for older schemas.
+            try:
+                stats["pipelines"]["ocr_pending"] = session.query(Document).filter(
+                    Document.raw_text == None,
+                    Document.is_ocr_completed == False
+                ).count()
+                stats["pipelines"]["ocr_completed"] = session.query(Document).filter(
+                    Document.is_ocr_completed == True
+                ).count()
+            except Exception as ocr_err:
+                logger.warning(f"Dashboard OCR stats fallback due to schema/query error: {ocr_err}")
+                stats["pipelines"]["ocr_pending"] = session.query(Document).filter(Document.raw_text == None).count()
+                stats["pipelines"]["ocr_completed"] = session.query(Document).filter(Document.raw_text != None).count()
+
             # Segmentation
-            # Pending: Has text but no structure
             stats["pipelines"]["seg_pending"] = session.query(Document).filter(
                 Document.raw_text != None,
                 (Document.structure == None) | (Document.structure == "")
             ).count()
-            
-            # Completed: Has structure
             stats["pipelines"]["seg_completed"] = session.query(Document).filter(
                 Document.structure != None,
                 Document.structure != ""
