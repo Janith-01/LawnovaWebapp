@@ -137,7 +137,7 @@ const ArgumentAudit = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white p-6">
+        <div className="min-h-screen bg-slate-950 text-white p-3 sm:p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
@@ -149,13 +149,13 @@ const ArgumentAudit = () => {
                         Back
                     </button>
 
-                    <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-xl shadow-purple-500/30">
-                            <BarChart3 className="w-8 h-8 text-white" />
+                    <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-xl shadow-purple-500/30">
+                            <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black mb-2">Argument Audit</h1>
-                            <p className="text-slate-400">AI-Powered Legal Argument Classification & Analysis</p>
+                            <h1 className="text-2xl sm:text-4xl font-black mb-1 sm:mb-2">Argument Audit</h1>
+                            <p className="text-slate-400 text-sm sm:text-base">AI-Powered Legal Argument Classification & Analysis</p>
                         </div>
                     </div>
                 </div>
@@ -180,7 +180,7 @@ const ArgumentAudit = () => {
 
                         <button
                             onClick={handleEvaluate}
-                            className="group relative px-12 py-6 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-lg shadow-2xl shadow-purple-500/30 transition-all hover:scale-105 active:scale-95"
+                            className="group relative px-6 sm:px-12 py-4 sm:py-6 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-sm sm:text-lg shadow-2xl shadow-purple-500/30 transition-all hover:scale-105 active:scale-95"
                         >
                             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-400/20 to-indigo-400/20 blur-xl group-hover:blur-2xl transition-all" />
                             <div className="relative flex items-center gap-3">
@@ -201,15 +201,15 @@ const ArgumentAudit = () => {
                             className="space-y-8"
                         >
                             {/* Overall Score - Circular Progress */}
-                            <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8">
-                                <div className="flex items-center justify-between">
+                            <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-4 sm:p-8">
+                                <div className="flex flex-col lg:flex-row items-center justify-between gap-5">
                                     <div>
-                                        <h3 className="text-2xl font-bold mb-2">Overall Logic Strength</h3>
-                                        <p className="text-slate-400">Based on {arguments.length} analyzed arguments</p>
+                                        <h3 className="text-xl sm:text-2xl font-bold mb-2">Overall Logic Strength</h3>
+                                        <p className="text-slate-400 text-sm sm:text-base">Based on {arguments.length} analyzed arguments</p>
                                     </div>
 
                                     {/* Circular Progress */}
-                                    <div className="relative w-48 h-48">
+                                    <div className="relative w-36 h-36 sm:w-48 sm:h-48">
                                         {/* Background Circle */}
                                         <svg className="w-full h-full transform -rotate-90">
                                             <circle
@@ -239,7 +239,7 @@ const ArgumentAudit = () => {
                                         </svg>
                                         {/* Score Text */}
                                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                            <span className={`text-5xl font-black ${animatedScore >= 70 ? 'text-green-400' :
+                                            <span className={`text-4xl sm:text-5xl font-black ${animatedScore >= 70 ? 'text-green-400' :
                                                     animatedScore >= 40 ? 'text-yellow-400' : 'text-red-400'
                                                 }`}>
                                                 {animatedScore}%
@@ -254,7 +254,7 @@ const ArgumentAudit = () => {
 
                             {/* Arguments Table */}
                             <div className="bg-slate-900/50 border border-slate-800 rounded-3xl overflow-hidden">
-                                <div className="p-6 border-b border-slate-800">
+                                <div className="p-4 sm:p-6 border-b border-slate-800">
                                     <h3 className="text-xl font-bold flex items-center gap-2">
                                         <FileText className="w-6 h-6 text-purple-400" />
                                         Argument Breakdown
@@ -355,8 +355,8 @@ const ArgumentAudit = () => {
                             </div>
 
                             {/* Summary Statistics */}
-                            <div className="grid grid-cols-3 gap-6">
-                                <div className="bg-green-950/30 border border-green-500/30 rounded-2xl p-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
+                                <div className="bg-green-950/30 border border-green-500/30 rounded-2xl p-4 sm:p-6">
                                     <div className="flex items-center gap-3 mb-2">
                                         <CheckCircle className="w-6 h-6 text-green-400" />
                                         <h4 className="font-bold text-green-400">Strong Arguments</h4>
@@ -365,7 +365,7 @@ const ArgumentAudit = () => {
                                         {arguments.filter(a => a.classification === 'Strong').length}
                                     </p>
                                 </div>
-                                <div className="bg-red-950/30 border border-red-500/30 rounded-2xl p-6">
+                                <div className="bg-red-950/30 border border-red-500/30 rounded-2xl p-4 sm:p-6">
                                     <div className="flex items-center gap-3 mb-2">
                                         <AlertCircle className="w-6 h-6 text-red-400" />
                                         <h4 className="font-bold text-red-400">Weak Arguments</h4>
@@ -374,7 +374,7 @@ const ArgumentAudit = () => {
                                         {arguments.filter(a => a.classification === 'Weak').length}
                                     </p>
                                 </div>
-                                <div className="bg-purple-950/30 border border-purple-500/30 rounded-2xl p-6">
+                                <div className="bg-purple-950/30 border border-purple-500/30 rounded-2xl p-4 sm:p-6">
                                     <div className="flex items-center gap-3 mb-2">
                                         <Gavel className="w-6 h-6 text-purple-400" />
                                         <h4 className="font-bold text-purple-400">Legal Citations</h4>

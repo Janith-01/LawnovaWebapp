@@ -165,13 +165,13 @@ const CaseSetup = () => {
             <div className={`relative z-10 min-h-screen flex flex-col transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 
                 {/* Header */}
-                <header className="pt-12 pb-8 px-6 text-center">
+                <header className="pt-8 sm:pt-12 pb-6 sm:pb-8 px-4 sm:px-6 text-center">
                     <div className="flex items-center justify-center gap-4 mb-4">
                         <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${roleAccent.gradient} flex items-center justify-center shadow-2xl ${roleAccent.glow}`}>
                             <Scale size={32} className="text-white" />
                         </div>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-bold font-serif tracking-tight mb-2">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold font-serif tracking-tight mb-2">
                         CASE INITIALIZATION
                     </h1>
                     <p className="text-slate-400 text-sm md:text-base">
@@ -179,7 +179,7 @@ const CaseSetup = () => {
                     </p>
 
                     {/* Trial Info Badge */}
-                    <div className="inline-flex items-center gap-3 mt-6 px-5 py-2.5 rounded-full bg-slate-900/60 backdrop-blur-xl border border-slate-700/50">
+                    <div className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-4 sm:mt-6 px-4 sm:px-5 py-2.5 rounded-2xl sm:rounded-full bg-slate-900/60 backdrop-blur-xl border border-slate-700/50">
                         <Calendar size={16} className="text-purple-400" />
                         <span className="text-xs font-bold text-slate-300">3-DAY TRIAL</span>
                         <div className="w-px h-4 bg-slate-700" />
@@ -198,11 +198,11 @@ const CaseSetup = () => {
                             SELECT YOUR SIDE
                         </h2>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                             {/* Defense Card */}
                             <button
                                 onClick={() => setSelectedRole('Defense')}
-                                className={`group relative p-8 rounded-3xl border-2 transition-all duration-300 overflow-hidden text-left ${selectedRole === 'Defense'
+                                className={`group relative p-5 sm:p-8 rounded-3xl border-2 transition-all duration-300 overflow-hidden text-left ${selectedRole === 'Defense'
                                     ? 'border-cyan-500 bg-cyan-500/5 shadow-2xl shadow-cyan-500/20 scale-[1.02]'
                                     : 'border-slate-700/50 bg-slate-900/30 hover:border-slate-600 hover:bg-slate-900/50'
                                     }`}
@@ -213,15 +213,15 @@ const CaseSetup = () => {
                                 )}
 
                                 <div className="relative flex items-start gap-5">
-                                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all ${selectedRole === 'Defense'
+                                    <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-all ${selectedRole === 'Defense'
                                         ? 'bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/40'
                                         : 'bg-slate-800 group-hover:bg-slate-700'
                                         }`}>
-                                        <Shield size={32} className={selectedRole === 'Defense' ? 'text-white' : 'text-slate-400'} />
+                                        <Shield size={24} className={selectedRole === 'Defense' ? 'text-white' : 'text-slate-400'} />
                                     </div>
 
                                     <div className="flex-1">
-                                        <h3 className={`text-xl font-black mb-1 ${selectedRole === 'Defense' ? 'text-cyan-300' : 'text-white'}`}>
+                                        <h3 className={`text-lg sm:text-xl font-black mb-1 ${selectedRole === 'Defense' ? 'text-cyan-300' : 'text-white'}`}>
                                             DEFENSE ATTORNEY
                                         </h3>
                                         <p className={`text-sm ${selectedRole === 'Defense' ? 'text-cyan-400/80' : 'text-slate-400'}`}>
@@ -241,7 +241,7 @@ const CaseSetup = () => {
                             {/* Prosecution Card */}
                             <button
                                 onClick={() => setSelectedRole('Prosecution')}
-                                className={`group relative p-8 rounded-3xl border-2 transition-all duration-300 overflow-hidden text-left ${selectedRole === 'Prosecution'
+                                className={`group relative p-5 sm:p-8 rounded-3xl border-2 transition-all duration-300 overflow-hidden text-left ${selectedRole === 'Prosecution'
                                     ? 'border-orange-500 bg-orange-500/5 shadow-2xl shadow-orange-500/20 scale-[1.02]'
                                     : 'border-slate-700/50 bg-slate-900/30 hover:border-slate-600 hover:bg-slate-900/50'
                                     }`}
@@ -251,15 +251,15 @@ const CaseSetup = () => {
                                 )}
 
                                 <div className="relative flex items-start gap-5">
-                                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all ${selectedRole === 'Prosecution'
+                                    <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-all ${selectedRole === 'Prosecution'
                                         ? 'bg-gradient-to-br from-orange-500 to-red-600 shadow-lg shadow-orange-500/40'
                                         : 'bg-slate-800 group-hover:bg-slate-700'
                                         }`}>
-                                        <Sword size={32} className={selectedRole === 'Prosecution' ? 'text-white' : 'text-slate-400'} />
+                                        <Sword size={24} className={selectedRole === 'Prosecution' ? 'text-white' : 'text-slate-400'} />
                                     </div>
 
                                     <div className="flex-1">
-                                        <h3 className={`text-xl font-black mb-1 ${selectedRole === 'Prosecution' ? 'text-orange-300' : 'text-white'}`}>
+                                        <h3 className={`text-lg sm:text-xl font-black mb-1 ${selectedRole === 'Prosecution' ? 'text-orange-300' : 'text-white'}`}>
                                             PROSECUTOR
                                         </h3>
                                         <p className={`text-sm ${selectedRole === 'Prosecution' ? 'text-orange-400/80' : 'text-slate-400'}`}>
@@ -362,7 +362,7 @@ const CaseSetup = () => {
 
                     {/* Summary Bar */}
                     <div className="mb-6 p-4 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-slate-700/50">
-                        <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+                        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm">
                             <div className="flex items-center gap-2">
                                 <div className={`w-3 h-3 rounded-full bg-gradient-to-br ${roleAccent.gradient}`} />
                                 <span className="text-slate-400">Role:</span>
@@ -370,13 +370,13 @@ const CaseSetup = () => {
                                     {selectedRole}
                                 </span>
                             </div>
-                            <div className="w-px h-5 bg-slate-700" />
+                            <div className="hidden sm:block w-px h-5 bg-slate-700" />
                             <div className="flex items-center gap-2">
                                 <Target size={14} className="text-slate-400" />
                                 <span className="text-slate-400">Intensity:</span>
                                 <span className="font-bold text-white">{intensityLevels.find(l => l.id === difficulty)?.label}</span>
                             </div>
-                            <div className="w-px h-5 bg-slate-700" />
+                            <div className="hidden sm:block w-px h-5 bg-slate-700" />
                             <div className="flex items-center gap-2">
                                 <Clock size={14} className="text-slate-400" />
                                 <span className="text-slate-400">Time:</span>

@@ -87,7 +87,7 @@ const TrialResults = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#050B14] text-slate-200 p-4 md:p-8 font-sans overflow-x-hidden selection:bg-indigo-500/30">
+        <div className="min-h-screen bg-[#050B14] text-slate-200 p-3 sm:p-4 md:p-8 font-sans overflow-x-hidden selection:bg-indigo-500/30">
             {/* Ambient Background Glows */}
             <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-900/20 blur-[120px] rounded-full pointer-events-none" />
             <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-rose-900/10 blur-[120px] rounded-full pointer-events-none" />
@@ -97,7 +97,7 @@ const TrialResults = () => {
                 <motion.header
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4 print:hidden"
+                    className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-10 gap-4 print:hidden"
                 >
                     <div>
                         <button
@@ -106,17 +106,17 @@ const TrialResults = () => {
                         >
                             <ChevronLeft size={16} /> Return to Chambers
                         </button>
-                        <h1 className="text-4xl md:text-5xl font-serif font-bold bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
+                        <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
                             Trial Audit Report
                         </h1>
-                        <p className="text-slate-400 mt-2 flex items-center gap-2">
+                        <p className="text-slate-400 mt-2 flex items-center gap-2 text-sm sm:text-base">
                             <ScrollText size={16} /> {caseTitle || 'State v. Defendant'} - Final Review
                         </p>
                     </div>
 
                     <button
                         onClick={handlePrint}
-                        className="flex items-center gap-2 px-6 py-3 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/30 rounded-xl text-indigo-300 font-bold transition-all hover:scale-105 active:scale-95"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/30 rounded-xl text-indigo-300 font-bold transition-all hover:scale-105 active:scale-95 text-sm sm:text-base"
                     >
                         <Download size={18} />
                         Export as PDF
@@ -128,9 +128,9 @@ const TrialResults = () => {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.1 }}
-                    className="relative p-1 rounded-2xl bg-gradient-to-b from-slate-800 to-slate-900 mb-12 shadow-2xl glass-panel print:shadow-none print:bg-white print:text-black"
+                    className="relative p-1 rounded-2xl bg-gradient-to-b from-slate-800 to-slate-900 mb-8 sm:mb-12 shadow-2xl glass-panel print:shadow-none print:bg-white print:text-black"
                 >
-                    <div className="bg-slate-900/90 rounded-xl p-8 md:p-10 border border-slate-700/50 relative overflow-hidden print:bg-white print:border-gray-300">
+                    <div className="bg-slate-900/90 rounded-xl p-5 sm:p-8 md:p-10 border border-slate-700/50 relative overflow-hidden print:bg-white print:border-gray-300">
                         {/* Huge background icon */}
                         <Scale className="absolute -right-10 -bottom-10 w-64 h-64 text-slate-800/30 rotate-12 pointer-events-none print:hidden" />
 
@@ -141,12 +141,12 @@ const TrialResults = () => {
                                 }`}>
                                 Official Judgment
                             </span>
-                            <h2 className="text-3xl font-serif font-bold mb-4 text-white print:text-black">
+                            <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-4 text-white print:text-black">
                                 {finalOutcome === 'WIN' ? "Judgment in favor of your representation." :
                                     finalOutcome === 'LOSE' ? "Judgment against your representation." :
                                         "Trial Concluded."}
                             </h2>
-                            <p className="text-slate-300 leading-relaxed text-lg print:text-gray-700">
+                            <p className="text-slate-300 leading-relaxed text-base sm:text-lg print:text-gray-700">
                                 {finalSummary}
                             </p>
                         </div>
@@ -154,7 +154,7 @@ const TrialResults = () => {
                 </motion.div>
 
                 {/* Two Column Layout for Arguments */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 print:block print:w-full">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 print:block print:w-full">
 
                     {/* LEFT COLUMN: Legal Victories */}
                     <motion.div
@@ -254,7 +254,7 @@ const ArgumentCard = ({ arg, type, index }) => {
             className={`rounded-xl bg-slate-900/40 backdrop-blur-md border ${borderColor} overflow-hidden shadow-lg print:border-gray-300 print:break-inside-avoid print:mb-6 print:shadow-none print:shadow-none print:text-black`}
         >
             {/* Header / Original Argument */}
-            <div className={`p-5 ${headerBgColor} border-b border-slate-800/50 print:bg-gray-50 print:border-gray-200`}>
+            <div className={`p-4 sm:p-5 ${headerBgColor} border-b border-slate-800/50 print:bg-gray-50 print:border-gray-200`}>
                 <div className="flex justify-between items-start mb-3 gap-4">
                     <div className="flex items-center gap-2">
                         <span className={`px-2 py-1 text-[10px] uppercase tracking-widest font-black rounded ${badgeColor} flex items-center gap-1.5`}>
@@ -269,19 +269,19 @@ const ArgumentCard = ({ arg, type, index }) => {
                         <span className="text-[10px] uppercase font-bold tracking-widest opacity-80 mt-1">Logic Score</span>
                     </div>
                 </div>
-                <p className="text-white text-base leading-relaxed print:text-black">
+                <p className="text-white text-sm sm:text-base leading-relaxed print:text-black">
                     "{arg.originalText}"
                 </p>
             </div>
 
             {/* AI Reasoning (Glassmorphism inset) */}
-            <div className="p-5 bg-slate-900/80 relative print:bg-white print:border-t print:border-dashed print:border-gray-300">
+            <div className="p-4 sm:p-5 bg-slate-900/80 relative print:bg-white print:border-t print:border-dashed print:border-gray-300">
                 <div className="absolute top-0 left-0 w-1 h-full opacity-50 bg-gradient-to-b from-transparent via-indigo-500 to-transparent print:hidden" />
 
                 <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2 flex items-center gap-2">
                     <SparkleIcon /> Model Reasoning
                 </h4>
-                <p className="text-sm text-slate-300 leading-relaxed print:text-gray-700">
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed print:text-gray-700">
                     {arg.reason || 'Model reasoning unavailable for this argument.'}
                 </p>
             </div>

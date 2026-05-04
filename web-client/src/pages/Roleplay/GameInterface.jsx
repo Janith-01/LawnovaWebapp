@@ -770,7 +770,7 @@ const GameInterface = () => {
     };
 
     return (
-        <div className="h-screen flex flex-col bg-slate-950 text-white overflow-hidden">
+        <div className="h-[100dvh] flex flex-col bg-slate-950 text-white overflow-hidden">
             {/* Animated Background */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-600/5 rounded-full blur-3xl" />
@@ -787,11 +787,11 @@ const GameInterface = () => {
                 {/* Top Accent Line */}
                 <div className="h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
 
-                <div className="px-4 py-3 backdrop-blur-xl bg-slate-900/70 border-b border-slate-800/50">
+                <div className="px-2 sm:px-4 py-2 sm:py-3 backdrop-blur-xl bg-slate-900/70 border-b border-slate-800/50">
                     <div className="max-w-[1600px] mx-auto">
 
                         {/* Main HUD Bar */}
-                        <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center justify-between gap-2 sm:gap-4">
 
                             {/* Exit Button */}
                             <button
@@ -809,17 +809,17 @@ const GameInterface = () => {
                                     setExitConfirmPending(false);
                                     navigate('/roleplay');
                                 }}
-                                className="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-all border border-transparent hover:border-red-500/50"
+                                className="flex items-center gap-2 px-2 sm:px-4 py-2 rounded-xl hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-all border border-transparent hover:border-red-500/50"
                             >
                                 <ArrowLeft size={18} />
                                 <span className="text-sm font-bold hidden sm:inline">EXIT</span>
                             </button>
 
                             {/* HUD Instrument Panels */}
-                            <div className="flex-1 flex items-center justify-center gap-4">
+                            <div className="flex-1 flex items-center justify-center gap-2 sm:gap-4">
 
                                 {/* Section A: Day Counter */}
-                                <div className="hidden sm:flex items-center gap-3 px-5 py-2.5 rounded-2xl backdrop-blur-xl bg-slate-900/60 border border-cyan-500/30 shadow-lg shadow-cyan-500/10">
+                                <div className="hidden md:flex items-center gap-3 px-5 py-2.5 rounded-2xl backdrop-blur-xl bg-slate-900/60 border border-cyan-500/30 shadow-lg shadow-cyan-500/10">
                                     <Calendar size={18} className="text-cyan-400" />
                                     <div className="flex flex-col">
                                         <span className="text-[9px] font-bold text-cyan-400/70 uppercase tracking-widest">Trial Day</span>
@@ -830,16 +830,16 @@ const GameInterface = () => {
                                 </div>
 
                                 {/* Section B: Court Clock */}
-                                <div className={`flex items-center gap-4 px-6 py-3 rounded-2xl backdrop-blur-xl bg-slate-900/60 border border-slate-700/50 shadow-2xl ${getClockGlow()}`}>
-                                    <Clock size={24} className={getClockColor()} />
+                                <div className={`flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-2 sm:py-3 rounded-2xl backdrop-blur-xl bg-slate-900/60 border border-slate-700/50 shadow-2xl ${getClockGlow()}`}>
+                                    <Clock size={18} className={getClockColor()} />
                                     <div className="flex flex-col items-center">
                                         <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Time Remaining</span>
-                                        <span className={`text-3xl font-black font-mono tracking-[0.15em] ${getClockColor()}`}>
+                                        <span className={`text-xl sm:text-3xl font-black font-mono tracking-[0.1em] sm:tracking-[0.15em] ${getClockColor()}`}>
                                             {formatTime(timeRemaining)}
                                         </span>
                                     </div>
                                     {/* Active Speaker Badge */}
-                                    <div className="bg-slate-800/50 border border-slate-700 p-3 rounded-lg flex flex-col items-center min-w-[120px]">
+                                    <div className="hidden sm:flex bg-slate-800/50 border border-slate-700 p-3 rounded-lg flex-col items-center min-w-[120px]">
                                         <div className="text-[9px] text-slate-500 font-bold tracking-widest mb-1 uppercase">Currently Speaking</div>
                                         <div className={`text-sm font-bold ${currentSpeakerRole === 'Judge' ? 'text-yellow-400' :
                                             currentSpeakerRole === 'Prosecutor' || currentSpeakerRole === 'Opponent' ? 'text-red-400' :
@@ -881,12 +881,12 @@ const GameInterface = () => {
                             </div>
 
                             {/* Role Badge & Game Actions */}
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 sm:gap-2">
                                 {/* End Trial Early Button */}
                                 {gameStatus === 'active' && (
                                     <button
                                         onClick={() => setShowEndTrialModal(true)}
-                                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 hover:border-red-500/50 transition-all group"
+                                        className="flex items-center gap-2 px-2 sm:px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 hover:border-red-500/50 transition-all group"
                                         title="Conclude trial early and get verdict"
                                     >
                                         <StopCircle size={18} className="group-hover:scale-110 transition-transform" />
@@ -899,7 +899,7 @@ const GameInterface = () => {
                                     <button
                                         onClick={handleProceedToNextDay}
                                         disabled={!isDayComplete && turnCount < 5} // Requirement: 5 turns or isDayComplete
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all group ${(!isDayComplete && turnCount < 5)
+                                        className={`flex items-center gap-2 px-2 sm:px-4 py-2 rounded-xl border transition-all group ${(!isDayComplete && turnCount < 5)
                                             ? 'opacity-50 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
                                             : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 shadow-lg shadow-emerald-500/10'
                                             }`}
@@ -910,7 +910,7 @@ const GameInterface = () => {
                                     </button>
                                 )}
 
-                                <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 ${caseInfo.userRole === 'Defense'
+                                <div className={`flex items-center gap-2 px-2 sm:px-4 py-2 rounded-xl border-2 ${caseInfo.userRole === 'Defense'
                                     ? 'border-cyan-500/50 bg-cyan-500/10 shadow-lg shadow-cyan-500/20'
                                     : 'border-orange-500/50 bg-orange-500/10 shadow-lg shadow-orange-500/20'
                                     }`}>
@@ -932,7 +932,7 @@ const GameInterface = () => {
             </header>
 
             {/* === MAIN CONTENT === */}
-            <div className="flex-1 flex overflow-hidden relative z-10">
+            <div className="flex-1 flex overflow-hidden relative z-10 min-h-0">
 
                 {/* Left Sidebar - Case Info (Collapsible on smaller screens) */}
                 <aside className="hidden lg:flex flex-col w-72 shrink-0 border-r border-slate-800/50 bg-slate-900/30 backdrop-blur-sm">
@@ -989,7 +989,7 @@ const GameInterface = () => {
                 <main className="flex-1 flex flex-col relative overflow-hidden">
                     <div
                         ref={chatContainerRef}
-                        className="flex-1 overflow-y-auto px-4 py-6 space-y-6"
+                        className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6"
                     >
                         <div className="max-w-4xl mx-auto space-y-6">
                             {messages.map((message) => (
@@ -1019,7 +1019,7 @@ const GameInterface = () => {
                     </div>
 
                     {/* === INPUT ZONE === */}
-                    <div className="p-4 backdrop-blur-xl bg-slate-900/80 border-t border-slate-800/50">
+                    <div className="p-3 sm:p-4 backdrop-blur-xl bg-slate-900/80 border-t border-slate-800/50">
                         <div className="max-w-4xl mx-auto">
                             {gameStatus === 'finished' ? (
                                 <div className="flex justify-center py-2">
@@ -1032,11 +1032,11 @@ const GameInterface = () => {
                                     </button>
                                 </div>
                             ) : (
-                                <div className="flex gap-3">
+                                <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3">
                                     <button
                                         onClick={handleVoiceInput}
                                         disabled={isLoading || micLoading}
-                                        className={`px-4 rounded-2xl border-2 transition-all flex items-center justify-center ${isRecording
+                                        className={`h-12 w-12 rounded-2xl border-2 transition-all flex items-center justify-center ${isRecording
                                             ? 'text-white bg-red-500 animate-pulse border-red-500'
                                             : 'bg-slate-900/50 border-slate-700/50 text-slate-500 hover:text-purple-400 hover:bg-purple-500/10'
                                             }`}
@@ -1053,24 +1053,24 @@ const GameInterface = () => {
                                             onKeyPress={handleKeyPress}
                                             placeholder="Present your argument to the court..."
                                             disabled={isLoading || isRecording}
-                                            className="w-full px-6 py-4 rounded-2xl border-2 bg-slate-900/50 border-slate-700/50 text-white placeholder:text-slate-600 focus:border-purple-500/50 focus:ring-4 focus:ring-purple-500/10 transition-all outline-none text-sm backdrop-blur-xl"
+                                            className="w-full px-4 sm:px-6 py-3 sm:py-4 rounded-2xl border-2 bg-slate-900/50 border-slate-700/50 text-white placeholder:text-slate-600 focus:border-purple-500/50 focus:ring-4 focus:ring-purple-500/10 transition-all outline-none text-sm backdrop-blur-xl"
                                         />
                                     </div>
                                     <button
                                         onClick={handleObjection}
                                         disabled={isLoading || isObjectionPending}
-                                        className={`px-5 rounded-2xl font-black text-[10px] tracking-tighter transition-all flex flex-col items-center justify-center gap-0.5 border-2 ${isObjectionPending
+                                        className={`h-12 px-3 sm:px-5 rounded-2xl font-black text-[10px] tracking-tighter transition-all flex flex-col items-center justify-center gap-0.5 border-2 ${isObjectionPending
                                             ? 'bg-red-500/20 border-red-500/50 text-red-500'
                                             : 'bg-black/40 border-slate-700 text-slate-400 hover:border-red-500/50 hover:text-red-500'
                                             }`}
                                     >
                                         <AlertTriangle size={18} />
-                                        OBJECTION
+                                        <span className="hidden sm:inline">OBJECTION</span>
                                     </button>
                                     <button
                                         onClick={handleSendMessage}
                                         disabled={!inputText.trim() || isLoading || isRecording}
-                                        className={`px-6 rounded-2xl flex items-center justify-center transition-all ${inputText.trim() && !isLoading && !isRecording
+                                        className={`h-12 w-12 sm:w-auto sm:px-6 rounded-2xl flex items-center justify-center transition-all ${inputText.trim() && !isLoading && !isRecording
                                             ? 'bg-gradient-to-br from-orange-500 to-rose-600 text-white shadow-xl shadow-orange-500/30 hover:scale-105 active:scale-95'
                                             : 'bg-slate-800 text-slate-600 cursor-not-allowed'
                                             }`}

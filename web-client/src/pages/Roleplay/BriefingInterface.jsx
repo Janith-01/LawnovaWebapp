@@ -21,7 +21,6 @@ import {
     Lightbulb
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
-import ThemeToggle from '../../components/ui/ThemeToggle';
 
 /**
  * BriefingInterface - Case Dossier Display
@@ -74,7 +73,7 @@ const BriefingInterface = () => {
         <div className={`min-h-screen ${themeClasses.container} transition-colors duration-300`}>
             {/* Header */}
             <header className={`sticky top-0 z-10 ${themeClasses.card} border-b backdrop-blur-md px-4 py-3`}>
-                <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+                <div className="max-w-6xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
                     <button
                         onClick={() => navigate('/roleplay')}
                         className={`p-2 rounded-lg transition-colors ${themeClasses.cardHover}`}
@@ -82,7 +81,7 @@ const BriefingInterface = () => {
                         <ArrowLeft size={20} />
                     </button>
 
-                    <div className="flex-1 text-center">
+                    <div className="flex-1 text-center min-w-0 px-2">
                         <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 text-xs font-semibold mb-1">
                             <FileText size={12} />
                             CASE DOSSIER
@@ -94,8 +93,6 @@ const BriefingInterface = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <ThemeToggle />
-
                         {/* Role Badge */}
                         <div className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg border-2 ${isDefense ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20' : 'border-red-400 bg-red-50 dark:bg-red-900/20'
                             }`}>

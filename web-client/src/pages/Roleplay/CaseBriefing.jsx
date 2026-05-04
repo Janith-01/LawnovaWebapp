@@ -179,9 +179,9 @@ const CaseBriefing = () => {
                 </div>
 
                 {/* Loading Card */}
-                <div className="relative z-10 backdrop-blur-xl bg-slate-900/60 border border-slate-700 rounded-3xl p-12 text-center max-w-md mx-4">
+                <div className="relative z-10 backdrop-blur-xl bg-slate-900/60 border border-slate-700 rounded-3xl p-6 sm:p-10 text-center w-[calc(100%-2rem)] max-w-md mx-4">
                     {/* Spinning rings */}
-                    <div className="relative w-32 h-32 mx-auto mb-8">
+                    <div className="relative w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-6 sm:mb-8">
                         <div className="absolute inset-0 border-4 border-purple-500/30 rounded-full animate-ping" />
                         <div className="absolute inset-2 border-4 border-cyan-500/50 border-t-transparent rounded-full animate-spin" />
                         <div className="absolute inset-4 border-4 border-orange-500/50 border-b-transparent rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
@@ -190,7 +190,7 @@ const CaseBriefing = () => {
                         </div>
                     </div>
 
-                    <h2 className="text-2xl font-bold text-white mb-2 font-serif">Initializing Case</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 font-serif">Initializing Case</h2>
                     <p className="text-slate-400 text-sm">Accessing classified files...</p>
 
                     {/* Progress dots */}
@@ -229,7 +229,7 @@ const CaseBriefing = () => {
                 </div>
 
                 {/* Main content - Centered */}
-                <div className={`relative z-10 min-h-screen flex items-center justify-center p-6 transition-all duration-700 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+                <div className={`relative z-10 min-h-screen flex items-center justify-center p-4 sm:p-6 transition-all duration-700 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
 
                     {/* Main Card */}
                     <div className="w-full max-w-2xl">
@@ -243,7 +243,7 @@ const CaseBriefing = () => {
                         </div>
 
                         {/* Glassmorphism Card */}
-                        <div className="backdrop-blur-xl bg-slate-900/60 border border-slate-700/50 rounded-3xl p-8">
+                        <div className="backdrop-blur-xl bg-slate-900/60 border border-slate-700/50 rounded-3xl p-4 sm:p-8">
 
                             {/* Role Selection */}
                             <section className="mb-8">
@@ -252,11 +252,11 @@ const CaseBriefing = () => {
                                     CHOOSE YOUR SIDE
                                 </h3>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     {/* Defense Card */}
                                     <button
                                         onClick={() => setSelectedRole('Defense')}
-                                        className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 overflow-hidden ${selectedRole === 'Defense'
+                                        className={`group relative p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 overflow-hidden ${selectedRole === 'Defense'
                                             ? 'border-cyan-500 bg-cyan-500/10 shadow-lg shadow-cyan-500/25'
                                             : 'border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:bg-slate-800'
                                             }`}
@@ -267,7 +267,7 @@ const CaseBriefing = () => {
                                         )}
                                         <div className="relative">
                                             <Shield
-                                                size={48}
+                                                size={36}
                                                 className={`mx-auto mb-4 transition-all ${selectedRole === 'Defense'
                                                     ? 'text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]'
                                                     : 'text-slate-500 group-hover:text-slate-400'
@@ -281,7 +281,7 @@ const CaseBriefing = () => {
                                     {/* Prosecution Card */}
                                     <button
                                         onClick={() => setSelectedRole('Prosecution')}
-                                        className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 overflow-hidden ${selectedRole === 'Prosecution'
+                                        className={`group relative p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 overflow-hidden ${selectedRole === 'Prosecution'
                                             ? 'border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/25'
                                             : 'border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:bg-slate-800'
                                             }`}
@@ -291,7 +291,7 @@ const CaseBriefing = () => {
                                         )}
                                         <div className="relative">
                                             <Sword
-                                                size={48}
+                                                size={36}
                                                 className={`mx-auto mb-4 transition-all ${selectedRole === 'Prosecution'
                                                     ? 'text-orange-400 drop-shadow-[0_0_10px_rgba(251,146,60,0.5)]'
                                                     : 'text-slate-500 group-hover:text-slate-400'
@@ -335,7 +335,7 @@ const CaseBriefing = () => {
                                     SIMULATION INTENSITY
                                 </h3>
 
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                     {difficulties.map((d) => (
                                         <button
                                             key={d.id}
@@ -365,7 +365,7 @@ const CaseBriefing = () => {
                             <button
                                 onClick={handleGenerateCase}
                                 disabled={!selectedRole}
-                                className={`w-full py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all duration-300 ${selectedRole
+                                className={`w-full py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg flex items-center justify-center gap-3 transition-all duration-300 ${selectedRole
                                     ? `${accentColors.bg} text-slate-900 hover:brightness-110 shadow-lg ${accentColors.glow} hover:scale-[1.02]`
                                     : 'bg-slate-800 text-slate-500 cursor-not-allowed'
                                     }`}
@@ -403,7 +403,7 @@ const CaseBriefing = () => {
 
             {/* Header */}
             <header className={`sticky top-0 z-20 backdrop-blur-xl bg-slate-900/80 border-b border-slate-800 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
-                <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2">
                     {/* Left - Back button */}
                     <button
                         onClick={() => setPhase('setup')}
@@ -414,16 +414,16 @@ const CaseBriefing = () => {
                     </button>
 
                     {/* Center - Case Title */}
-                    <div className="flex-1 text-center">
+                    <div className="flex-1 text-center min-w-0 px-2">
                         <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${accentColors.bgMuted} ${accentColors.text} text-xs font-bold mb-1`}>
                             <FileText size={12} />
                             CASE FILE GENERATED
                         </span>
-                        <h1 className="text-lg lg:text-xl font-bold font-serif truncate">{caseDetails.title}</h1>
+                        <h1 className="text-base sm:text-lg lg:text-xl font-bold font-serif truncate">{caseDetails.title}</h1>
                     </div>
 
                     {/* Right - Role Badge */}
-                    <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 ${accentColors.border} ${accentColors.bgMuted}`}>
+                    <div className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl border-2 ${accentColors.border} ${accentColors.bgMuted}`}>
                         {isDefense ? <Shield size={18} className="text-cyan-400" /> : <Sword size={18} className="text-orange-400" />}
                         <span className={`text-sm font-bold ${accentColors.text}`}>
                             {isDefense ? 'DEFENSE' : 'PROSECUTION'}
@@ -434,6 +434,12 @@ const CaseBriefing = () => {
 
             {/* Main Content */}
             <main className={`relative z-10 max-w-[1400px] mx-auto px-4 lg:px-8 py-6 transition-all duration-700 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+                <div className="sm:hidden mb-4 flex justify-center">
+                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border ${accentColors.border} ${accentColors.bgMuted}`}>
+                        {isDefense ? <Shield size={14} className="text-cyan-400" /> : <Sword size={14} className="text-orange-400" />}
+                        <span className={`text-xs font-bold ${accentColors.text}`}>{isDefense ? 'DEFENSE' : 'PROSECUTION'}</span>
+                    </div>
+                </div>
 
                 {/* Grid Layout - Better responsive breakpoints */}
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-6">
