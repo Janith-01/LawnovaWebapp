@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { DailyProvider, useDaily, useParticipantIds, useLocalParticipant, useParticipantProperty, useDailyEvent, useAppMessage } from '@daily-co/daily-react';
+import { DailyProvider, DailyAudio, useDaily, useParticipantIds, useLocalParticipant, useParticipantProperty, useDailyEvent, useAppMessage } from '@daily-co/daily-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Mic, MicOff, Video, VideoOff, PhoneOff,
@@ -910,6 +910,7 @@ const CourtroomPage = () => {
 
     return (
         <DailyProvider properties={{ url: roomInfo.dailyRoomUrl }}>
+            <DailyAudio />
             <CourtroomInterface
                 roomId={roomId}
                 roomInfo={roomInfo}
