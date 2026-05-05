@@ -29,3 +29,21 @@ class DocumentResponse(BaseModel):
     
     class Config:
         from_attributes = True # Pydantic v2 equivalent of orm_mode = True
+
+
+class PredictionRequest(BaseModel):
+    text: str
+
+
+class CaseNumberRequest(BaseModel):
+    case_number: str
+
+
+class PredictionWithExplanationRequest(BaseModel):
+    text: str
+    case_number: Optional[str] = None
+
+
+class SearchRequest(BaseModel):
+    query: str
+    limit: int = 5

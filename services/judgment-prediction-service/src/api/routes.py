@@ -13,7 +13,14 @@ import traceback
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-from src.api.schemas import DocumentResponse, PaginatedResponse, PredictionRequest
+from src.api.schemas import (
+    DocumentResponse,
+    PaginatedResponse,
+    PredictionRequest,
+    CaseNumberRequest,
+    PredictionWithExplanationRequest,
+    SearchRequest,
+)
 from typing import List
 
 @router.get("/stats/supreme-court")
