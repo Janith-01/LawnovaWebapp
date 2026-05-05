@@ -1641,16 +1641,46 @@ async def predict_by_case_number(case_number: str):
     if not ml_model:
         load_ml_model()
         
+    normalized_input = (case_number or "").strip()
+    if not normalized_input:
+        raise HTTPException(status_code=400, detail="case_number is required.")
+
     db = DatabaseManager()
     with db.session_scope() as session:
-        # Fuzzy search/Exact search for case number
-        doc = session.query(Document).filter(
-            (Document.doc_type == "JUDGMENT") & 
-            (Document.case_number.ilike(f"%{case_number}%"))
-        ).first()
+        # 1) Direct fuzzy match on common input variants
+        variants = {
+            normalized_input,
+            normalized_input.replace("/", " "),
+            normalized_input.replace("-", " "),
+            " ".join(normalized_input.split()),
+        }
+
+        doc = None
+        for variant in variants:
+            if not variant:
+                continue
+            doc = session.query(Document).filter(
+                (Document.doc_type == "JUDGMENT") &
+                (Document.case_number.ilike(f"%{variant}%"))
+            ).order_by(Document.date_decided.desc()).first()
+            if doc:
+                break
+
+        # 2) Token-based fallback to handle storage format differences
+        if not doc:
+            import re
+            tokens = re.findall(r"[A-Za-z0-9]+", normalized_input.upper())
+            if tokens:
+                token_query = session.query(Document).filter(Document.doc_type == "JUDGMENT")
+                for token in tokens:
+                    token_query = token_query.filter(Document.case_number.ilike(f"%{token}%"))
+                doc = token_query.order_by(Document.date_decided.desc()).first()
         
         if not doc:
-            raise HTTPException(status_code=404, detail="Case not found.")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Case not found for case_number='{normalized_input}'."
+            )
             
         # Get Facts
         try:
