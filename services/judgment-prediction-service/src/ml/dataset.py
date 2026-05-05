@@ -15,7 +15,12 @@ from src.database.models import Document, JudgmentMetadata
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-def export_dataset(output_path="data/dataset.csv"):
+# Compute project root
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+def export_dataset(output_path=None):
+    if output_path is None:
+        output_path = os.path.join(_PROJECT_ROOT, "data", "dataset.csv")
     db = DatabaseManager()
     
     data = []

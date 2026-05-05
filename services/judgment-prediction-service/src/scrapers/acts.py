@@ -8,9 +8,10 @@ from datetime import datetime
 from src.database.db_manager import DatabaseManager
 
 # Configuration
-BASE_URL = "https://documents.gov.lk/view/acts/"
-MAIN_PAGE = "https://documents.gov.lk/view/acts/acts.html"
-PDF_DIR = "data/pdfs/acts"
+BASE_URL = "https://documents.gov.lk/view/act/"
+MAIN_PAGE = "https://documents.gov.lk/view/act/acts.html"
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+PDF_DIR = os.path.join(_PROJECT_ROOT, "data", "pdfs", "acts")
 
 # Verify False Warnings Suppression
 import urllib3

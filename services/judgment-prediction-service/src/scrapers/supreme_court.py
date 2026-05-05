@@ -16,7 +16,8 @@ from src.database.db_manager import DatabaseManager
 
 # Configuration
 BASE_URL = "https://supremecourt.lk/judgements/"
-PDF_DIR = "data/pdfs/supreme_court"  # Standardized location for PDFs
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+PDF_DIR = os.path.join(_PROJECT_ROOT, "data", "pdfs", "supreme_court")
 MAX_PAGES = 1
 
 class SupremeCourtScraper:

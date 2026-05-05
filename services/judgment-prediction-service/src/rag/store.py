@@ -7,10 +7,13 @@ from sentence_transformers import SentenceTransformer
 # Setup Logging
 logger = logging.getLogger(__name__)
 
+# Compute project root (two levels up from src/rag/store.py)
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
 class SimpleVectorStore:
-    def __init__(self, index_path="data/embeddings.pt", metadata_path="data/metadata.json"):
-        self.index_path = index_path
-        self.metadata_path = metadata_path
+    def __init__(self, index_path=None, metadata_path=None):
+        self.index_path = index_path or os.path.join(_PROJECT_ROOT, "data", "embeddings.pt")
+        self.metadata_path = metadata_path or os.path.join(_PROJECT_ROOT, "data", "metadata.json")
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.vectors = None
         self.metadata = []

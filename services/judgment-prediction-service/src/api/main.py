@@ -45,10 +45,12 @@ def startup_event():
 
 import logging
 import sys
+import os as _os
 
 # Configure logging at module level so it runs on import
+_LOG_DIR = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..", ".."))
 logging.basicConfig(
-    filename='server.log', 
+    filename=_os.path.join(_LOG_DIR, 'server.log'), 
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )

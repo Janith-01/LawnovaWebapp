@@ -1590,9 +1590,12 @@ import torch
 ml_model = None
 ml_tokenizer = None
 
+# Anchor paths to the project root (two levels up from this file: src/api/routes.py -> project root)
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
 def load_ml_model():
     global ml_model, ml_tokenizer
-    model_path = "models/judgment_predictor"
+    model_path = os.path.join(_PROJECT_ROOT, "models", "judgment_predictor")
     if os.path.exists(model_path):
         try:
             print("Loading ML model...")
@@ -1603,10 +1606,12 @@ def load_ml_model():
             print(f"Error loading ML model: {e}")
 
 @router.post("/predict/judgment")
-async def predict_judgment(text: str):
+async def predict_judgment(body: PredictionRequest):
     """
     Predict outcomes (ALLOWED/DISMISSED) based on case facts.
+    Accepts JSON body: { "text": "..." }
     """
+    text = body.text
     if not ml_model:
         load_ml_model()
         
@@ -1633,15 +1638,16 @@ async def predict_judgment(text: str):
     }
 
 @router.post("/predict/by-case-number")
-async def predict_by_case_number(case_number: str):
+async def predict_by_case_number(body: CaseNumberRequest):
     """
     Lookup a case by number, extract facts, and predict outcome.
     Useful for testing the model against known cases.
+    Accepts JSON body: { "case_number": "..." }
     """
     if not ml_model:
         load_ml_model()
         
-    normalized_input = (case_number or "").strip()
+    normalized_input = (body.case_number or "").strip()
     if not normalized_input:
         raise HTTPException(status_code=400, detail="case_number is required.")
 
@@ -1788,12 +1794,13 @@ def get_rag_store():
     return rag_store
 
 @router.post("/search")
-async def search_documents(query: str, limit: int = 5):
+async def search_documents(body: SearchRequest):
     """
     Semantic search over Judgments and Acts.
+    Accepts JSON body: { "query": "...", "limit": 5 }
     """
     store = get_rag_store()
-    results = store.search(query, k=limit)
+    results = store.search(body.query, k=body.limit)
     return {"results": results}
 
 # --- Explanation Layer (Gemini) ---
@@ -1809,13 +1816,15 @@ def get_explainer():
     return gemini_explainer
 
 @router.post("/predict/with-explanation")
-async def predict_with_explanation(text: str, case_number: str = None):
+async def predict_with_explanation(body: PredictionWithExplanationRequest):
     """
     Predict outcome and generate an Explanation using Gemini + RAG.
     """
     # 1. Get Prediction
     # We can reuse the logic from predict_judgment, but let's call it directly or refactor.
     # For now, invoking the logic inline to avoid HTTP overhead of self-call.
+    text = body.text
+    case_number = body.case_number
     
     if not ml_model:
         load_ml_model()

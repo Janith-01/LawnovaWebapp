@@ -27,7 +27,14 @@ class LegalDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.labels)
 
-def train_model(data_path="data/dataset.csv", output_dir="models/judgment_predictor"):
+# Compute project root
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+def train_model(data_path=None, output_dir=None):
+    if data_path is None:
+        data_path = os.path.join(_PROJECT_ROOT, "data", "dataset.csv")
+    if output_dir is None:
+        output_dir = os.path.join(_PROJECT_ROOT, "models", "judgment_predictor")
     
     if not os.path.exists(data_path):
         logger.error(f"Dataset not found: {data_path}")

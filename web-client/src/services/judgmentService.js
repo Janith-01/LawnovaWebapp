@@ -11,9 +11,7 @@ const judgmentService = {
      * @returns {Promise} - { prediction, confidence: { dismissed, allowed } }
      */
     predictJudgment: async (text) => {
-        const response = await api.post('/api/judgment/predict/judgment', null, {
-            params: { text },
-        });
+        const response = await api.post('/api/judgment/predict/judgment', { text });
         return response.data;
     },
 
@@ -24,11 +22,9 @@ const judgmentService = {
      * @returns {Promise} - { prediction, confidence, explanation, citing_documents }
      */
     predictWithExplanation: async (text, caseNumber = null) => {
-        const params = { text };
-        if (caseNumber) params.case_number = caseNumber;
-        const response = await api.post('/api/judgment/predict/with-explanation', null, {
-            params,
-        });
+        const body = { text };
+        if (caseNumber) body.case_number = caseNumber;
+        const response = await api.post('/api/judgment/predict/with-explanation', body);
         return response.data;
     },
 
@@ -38,8 +34,8 @@ const judgmentService = {
      * @returns {Promise}
      */
     predictByCaseNumber: async (caseNumber) => {
-        const response = await api.post('/api/judgment/predict/by-case-number', null, {
-            params: { case_number: caseNumber },
+        const response = await api.post('/api/judgment/predict/by-case-number', {
+            case_number: caseNumber,
         });
         return response.data;
     },
@@ -51,9 +47,7 @@ const judgmentService = {
      * @returns {Promise}
      */
     searchDocuments: async (query, limit = 5) => {
-        const response = await api.post('/api/judgment/search', null, {
-            params: { query, limit },
-        });
+        const response = await api.post('/api/judgment/search', { query, limit });
         return response.data;
     },
 

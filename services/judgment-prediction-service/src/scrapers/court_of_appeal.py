@@ -15,7 +15,8 @@ from datetime import datetime
 
 # Configuration
 BASE_URL = "https://courtofappeal.lk/"
-PDF_DIR = "data/pdfs/court_of_appeal"
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+PDF_DIR = os.path.join(_PROJECT_ROOT, "data", "pdfs", "court_of_appeal")
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

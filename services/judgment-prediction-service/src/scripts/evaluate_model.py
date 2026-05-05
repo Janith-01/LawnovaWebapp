@@ -9,9 +9,12 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 # Add project root to path
 sys.path.append(os.getcwd())
 
+# Compute project root (two levels up from src/scripts/)
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
 def evaluate():
-    model_path = "models"
-    data_path = "data/dataset.csv"
+    model_path = os.path.join(_PROJECT_ROOT, "models")
+    data_path = os.path.join(_PROJECT_ROOT, "data", "dataset.csv")
     
     if not os.path.exists(model_path):
         print(f"Model path {model_path} does not exist. Training might be incomplete.")

@@ -5,10 +5,14 @@ from sqlalchemy.orm import sessionmaker
 from .models import Base, Document, ActMetadata
 
 class DatabaseManager:
+    # Compute project root once (two levels up from src/database/db_manager.py)
+    _PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
     def __init__(self, db_url=None):
         # Allow override via env while keeping current default behavior.
         if db_url is None:
-            db_url = os.getenv("JUDGMENT_DB_URL", "sqlite:///data/lawnowa.db")
+            default_db = f"sqlite:///{os.path.join(self._PROJECT_ROOT, 'data', 'lawnowa.db')}"
+            db_url = os.getenv("JUDGMENT_DB_URL", default_db)
 
         # Ensure SQLite directory exists before opening/creating DB file.
         if db_url.startswith("sqlite:///"):
