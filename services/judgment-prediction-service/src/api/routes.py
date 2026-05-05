@@ -1,6 +1,6 @@
 import os
 import json
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Body, Query
 from src.scrapers.supreme_court import SupremeCourtScraper
 from src.database.db_manager import DatabaseManager
 from src.database.models import Job, JobStatus, Document, ActMetadata, JudgmentMetadata
@@ -1613,12 +1613,17 @@ def load_ml_model():
             print(f"Error loading ML model: {e}")
 
 @router.post("/predict/judgment")
-async def predict_judgment(body: PredictionRequest):
+async def predict_judgment(
+    body: PredictionRequest | None = Body(default=None),
+    text: str | None = Query(default=None),
+):
     """
     Predict outcomes (ALLOWED/DISMISSED) based on case facts.
     Accepts JSON body: { "text": "..." }
     """
-    text = body.text
+    text = body.text if body and body.text else text
+    if not text:
+        raise HTTPException(status_code=400, detail="text is required.")
     if not ml_model:
         load_ml_model()
         
@@ -1645,7 +1650,10 @@ async def predict_judgment(body: PredictionRequest):
     }
 
 @router.post("/predict/by-case-number")
-async def predict_by_case_number(body: CaseNumberRequest):
+async def predict_by_case_number(
+    body: CaseNumberRequest | None = Body(default=None),
+    case_number: str | None = Query(default=None),
+):
     """
     Lookup a case by number, extract facts, and predict outcome.
     Useful for testing the model against known cases.
@@ -1654,7 +1662,8 @@ async def predict_by_case_number(body: CaseNumberRequest):
     if not ml_model:
         load_ml_model()
         
-    normalized_input = (body.case_number or "").strip()
+    resolved_case_number = body.case_number if body and body.case_number else case_number
+    normalized_input = (resolved_case_number or "").strip()
     if not normalized_input:
         raise HTTPException(status_code=400, detail="case_number is required.")
 
@@ -1801,13 +1810,21 @@ def get_rag_store():
     return rag_store
 
 @router.post("/search")
-async def search_documents(body: SearchRequest):
+async def search_documents(
+    body: SearchRequest | None = Body(default=None),
+    query: str | None = Query(default=None),
+    limit: int | None = Query(default=None),
+):
     """
     Semantic search over Judgments and Acts.
     Accepts JSON body: { "query": "...", "limit": 5 }
     """
     store = get_rag_store()
-    results = store.search(body.query, k=body.limit)
+    resolved_query = body.query if body and body.query else query
+    resolved_limit = body.limit if body and body.limit is not None else (limit if limit is not None else 5)
+    if not resolved_query:
+        raise HTTPException(status_code=400, detail="query is required.")
+    results = store.search(resolved_query, k=resolved_limit)
     return {"results": results}
 
 # --- Explanation Layer (Gemini) ---
@@ -1823,15 +1840,21 @@ def get_explainer():
     return gemini_explainer
 
 @router.post("/predict/with-explanation")
-async def predict_with_explanation(body: PredictionWithExplanationRequest):
+async def predict_with_explanation(
+    body: PredictionWithExplanationRequest | None = Body(default=None),
+    text: str | None = Query(default=None),
+    case_number: str | None = Query(default=None),
+):
     """
     Predict outcome and generate an Explanation using Gemini + RAG.
     """
     # 1. Get Prediction
     # We can reuse the logic from predict_judgment, but let's call it directly or refactor.
     # For now, invoking the logic inline to avoid HTTP overhead of self-call.
-    text = body.text
-    case_number = body.case_number
+    text = body.text if body and body.text else text
+    case_number = body.case_number if body and body.case_number else case_number
+    if not text:
+        raise HTTPException(status_code=400, detail="text is required.")
     
     if not ml_model:
         load_ml_model()
