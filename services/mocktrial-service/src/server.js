@@ -9,6 +9,7 @@ import connectDB from './config/database.js';
 import roomRoutes from './routes/roomRoutes.js';
 import sessionRoutes from './routes/sessionRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
+import { resolveRequestIdentity } from './middleware/authIdentity.js';
 import emailService from './services/emailService.js';
 import serviceClient from './services/serviceClient.js';
 import logger from './utils/logger.js';
@@ -63,6 +64,9 @@ app.use((req, res, next) => {
     }
     next();
 });
+
+// Resolve auth identity from gateway headers first, then bearer JWT fallback.
+app.use(resolveRequestIdentity);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

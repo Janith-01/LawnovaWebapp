@@ -5,8 +5,12 @@ import aiController from '../controllers/aiController.js';
 import trialSessionController from '../controllers/trialSessionController.js';
 
 import { validate, roomSchemas } from '../middleware/validate.js';
+import { requireAuth } from '../middleware/authIdentity.js';
 
 const router = Router();
+
+// All room routes require authenticated identity.
+router.use(requireAuth);
 
 // ============================================
 // ROOM CRUD ENDPOINTS

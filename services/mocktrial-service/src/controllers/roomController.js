@@ -1473,11 +1473,22 @@ const getMockLearningMaterials = () => ({
  */
 roomController.triggerLearning = async (req, res) => {
     const { roomId } = req.params;
-    const userId = req.headers['user-id'];
+    const userId = req.authUser?.id || req.headers['user-id'];
     const io = req.app.get('io');
 
     try {
-        logger.info({ roomId, userId }, '[triggerLearning] Learning trigger requested');
+        const authEmail = req.authUser?.email || req.headers['user-email'] || null;
+        logger.info({
+            roomId,
+            requestUserId: userId || null,
+            requestUserEmail: authEmail,
+            authSource: req.authUser?.source || 'unknown',
+            authStatus: req.authStatus || 'unknown'
+        }, '[triggerLearning] Learning trigger requested');
+
+        if (!userId && !authEmail) {
+            throw new ApiError(401, 'Authentication required.', [{ code: req.authFailureCode || 'AUTH_MISSING' }]);
+        }
 
         // 1. AUTHORIZATION: Verify the requester is the room owner or the assigned Judge
         const room = await Room.findById(roomId);
@@ -1485,10 +1496,11 @@ roomController.triggerLearning = async (req, res) => {
             throw new ApiError(404, 'Room not found');
         }
 
-        const userEmail = req.headers['user-email'];
-        const isOwner = userId && room.ownerId.toString().toLowerCase() === userId.toLowerCase();
+        const userEmail = (authEmail || '').toLowerCase();
+        const normalizedUserId = (userId || '').toLowerCase();
+        const isOwner = normalizedUserId && room.ownerId.toString().toLowerCase() === normalizedUserId;
         const participant = room.participants.find(p =>
-            (userId && p.userId?.toString().toLowerCase() === userId.toLowerCase()) ||
+            (normalizedUserId && p.userId?.toString().toLowerCase() === normalizedUserId) ||
             (userEmail && p.email?.toLowerCase() === userEmail.toLowerCase())
         );
         const isJudge = participant?.assignedRole?.toLowerCase() === 'judge' || participant?.invitedRole?.toLowerCase() === 'judge';
@@ -1498,6 +1510,8 @@ roomController.triggerLearning = async (req, res) => {
             requestUserId: userId,
             requestUserEmail: userEmail,
             roomOwnerId: room.ownerId.toString(),
+            authSource: req.authUser?.source || 'unknown',
+            authStatus: req.authStatus || 'unknown',
             isOwner,
             isJudge,
             foundParticipant: participant ? {
@@ -1509,10 +1523,9 @@ roomController.triggerLearning = async (req, res) => {
         }, '[triggerLearning] AUTH DEBUG');
 
         if (!isOwner && !isJudge) {
-            const allRoles = room.participants.map(p => `${p.email}:${p.assignedRole}/${p.invitedRole}`).join(', ');
-            const errorDetails = `[AUTH_FAIL] RequestUserId: ${userId || 'MISSING'}, RequestUserEmail: ${userEmail || 'MISSING'}, RoomOwnerId: ${room.ownerId}, isOwner: ${!!isOwner}, isJudge: ${!!isJudge}, My Participant: ${participant ? participant.assignedRole + '/' + participant.invitedRole : 'Not found in participants list'}`;
-            logger.warn({ roomId, errorDetails, allRoles }, '[triggerLearning] Authorization Denied');
-            throw new ApiError(403, `Only the session owner or the Judge can trigger learning materials. ${errorDetails}`);
+            const errorDetails = `[AUTH_FORBIDDEN] RequestUserId: ${userId || 'MISSING'}, RequestUserEmail: ${userEmail || 'MISSING'}, RoomOwnerId: ${room.ownerId}, isOwner: ${!!isOwner}, isJudge: ${!!isJudge}, My Participant: ${participant ? participant.assignedRole + '/' + participant.invitedRole : 'Not found in participants list'}`;
+            logger.warn({ roomId, errorDetails }, '[triggerLearning] Authorization Denied');
+            throw new ApiError(403, `Only the session owner or the Judge can trigger learning materials. ${errorDetails}`, [{ code: 'AUTH_FORBIDDEN' }]);
         }
 
         // 2. Fetch RAG DATA PAYLOAD: Generate dynamic learning materials from the transcript using the AI service 

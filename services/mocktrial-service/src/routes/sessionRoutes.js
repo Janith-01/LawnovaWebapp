@@ -1,8 +1,12 @@
 import { Router } from 'express';
 import Room from '../models/Room.js';
 import logger from '../utils/logger.js';
+import { requireAuth } from '../middleware/authIdentity.js';
 
 const router = Router();
+
+// Session endpoints are private.
+router.use(requireAuth);
 
 // Grace period: 2 hours after scheduled time
 const GRACE_PERIOD_MS = 2 * 60 * 60 * 1000;

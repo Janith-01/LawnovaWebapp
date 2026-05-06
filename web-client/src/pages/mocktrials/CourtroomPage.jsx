@@ -554,7 +554,15 @@ const CourtroomInterface = ({ roomId, roomInfo, token }) => {
 
         } catch (err) {
             console.error('[Courtroom] Failed to trigger learning:', err);
-            if (err.code === 'ECONNABORTED') {
+            const status = err?.response?.status;
+            const errorCodes = err?.response?.data?.errors?.map(e => e?.code).filter(Boolean) || [];
+
+            if (status === 401 || errorCodes.some(c => String(c).startsWith('AUTH_'))) {
+                toast.error('Session expired. Please log in again.');
+                window.dispatchEvent(new CustomEvent('auth:logout'));
+            } else if (status === 403) {
+                toast.error(err?.response?.data?.message || 'You are not allowed to trigger learning materials.');
+            } else if (err.code === 'ECONNABORTED') {
                 toast.error('The AI is taking a bit longer than expected to process the legal complexity. Please try again in a moment.', {
                     duration: 6000
                 });
