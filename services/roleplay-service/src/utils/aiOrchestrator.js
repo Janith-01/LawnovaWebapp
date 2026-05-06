@@ -877,8 +877,41 @@ High Court of Sri Lanka
 
 export async function generateCaseScenario(difficulty, topic, userRole) {
     const genAI = getGenAI();
+    const normalizedDifficulty = difficulty || 'Medium';
+    const normalizedTopic = topic || 'Random';
+    const normalizedRole = userRole || 'Defense';
+
+    const buildFallbackCase = () => ({
+        title: 'State v. Perera',
+        summary: 'A disputed late-night warehouse incident involving alleged theft and conflicting witness accounts.',
+        difficulty: normalizedDifficulty,
+        caseStage: 'Opening Statements',
+        relevantLaw: 'Sri Lankan Penal Code and Evidence Ordinance provisions on theft and admissibility.',
+        topic: normalizedTopic,
+        facts: [
+            'A warehouse reported missing electronics after hours.',
+            'Security logs show an authorized access card used near closing time.',
+            'Two witnesses provide conflicting timelines of who left the premises last.'
+        ],
+        userEvidence: [
+            'Access log extracts with timestamps.',
+            'Statement from a shift supervisor regarding authorized access.'
+        ],
+        opponentEvidence: [
+            'CCTV clip with limited visibility near the loading bay.',
+            'Inventory records suggesting prior stock discrepancies.'
+        ],
+        witnesses: [
+            { name: 'Nimal Jayasinghe', role: 'Security Officer', personality: 'Confident', affiliation: 'Neutral' },
+            { name: 'Anusha Perera', role: 'Warehouse Supervisor', personality: 'Nervous', affiliation: 'Opponent' }
+        ],
+        openingHint: `Establish a clean timeline and challenge weak inferences using documentary evidence first.`,
+        userRole: normalizedRole
+    });
+
     if (!genAI) {
-        throw new Error('Gemini API key not configured. Set GEMINI_API_KEY in environment.');
+        console.warn('[generateCaseScenario] Gemini API key not configured. Using fallback scenario.');
+        return buildFallbackCase();
     }
 
     const prompt = `Generate a Sri Lankan legal case scenario for a courtroom simulation.
@@ -923,6 +956,7 @@ OUTPUT FORMAT (strict JSON):
 
     } catch (error) {
         console.error('Case Generation Error:', error.message);
-        throw error;
+        console.warn('[generateCaseScenario] Falling back to local scenario after model failure.');
+        return buildFallbackCase();
     }
 }
